@@ -1,6 +1,6 @@
 {
-  "name": "filife - Nosso App de Academia",
-  "short_name": "filife",
+  "name": "FitLife - Nosso App de Academia",
+  "short_name": "FitLife",
   "description": "Aplicativo de treino personalizado com GIFs animados, controle de séries e recordes.",
   "start_url": "/",
   "display": "standalone",

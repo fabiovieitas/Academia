@@ -690,7 +690,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                             🤸 Módulo Calistenia (Peso Corporal)
                         </h3>
                         <span style={{ fontSize: '11px', background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                            filife 🤸
+                            FitLife 🤸
                         </span>
                     </div>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>

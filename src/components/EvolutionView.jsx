@@ -237,14 +237,14 @@ const IAPredictionWidget = ({ measurements, profileDetails }) => {
         if (isLoss && ratePerDay >= 0) {
             return {
                 type: 'warning',
-                text: "Seu percentual de gordura (BF) subiu ou manteve-se estável nos últimos exames. Dica filife: Ajuste seu déficit calórico e aumente os cardios sugeridos nas notas do seu treino!"
+                text: "Seu percentual de gordura (BF) subiu ou manteve-se estável nos últimos exames. Dica FitLife: Ajuste seu déficit calórico e aumente os cardios sugeridos nas notas do seu treino!"
             };
         }
         
         if (!isLoss && ratePerDay <= 0 && weightRatePerDay <= 0) {
             return {
                 type: 'warning',
-                text: "Você está em processo de hipertrofia mas seu peso ou gordura corporal está diminuindo. Dica filife: Aumente o consumo de calorias diárias e bata suas metas de proteína para construir massa magra!"
+                text: "Você está em processo de hipertrofia mas seu peso ou gordura corporal está diminuindo. Dica FitLife: Aumente o consumo de calorias diárias e bata suas metas de proteína para construir massa magra!"
             };
         }
         
@@ -310,7 +310,7 @@ const IAPredictionWidget = ({ measurements, profileDetails }) => {
             <span style={{ fontSize: '20px' }}>{emojiMap[prediction.type]}</span>
             <div>
                 <strong style={{ display: 'block', color: colorMap[prediction.type], marginBottom: '3px' }}>
-                    {prediction.type === 'info' ? 'Previsão de Metas filife' : (prediction.type === 'success' ? 'Meta Atingida!' : 'Alerta de Evolução')}
+                    {prediction.type === 'info' ? 'Previsão de Metas FitLife' : (prediction.type === 'success' ? 'Meta Atingida!' : 'Alerta de Evolução')}
                 </strong>
                 {prediction.text}
             </div>

@@ -116,7 +116,7 @@ function MainAppContent() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '20px' }}>⚡</span>
                         <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            filife
+                            FitLife
                         </h1>
                     </div>
                     {isInstallable && (

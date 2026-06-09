@@ -368,8 +368,8 @@ export default function GymMode({ onFinish, onCancel }) {
         return `${pad(mins)}:${pad(secs)}`;
     };
 
-    const gifUrl = currentExercise.path ? encodeURI(`https://www.gifdotreino.com/${currentExercise.path}`) : '';
-    const category = currentExercise.path && currentExercise.path.includes('/') ? currentExercise.path.split('/')[1] : 'Musculação';
+    const gifUrl = currentExercise?.path ? encodeURI(`https://www.gifdotreino.com/${currentExercise.path}`) : '';
+    const category = currentExercise?.path && currentExercise.path.includes('/') ? currentExercise.path.split('/')[1] : 'Musculação';
 
     // Dados para desenhar o timer circular
     const radius = 90;
@@ -377,9 +377,9 @@ export default function GymMode({ onFinish, onCancel }) {
     const progress = timeLeft / restTime;
     const strokeDashoffset = circumference - (progress * circumference);
 
-    const pr = personalRecords[currentExercise.name];
-    const maxSessionWeight = Math.max(...currentExercise.series.map(s => parseFloat(s.actualWeight) || 0), 0);
-    const targetW = currentExercise.targetWeight || 0;
+    const pr = currentExercise ? personalRecords[currentExercise.name] : null;
+    const maxSessionWeight = currentExercise?.series ? Math.max(...currentExercise.series.map(s => parseFloat(s.actualWeight) || 0), 0) : 0;
+    const targetW = currentExercise?.targetWeight || 0;
     const targetPercent = targetW > 0 ? Math.min(100, Math.round((maxSessionWeight / targetW) * 100)) : 0;
 
     const handleSwapExercise = (newEx) => {
@@ -576,12 +576,14 @@ export default function GymMode({ onFinish, onCancel }) {
     const lastLoadSeries = getLastSessionLoad(currentExercise.name);
 
     if (isFocusMode) {
-        const activeSetIdx = currentExercise.series.findIndex(s => !s.completed);
-        const displaySetIdx = activeSetIdx !== -1 ? activeSetIdx : currentExercise.series.length - 1;
-        const activeSet = currentExercise.series[displaySetIdx];
+        const series = currentExercise?.series || [];
+        const activeSetIdx = series.findIndex(s => !s.completed);
+        const displaySetIdx = activeSetIdx !== -1 ? activeSetIdx : (series.length > 0 ? series.length - 1 : 0);
+        const activeSet = series[displaySetIdx] || { reps: 10, weight: 0, completed: false, actualReps: 10, actualWeight: 0 };
         const prevSet = lastLoadSeries && lastLoadSeries[displaySetIdx];
 
         const handleAdjustActiveSet = (field, amount) => {
+            if (!activeSet) return;
             const currentValue = parseFloat(activeSet[field]) || 0;
             let nextValue = currentValue + amount;
             if (field === 'actualReps') {
@@ -591,7 +593,7 @@ export default function GymMode({ onFinish, onCancel }) {
             handleUpdateSet(displaySetIdx, field, nextValue);
         };
 
-        const isAllDone = currentExercise.series.every(s => s.completed);
+        const isAllDone = series.length > 0 && series.every(s => s.completed);
 
         return (
             <div className="gym-mode-container theme-focus" style={{ background: '#0a0b0e', minHeight: '100vh', display: 'flex', flexDirection: 'column', color: '#fff', padding: '15px' }}>
@@ -778,7 +780,7 @@ export default function GymMode({ onFinish, onCancel }) {
                     {/* Botão Gigante de Conclusão de Série */}
                     <button 
                         type="button"
-                        onClick={handleCompleteActiveSet}
+                        onClick={() => handleToggleSetComplete(displaySetIdx)}
                         style={{
                             width: '100%',
                             padding: '20px',

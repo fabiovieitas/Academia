@@ -221,7 +221,7 @@ export default function SettingsView({ isInstallable, onInstall }) {
                         📱 Instalar no Celular (PWA)
                     </h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>
-                        Adicione o <strong>filife</strong> à tela inicial do seu celular para treinar em tela cheia, sem barra de navegação e com acesso offline.
+                        Adicione o <strong>FitLife</strong> à tela inicial do seu celular para treinar em tela cheia, sem barra de navegação e com acesso offline.
                     </p>
                     
                     <button 
