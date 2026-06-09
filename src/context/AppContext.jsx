@@ -382,7 +382,7 @@ export const AppProvider = ({ children }) => {
         try {
             // 1. Carregar treinos
             const { data: workoutsData, error: workoutsError } = await supabase
-                .from('workouts')
+                .from('fitlife_workouts')
                 .select('*')
                 .eq('profile_id', profileId);
                 
@@ -404,7 +404,7 @@ export const AppProvider = ({ children }) => {
 
             // 2. Carregar histórico
             const { data: historyData, error: historyError } = await supabase
-                .from('history')
+                .from('fitlife_history')
                 .select('*')
                 .eq('profile_id', profileId)
                 .order('date', { ascending: false });
@@ -430,7 +430,7 @@ export const AppProvider = ({ children }) => {
 
             // 3. Carregar dados consolidados
             const { data: pdData, error: pdError } = await supabase
-                .from('profile_data')
+                .from('fitlife_profile_data')
                 .select('*')
                 .eq('profile_id', profileId)
                 .maybeSingle();
@@ -479,13 +479,13 @@ export const AppProvider = ({ children }) => {
             const currentIds = list.map(w => String(w.id));
             if (currentIds.length > 0) {
                 await supabase
-                    .from('workouts')
+                    .from('fitlife_workouts')
                     .delete()
                     .eq('profile_id', profileId)
                     .not('id', 'in', `(${currentIds.join(',')})`);
             } else {
                 await supabase
-                    .from('workouts')
+                    .from('fitlife_workouts')
                     .delete()
                     .eq('profile_id', profileId);
             }
@@ -499,7 +499,7 @@ export const AppProvider = ({ children }) => {
                     exercises: w.exercises,
                     updated_at: new Date().toISOString()
                 }));
-                await supabase.from('workouts').upsert(rows);
+                await supabase.from('fitlife_workouts').upsert(rows);
             }
         } catch (e) {
             console.error('Erro ao sincronizar treinos para o Supabase:', e);
@@ -512,13 +512,13 @@ export const AppProvider = ({ children }) => {
             const currentIds = list.map(h => String(h.id));
             if (currentIds.length > 0) {
                 await supabase
-                    .from('history')
+                    .from('fitlife_history')
                     .delete()
                     .eq('profile_id', profileId)
                     .not('id', 'in', `(${currentIds.join(',')})`);
             } else {
                 await supabase
-                    .from('history')
+                    .from('fitlife_history')
                     .delete()
                     .eq('profile_id', profileId);
             }
@@ -538,7 +538,7 @@ export const AppProvider = ({ children }) => {
                     exercises: h.exercises,
                     notes: h.notes || ''
                 }));
-                await supabase.from('history').upsert(rows);
+                await supabase.from('fitlife_history').upsert(rows);
             }
         } catch (e) {
             console.error('Erro ao sincronizar histórico para o Supabase:', e);
@@ -549,7 +549,7 @@ export const AppProvider = ({ children }) => {
         if (!supabase) return;
         try {
             await supabase
-                .from('profile_data')
+                .from('fitlife_profile_data')
                 .upsert({
                     profile_id: profileId,
                     [field]: data,
@@ -1038,7 +1038,7 @@ export const AppProvider = ({ children }) => {
         if (supabase && Object.keys(updatedFields).length > 0) {
             try {
                 await supabase
-                    .from('profile_data')
+                    .from('fitlife_profile_data')
                     .upsert({
                         profile_id: activeProfileId,
                         ...updatedFields,

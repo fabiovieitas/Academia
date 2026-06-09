@@ -1,10 +1,10 @@
 -- =======================================================
--- FitLife Database Schema Setup
--- Execute este script no SQL Editor do seu projeto Supabase
+-- FitLife Database Schema Setup (Prefixado para evitar conflitos)
+-- Execute este script no SQL Editor do seu projeto Supabase existente
 -- =======================================================
 
 -- 1. Tabela de Perfis
-CREATE TABLE IF NOT EXISTS public.profiles (
+CREATE TABLE IF NOT EXISTS public.fitlife_profiles (
     id TEXT PRIMARY KEY,                       -- 'fabio', 'esposa'
     name TEXT NOT NULL,
     avatar TEXT,
@@ -13,12 +13,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 -- Desabilitar RLS para simplificar integração direta no app cliente
-ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fitlife_profiles DISABLE ROW LEVEL SECURITY;
 
 -- 2. Tabela de Treinos (Planilhas de exercícios)
-CREATE TABLE IF NOT EXISTS public.workouts (
+CREATE TABLE IF NOT EXISTS public.fitlife_workouts (
     id TEXT PRIMARY KEY,                       -- timestamp como string ou uuid
-    profile_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    profile_id TEXT NOT NULL REFERENCES public.fitlife_profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
     cover_style TEXT,
@@ -27,12 +27,12 @@ CREATE TABLE IF NOT EXISTS public.workouts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.workouts DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fitlife_workouts DISABLE ROW LEVEL SECURITY;
 
 -- 3. Tabela de Histórico (Treinos finalizados)
-CREATE TABLE IF NOT EXISTS public.history (
+CREATE TABLE IF NOT EXISTS public.fitlife_history (
     id TEXT PRIMARY KEY,                       -- timestamp como string ou uuid
-    profile_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    profile_id TEXT NOT NULL REFERENCES public.fitlife_profiles(id) ON DELETE CASCADE,
     workout_id TEXT,
     workout_name TEXT NOT NULL,
     date TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -47,12 +47,11 @@ CREATE TABLE IF NOT EXISTS public.history (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fitlife_history DISABLE ROW LEVEL SECURITY;
 
 -- 4. Tabela de Dados Consolidados do Perfil
--- Armazena dados secundários (favoritos, recordes, medidas, habilidades e estado do treino ativo)
-CREATE TABLE IF NOT EXISTS public.profile_data (
-    profile_id TEXT PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS public.fitlife_profile_data (
+    profile_id TEXT PRIMARY KEY REFERENCES public.fitlife_profiles(id) ON DELETE CASCADE,
     favorites JSONB DEFAULT '[]'::jsonb,
     personal_records JSONB DEFAULT '{}'::jsonb,
     measurements JSONB DEFAULT '[]'::jsonb,
@@ -63,10 +62,10 @@ CREATE TABLE IF NOT EXISTS public.profile_data (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.profile_data DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fitlife_profile_data DISABLE ROW LEVEL SECURITY;
 
 -- 5. Inserir os dois perfis padrão
-INSERT INTO public.profiles (id, name, avatar, theme)
+INSERT INTO public.fitlife_profiles (id, name, avatar, theme)
 VALUES 
     ('fabio', 'Fábio', '⚡', 'fabio'),
     ('esposa', 'Adlai 💖', '💖', 'esposa')
@@ -74,7 +73,7 @@ ON CONFLICT (id) DO UPDATE
 SET name = EXCLUDED.name, avatar = EXCLUDED.avatar, theme = EXCLUDED.theme;
 
 -- Inserir dados padrão associados
-INSERT INTO public.profile_data (profile_id)
+INSERT INTO public.fitlife_profile_data (profile_id)
 VALUES 
     ('fabio'),
     ('esposa')
