@@ -6,6 +6,7 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [visibleCount, setVisibleCount] = useState(50); // Paginação de 50 em 50 para performance
+    const [previewExercise, setPreviewExercise] = useState(null); // Estado para o modal de pré-visualização
 
     // 1. Extrai categorias dinâmicas da base de dados de exercícios
     const categories = useMemo(() => {
@@ -127,7 +128,14 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                                             ★
                                         </div>
                                         
-                                        <div className="thumb">
+                                        <div 
+                                            className="thumb"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPreviewExercise(exercise);
+                                            }}
+                                            style={{ position: 'relative', cursor: 'zoom-in' }}
+                                        >
                                             <img 
                                                 src={thumbUrl} 
                                                 alt={exercise.name} 
@@ -137,6 +145,7 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                                                     e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
                                                 }}
                                             />
+                                            <div style={{ position: 'absolute', bottom: '2px', right: '2px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', padding: '2px', fontSize: '10px' }}>🔍</div>
                                         </div>
                                         
                                         <div className="details">
@@ -161,6 +170,48 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                         </>
                     )}
                 </div>
+
+                {/* MODAL DE PREVIEW DO GIF (Sobreposto) */}
+                {previewExercise && (
+                    <div 
+                        className="modal-overlay" 
+                        style={{ zIndex: 2000 }} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewExercise(null);
+                        }}
+                    >
+                        <div 
+                            className="modal-sheet" 
+                            style={{ height: 'auto', maxHeight: '80vh', padding: '20px' }} 
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                <h3 style={{ fontSize: '18px', maxWidth: '85%' }}>{previewExercise.name}</h3>
+                                <button className="modal-close-btn" onClick={() => setPreviewExercise(null)}>&times;</button>
+                            </div>
+                            
+                            <div style={{ width: '100%', background: 'var(--bg-tertiary)', borderRadius: '12px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '250px' }}>
+                                <img 
+                                    src={encodeURI(`https://www.gifdotreino.com/${previewExercise.path}`)} 
+                                    alt={previewExercise.name}
+                                    style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+                                />
+                            </div>
+                            
+                            <button 
+                                className="btn-primary" 
+                                style={{ width: '100%', marginTop: '20px', padding: '15px', fontSize: '16px' }}
+                                onClick={() => {
+                                    onSelect(previewExercise);
+                                    setPreviewExercise(null);
+                                }}
+                            >
+                                ➕ Escolher este Exercício
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
