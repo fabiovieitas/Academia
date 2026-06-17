@@ -756,6 +756,32 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                 </div>
                             )}
 
+                            {/* ESPOSA (Apenas Esposa) */}
+                            {activeProfile?.id === 'esposa' && (
+                                <div 
+                                    onClick={() => setSelectedPresetKey('ESPOSA_VIDA')}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, var(--bg-secondary) 100%)',
+                                        border: '1px solid rgba(236, 72, 153, 0.3)',
+                                        borderRadius: '12px',
+                                        padding: '15px',
+                                        cursor: 'pointer',
+                                        transition: 'var(--transition)',
+                                        marginBottom: '15px'
+                                    }}
+                                    className="preset-card"
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                        <h4 style={{ color: '#ec4899', margin: 0 }}>Treino escolhido pelo vida!</h4>
+                                        <span style={{ fontSize: '11px', background: 'rgba(236, 72, 153, 0.1)', color: '#ec4899', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Iniciante</span>
+                                    </div>
+                                    <p style={{ fontSize: '12px', color: 'var(--text-main)', marginBottom: '8px' }}>
+                                        Treino personalizado criado pelo Fábio para a sua esposa.
+                                    </p>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>⏱️ Duração: 50 min/dia | Clique para pré-visualizar</span>
+                                </div>
+                            )}
+
                             {/* PPL */}
                             <div 
                                 onClick={() => setSelectedPresetKey('PPL')}
