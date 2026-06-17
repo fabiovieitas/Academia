@@ -731,28 +731,30 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                 Selecione um modelo para pré-visualizar a rotina de exercícios e importá-la para os seus treinos:
                             </p>
 
-                            {/* AUTOR */}
-                            <div 
-                                onClick={() => setSelectedPresetKey('AUTOR')}
-                                style={{
-                                    background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.15) 0%, var(--bg-secondary) 100%)',
-                                    border: '1px solid rgba(var(--accent-rgb), 0.3)',
-                                    borderRadius: '12px',
-                                    padding: '15px',
-                                    cursor: 'pointer',
-                                    transition: 'var(--transition)'
-                                }}
-                                className="preset-card"
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                                    <h4 style={{ color: 'var(--accent)', margin: 0 }}>ABC escolhido por mim</h4>
-                                    <span style={{ fontSize: '11px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Médio</span>
+                            {/* AUTOR (Apenas Fábio) */}
+                            {activeProfile?.id === 'fabio' && (
+                                <div 
+                                    onClick={() => setSelectedPresetKey('AUTOR')}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.15) 0%, var(--bg-secondary) 100%)',
+                                        border: '1px solid rgba(var(--accent-rgb), 0.3)',
+                                        borderRadius: '12px',
+                                        padding: '15px',
+                                        cursor: 'pointer',
+                                        transition: 'var(--transition)'
+                                    }}
+                                    className="preset-card"
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                        <h4 style={{ color: 'var(--accent)', margin: 0 }}>ABC escolhido por mim</h4>
+                                        <span style={{ fontSize: '11px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Médio</span>
+                                    </div>
+                                    <p style={{ fontSize: '12px', color: 'var(--text-main)', marginBottom: '8px' }}>
+                                        O treino ideal recomendado pelo autor: divisão ABC biomecanicamente otimizada com foco 100% em máquinas e polias para máximo isolamento e segurança articular.
+                                    </p>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>⏱️ Duração: 45 min/dia | Clique para pré-visualizar</span>
                                 </div>
-                                <p style={{ fontSize: '12px', color: 'var(--text-main)', marginBottom: '8px' }}>
-                                    O treino ideal recomendado pelo autor: divisão ABC biomecanicamente otimizada com foco 100% em máquinas e polias para máximo isolamento e segurança articular.
-                                </p>
-                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>⏱️ Duração: 45 min/dia | Clique para pré-visualizar</span>
-                            </div>
+                            )}
 
                             {/* PPL */}
                             <div 
