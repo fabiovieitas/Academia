@@ -50,6 +50,54 @@ export const CALISTENIA_PROJECT = {
 };
 
 export const PRESET_WORKOUTS = {
+    AUTOR: {
+        name: "ABC escolhido por mim",
+        difficulty: "Médio",
+        duration: "45 min/dia",
+        description: "Divisão ABC biomecanicamente estruturada com foco 100% em máquinas e polias para isolamento máximo e segurança articular.",
+        workouts: [
+            {
+                name: "Treino A - Push (Peito, Ombro e Tríceps)",
+                description: "Máquinas para eliminar a instabilidade, blindar o manguito e isolar o peitoral.",
+                coverStyle: "peito",
+                exercises: [
+                    { name: "Supino Vertical na Máquina (Chest Press Machine)", path: "Exercicios/Peitoral/Supino na máquina.gif", series: 4, reps: 10, weight: 30, targetWeight: 45, notes: "Faixa de 10 a 12 repetições. Vantagem: Trajetória fixa, permitindo empurrar com força sem precisar equilibrar a carga." },
+                    { name: "Crucifixo na Máquina (Pec Deck / Fly)", path: "Exercicios/Peitoral/Voador no pec deck.gif", series: 3, reps: 12, weight: 20, targetWeight: 30, notes: "Regule o banco de forma que as mãos fiquem na linha do meio do peito para poupar o ombro." },
+                    { name: "Desenvolvimento de Ombros na Máquina", path: "Exercicios/Ombros/Desenvolvimento de ombros na máquina.gif", series: 3, reps: 10, weight: 15, targetWeight: 25, notes: "Dica: Se a máquina permitir, use a pegada neutra (palmas voltadas uma para a outra), mais anatômica e segura." },
+                    { name: "Elevação Lateral na Polia Baixa (Cabo)", path: "Exercicios/Ombros/Elevação lateral unilateral com cabo.gif", series: 4, reps: 12, weight: 10, targetWeight: 15, notes: "Faixa de 12 a 15 repetições. O cabo mantém a tensão constante em todo o movimento, exigindo menos carga bruta." },
+                    { name: "Tríceps na Polia Alta (Barra Reta/V)", path: "Exercicios/Tríceps/Tríceps pulley barra.gif", series: 4, reps: 12, weight: 20, targetWeight: 30, notes: "Corpo levemente inclinado para a frente, cotovelos travados ao lado das costelas." },
+                    { name: "Tríceps na Polia Alta com Corda", path: "Exercicios/Tríceps/Tríceps pulley corda.gif", series: 3, reps: 10, weight: 15, targetWeight: 22, notes: "Faixa de 10 a 12 repetições. Abra a corda bem embaixo para contrair ao máximo." }
+                ]
+            },
+            {
+                name: "Treino B - Pull (Costas, Bíceps e Antebraço)",
+                description: "Uso de polias e máquinas com suporte de peito para aliviar completamente a carga na lombar.",
+                coverStyle: "costas",
+                exercises: [
+                    { name: "Puxada Alta no Pulley (Pegada Pronada)", path: "Exercicios/Costas/Puxada Alta.gif", series: 4, reps: 10, weight: 45, targetWeight: 60, notes: "Faixa de 10 a 12 repetições. Dica: Puxe a barra em direção ao topo do peito, inclinando o tronco minimamente." },
+                    { name: "Remada Baixa Sentada na Polia (Pegada Triângulo)", path: "Exercicios/Costas/Remada Sentada com Cabo.gif", series: 4, reps: 10, weight: 35, targetWeight: 50, notes: "Mantenha a postura alinhada." },
+                    { name: "Remada Máquina Convergente", path: "Exercicios/Costas/Remada frontal com alavanca.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "Com suporte de peito. Vantagem: Apoio no peito zera a tensão na região lombar, focando 100% nas costas." },
+                    { name: "Crucifixo Invertido na Máquina (Pec Deck Invertido)", path: "Exercicios/Ombros/Voador invertido.gif", series: 3, reps: 15, weight: 20, targetWeight: 30, notes: "Excelente para a postura e fortalecimento do deltoide posterior." },
+                    { name: "Rosca Bíceps no Pulley Baixo", path: "Exercicios/Bíceps/Rosca Unilateral com Cabo.gif", series: 4, reps: 10, weight: 15, targetWeight: 22, notes: "Com barra W ou reta. Faixa de 10 a 12 repetições. Tense constante do cabo, ideal para bombear sangue." },
+                    { name: "Rosca Scott na Máquina", path: "Exercicios/Bíceps/Rosca Scott com Alavanca.gif", series: 3, reps: 10, weight: 15, targetWeight: 22, notes: "Braço totalmente apoiado, isolando o bíceps ao máximo e impedindo o uso do ombro para 'roubar'." },
+                    { name: "Rosca Inversa na Polia Baixa", path: "Exercicios/Antebraços/Rosca Inversa com Barra.gif", series: 3, reps: 12, weight: 10, targetWeight: 15, notes: "Para o antebraço. Nota: GIF ilustrativo usando barra livre devido à ausência de GIF específico para polia." }
+                ]
+            },
+            {
+                name: "Treino C - Legs & Core (Pernas e Abdômen)",
+                description: "Controle total da amplitude em aparelhos para proteção articular e zero foco em glúteos.",
+                coverStyle: "pernas",
+                exercises: [
+                    { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 4, reps: 12, weight: 25, targetWeight: 40, notes: "Faixa de 12 a 15 repetições. Aquecimento: Primeira série com metade da carga para lubrificar o joelho." },
+                    { name: "Leg Press Horizontal (ou Leg 45°)", path: "Exercicios/Pernas/Leg Press Horizontal.gif", series: 4, reps: 10, weight: 60, targetWeight: 90, notes: "Faixa de 10 a 12 repetições. Pés na metade superior. Mantenha os joelhos destravados no topo." },
+                    { name: "Cadeira Flexora (Sentado)", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 4, reps: 12, weight: 25, targetWeight: 40, notes: "A versão sentada isola muito bem os posteriores de coxa de forma segura." },
+                    { name: "Mesa Flexora (Deitado)", path: "Exercicios/Pernas/Mesa flexora.gif", series: 3, reps: 10, weight: 20, targetWeight: 30, notes: "Mantenha o quadril apoiado no banco." },
+                    { name: "Gêmeos Sentado na Máquina (Panturrilha)", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 20, targetWeight: 35, notes: "Movimento completo com alongamento máximo." },
+                    { name: "Abdominal na Máquina (Crunch Machine)", path: "Exercicios/Mobilidade/Contração abdominal.gif", series: 4, reps: 15, weight: 15, targetWeight: 25, notes: "Faixa de 15 a 20 repetições. Nota: GIF ilustrativo de contração abdominal livre devido à ausência de GIF de máquina." }
+                ]
+            }
+        ]
+    },
     PPL: {
         name: "🏋️‍♂️ Push / Pull / Legs (PPL)",
         difficulty: "Avançado",
