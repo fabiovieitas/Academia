@@ -635,6 +635,7 @@ const CalisthenicsSkillsTab = ({
     expandedSkillId,
     setExpandedSkillId
 }) => {
+    const { startCalisthenicsWorkout } = useApp();
     const [inputs, setInputs] = useState({});
     const [errorMsg, setErrorMsg] = useState(null);
 
@@ -993,9 +994,34 @@ const CalisthenicsSkillsTab = ({
 
                                     {/* Phase 1: Pré-requisitos */}
                                     <div>
-                                        <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span>Fase 1</span> • Pré-requisitos Recomendados
-                                        </h4>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                            <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                                                <span>Fase 1</span> • Pré-requisitos Recomendados
+                                            </h4>
+                                            <button
+                                                type="button"
+                                                onClick={() => startCalisthenicsWorkout(maneuver, 1)}
+                                                style={{
+                                                    background: 'rgba(var(--accent-rgb), 0.15)',
+                                                    border: '1px solid var(--accent)',
+                                                    color: 'var(--accent)',
+                                                    padding: '4px 10px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '11px',
+                                                    fontWeight: '700',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    width: 'auto',
+                                                    transition: 'var(--transition)'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+                                            >
+                                                ▶ Treinar Fase 1
+                                            </button>
+                                        </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {maneuver.phase1_progress.map((prog, idx) => {
                                                 const target = prog.target;
@@ -1022,7 +1048,7 @@ const CalisthenicsSkillsTab = ({
                                                     >
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                             <div>
-                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: isMet ? '#34d399' : '#fff' }}>
+                                                                <span style={{ fontSize: '12.5px', fontWeight: '700', color: isMet ? '#34d399' : '#fff' }}>
                                                                     {prog.exercise}
                                                                 </span>
                                                                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -1048,33 +1074,50 @@ const CalisthenicsSkillsTab = ({
                                                             </div>
                                                         )}
 
-                                                        {/* Log Input if training active */}
-                                                        {isManeuverActive && !isMet && (
-                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                                                                <input 
-                                                                    type="number"
-                                                                    placeholder={`${prog.unit === 'segundos' ? 's' : 'reps'}`}
-                                                                    className="input-field"
-                                                                    style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '8px', height: '32px' }}
-                                                                    value={enteredVal}
-                                                                    onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRegister(maneuver.id, 'phase1', prog.exercise)}
-                                                                    style={{
-                                                                        padding: '0 12px',
-                                                                        borderRadius: '8px',
-                                                                        fontSize: '11px',
-                                                                        background: 'rgba(255,255,255,0.05)',
-                                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                                        color: '#fff',
-                                                                        height: '32px',
-                                                                        cursor: 'pointer'
-                                                                    }}
-                                                                >
-                                                                    Registrar
-                                                                </button>
+                                                        {/* Log Input styled as standard series row */}
+                                                        {isManeuverActive && (
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'space-between',
+                                                                gap: '12px',
+                                                                marginTop: '4px',
+                                                                background: 'rgba(255,255,255,0.02)',
+                                                                padding: '6px 10px',
+                                                                borderRadius: '8px',
+                                                                border: '1px solid rgba(255,255,255,0.04)'
+                                                            }}>
+                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Registrar progresso:</span>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <div className="set-input-wrap" style={{ width: '80px', padding: '4px 8px' }}>
+                                                                        <input 
+                                                                            type="number" 
+                                                                            style={{ width: '100%', fontSize: '13px', fontWeight: '700' }}
+                                                                            value={enteredVal}
+                                                                            onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                            placeholder="0"
+                                                                        />
+                                                                        <span style={{ fontSize: '10px' }}>{prog.unit === 'segundos' ? 's' : 'rep'}</span>
+                                                                    </div>
+                                                                    <div 
+                                                                        className={`checkbox-completed ${isMet ? 'checked' : ''}`}
+                                                                        style={{ width: '30px', height: '30px', borderRadius: '6px' }}
+                                                                        onClick={() => {
+                                                                            if (enteredVal) {
+                                                                                handleRegister(maneuver.id, 'phase1', prog.exercise);
+                                                                            } else {
+                                                                                // Toggle: Se já alcançou, zera. Se não, preenche com a meta.
+                                                                                if (isMet) {
+                                                                                    updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, 0);
+                                                                                } else {
+                                                                                    updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, target);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {isMet ? '✓' : ''}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>
@@ -1085,9 +1128,36 @@ const CalisthenicsSkillsTab = ({
 
                                     {/* Phase 2: Fortalecimento Específico */}
                                     <div>
-                                        <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span>Fase 2</span> • Fortalecimento Específico
-                                        </h4>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', opacity: maneuver.phase2_unlocked ? 1 : 0.5 }}>
+                                            <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                                                <span>Fase 2</span> • Fortalecimento Específico
+                                            </h4>
+                                            {maneuver.phase2_unlocked && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => startCalisthenicsWorkout(maneuver, 2)}
+                                                    style={{
+                                                        background: 'rgba(var(--accent-rgb), 0.15)',
+                                                        border: '1px solid var(--accent)',
+                                                        color: 'var(--accent)',
+                                                        padding: '4px 10px',
+                                                        borderRadius: '8px',
+                                                        fontSize: '11px',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        width: 'auto',
+                                                        transition: 'var(--transition)'
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+                                                >
+                                                    ▶ Treinar Fase 2
+                                                </button>
+                                            )}
+                                        </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {maneuver.phase2_progress.map((prog, idx) => {
                                                 const target = prog.target;
@@ -1147,7 +1217,7 @@ const CalisthenicsSkillsTab = ({
                                                     >
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                             <div>
-                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: isMet ? '#34d399' : '#fff' }}>
+                                                                <span style={{ fontSize: '12.5px', fontWeight: '700', color: isMet ? '#34d399' : '#fff' }}>
                                                                     {prog.exercise}
                                                                 </span>
                                                                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -1173,33 +1243,50 @@ const CalisthenicsSkillsTab = ({
                                                             </div>
                                                         )}
 
-                                                        {/* Log Input if training active */}
-                                                        {isManeuverActive && !isMet && (
-                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                                                                <input 
-                                                                    type="number"
-                                                                    placeholder={`${prog.unit === 'segundos' ? 's' : 'reps'}`}
-                                                                    className="input-field"
-                                                                    style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '8px', height: '32px' }}
-                                                                    value={enteredVal}
-                                                                    onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRegister(maneuver.id, 'phase2', prog.exercise)}
-                                                                    style={{
-                                                                        padding: '0 12px',
-                                                                        borderRadius: '8px',
-                                                                        fontSize: '11px',
-                                                                        background: 'rgba(255,255,255,0.05)',
-                                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                                        color: '#fff',
-                                                                        height: '32px',
-                                                                        cursor: 'pointer'
-                                                                    }}
-                                                                >
-                                                                    Registrar
-                                                                </button>
+                                                        {/* Log Input styled as standard series row */}
+                                                        {isManeuverActive && (
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'space-between',
+                                                                gap: '12px',
+                                                                marginTop: '4px',
+                                                                background: 'rgba(255,255,255,0.02)',
+                                                                padding: '6px 10px',
+                                                                borderRadius: '8px',
+                                                                border: '1px solid rgba(255,255,255,0.04)'
+                                                            }}>
+                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Registrar progresso:</span>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <div className="set-input-wrap" style={{ width: '80px', padding: '4px 8px' }}>
+                                                                        <input 
+                                                                            type="number" 
+                                                                            style={{ width: '100%', fontSize: '13px', fontWeight: '700' }}
+                                                                            value={enteredVal}
+                                                                            onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                            placeholder="0"
+                                                                        />
+                                                                        <span style={{ fontSize: '10px' }}>{prog.unit === 'segundos' ? 's' : 'rep'}</span>
+                                                                    </div>
+                                                                    <div 
+                                                                        className={`checkbox-completed ${isMet ? 'checked' : ''}`}
+                                                                        style={{ width: '30px', height: '30px', borderRadius: '6px' }}
+                                                                        onClick={() => {
+                                                                            if (enteredVal) {
+                                                                                handleRegister(maneuver.id, 'phase2', prog.exercise);
+                                                                            } else {
+                                                                                // Toggle: Se já alcançou, zera. Se não, preenche com a meta.
+                                                                                if (isMet) {
+                                                                                    updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, 0);
+                                                                                } else {
+                                                                                    updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, target);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {isMet ? '✓' : ''}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>

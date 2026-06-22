@@ -121,7 +121,7 @@ function MainAppContent() {
                             <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 FitLife
                             </h1>
-                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold' }}>v0.8</span>
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold' }}>v0.9</span>
                         </div>
                     </div>
                     {isInstallable && (

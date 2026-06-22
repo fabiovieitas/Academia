@@ -38,7 +38,8 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         calisthenicsSkills,
         setActiveEvolutionSubTab,
         setExpandedCalisthenicsSkillId,
-        updateManeuverStatus
+        updateManeuverStatus,
+        startCalisthenicsWorkout
     } = useApp();
 
     const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -746,21 +747,21 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                             const completed = progressArray.filter(p => p.value >= p.target).length;
                                             const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
                                             const phaseLabel = maneuver.phase2_unlocked ? "Fase 2: Específico" : "Fase 1: Pré-requisitos";
+                                            const activePhaseNum = maneuver.phase2_unlocked ? 2 : 1;
                                             
                                             return (
                                                 <div 
                                                     key={maneuver.id}
-                                                    onClick={() => handleActiveManeuverClick(maneuver.id)}
                                                     style={{
                                                         background: 'rgba(255, 255, 255, 0.02)',
                                                         border: '1px solid rgba(255, 255, 255, 0.06)',
                                                         borderRadius: '12px',
                                                         padding: '12px 15px',
-                                                        cursor: 'pointer',
                                                         transition: 'all 0.2s ease',
                                                         display: 'flex',
                                                         flexDirection: 'column',
-                                                        gap: '8px'
+                                                        gap: '10px',
+                                                        position: 'relative'
                                                     }}
                                                     onMouseEnter={(e) => {
                                                         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
@@ -771,22 +772,57 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                         e.currentTarget.style.transform = 'none';
                                                     }}
                                                 >
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <strong style={{ color: '#fff', fontSize: '13.5px' }}>
-                                                            {maneuver.name}
-                                                        </strong>
-                                                        <span style={{ fontSize: '10px', background: 'rgba(var(--accent-rgb), 0.15)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                                                            {maneuver.level}
-                                                        </span>
+                                                    <div 
+                                                        onClick={() => handleActiveManeuverClick(maneuver.id)}
+                                                        style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px' }}
+                                                    >
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <strong style={{ color: '#fff', fontSize: '13.5px' }}>
+                                                                {maneuver.name}
+                                                            </strong>
+                                                            <span style={{ fontSize: '10px', background: 'rgba(var(--accent-rgb), 0.15)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                                                {maneuver.level}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                            <span>{phaseLabel}</span>
+                                                            <span>{percent}% Concluído ({completed}/{total})</span>
+                                                        </div>
+                                                        
+                                                        <div style={{ height: '6px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                            <div style={{ height: '100%', width: `${percent}%`, background: 'var(--accent)', transition: 'width 0.3s ease' }}></div>
+                                                        </div>
                                                     </div>
-                                                    
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                                                        <span>{phaseLabel}</span>
-                                                        <span>{percent}% Concluído ({completed}/{total})</span>
-                                                    </div>
-                                                    
-                                                    <div style={{ height: '6px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                        <div style={{ height: '100%', width: `${percent}%`, background: 'var(--accent)', transition: 'width 0.3s ease' }}></div>
+
+                                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                startCalisthenicsWorkout(maneuver, activePhaseNum);
+                                                            }}
+                                                            style={{
+                                                                background: 'var(--accent)',
+                                                                color: 'var(--text-dark)',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '8px',
+                                                                fontSize: '11px',
+                                                                fontWeight: '800',
+                                                                cursor: 'pointer',
+                                                                border: 'none',
+                                                                boxShadow: 'var(--shadow-glow)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px',
+                                                                width: 'auto',
+                                                                transition: 'var(--transition)'
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+                                                        >
+                                                            ▶ Treinar Fase {activePhaseNum}
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );

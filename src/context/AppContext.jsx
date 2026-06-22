@@ -1702,6 +1702,58 @@ export const AppProvider = ({ children }) => {
         saveActiveWorkoutState(activeState);
     };
 
+    // Iniciar uma sessão de calistenia baseada nos requisitos da manobra e fase
+    const startCalisthenicsWorkout = (maneuver, phaseNum) => {
+        const progressArray = phaseNum === 2 ? maneuver.phase2_progress : maneuver.phase1_progress;
+        
+        const formattedExercises = progressArray.map(prog => {
+            // Busca o exercício correspondente na base geral para pegar o caminho do GIF
+            const catalogMatch = exercises.find(ex => ex.name.toLowerCase() === prog.exercise.toLowerCase());
+            const path = catalogMatch ? catalogMatch.path : "";
+            
+            // Cria 3 séries padrão com a meta especificada e peso zero
+            const seriesCount = 3;
+            const series = [];
+            for (let i = 0; i < seriesCount; i++) {
+                series.push({
+                    reps: parseInt(prog.target) || 10,
+                    weight: 0,
+                    completed: false,
+                    actualReps: parseInt(prog.target) || 10,
+                    actualWeight: 0
+                });
+            }
+            
+            return {
+                name: prog.exercise,
+                path: path,
+                notes: `Meta de Habilidade: >=${prog.target} ${prog.unit}.`,
+                targetWeight: 0,
+                series: series
+            };
+        });
+
+        const activeState = {
+            workoutId: `cali_${maneuver.id}_phase${phaseNum}`,
+            workoutName: `Calistenia: ${maneuver.name} (Fase ${phaseNum})`,
+            currentExerciseIndex: 0,
+            startTime: new Date().toISOString(),
+            exercises: formattedExercises
+        };
+        
+        // Se a manobra estiver bloqueada, tenta ativá-la automaticamente
+        if (maneuver.status === 'bloqueado') {
+            try {
+                updateManeuverStatus(maneuver.id, 'treinando');
+            } catch (e) {
+                console.warn("Não foi possível colocar a manobra em treinamento automaticamente:", e.message);
+                alert(`Nota: Não foi possível ativar esta manobra como objetivo de treino automático.\nMotivo: ${e.message}\nVocê pode treinar normalmente, mas para computar o progresso no painel de habilidades, limpe um de seus objetivos atuais.`);
+            }
+        }
+        
+        saveActiveWorkoutState(activeState);
+    };
+
     // Finalizar Treino (salva no histórico)
     const finishWorkout = (cardioStats) => {
         if (!activeWorkout) return;
@@ -1866,7 +1918,8 @@ export const AppProvider = ({ children }) => {
             setToastMessage,
             evolutionPhotos,
             saveEvolutionPhotos,
-            speakExerciseStart
+            speakExerciseStart,
+            startCalisthenicsWorkout
         }}>
             {children}
         </AppContext.Provider>
