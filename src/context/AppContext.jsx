@@ -49,6 +49,170 @@ export const CALISTENIA_PROJECT = {
     ]
 };
 
+export const CALISTHENICS_MANEUVERS_INITIAL = {
+    frog_stand: {
+        id: "frog_stand",
+        name: "Frog Stand",
+        level: "Iniciante",
+        category: "Empurrar/Equilibrio",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Prancha Tradicional", value: 0, target: 45, unit: "segundos" },
+            { exercise: "Prancha Alta", value: 0, target: 35, unit: "segundos" }
+        ],
+        phase2_progress: [
+            { exercise: "Lean Plank", value: 0, target: 15, unit: "segundos" },
+            { exercise: "Frog Stand Assistido", value: 0, target: 30, unit: "segundos" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    },
+    elbow_lever: {
+        id: "elbow_lever",
+        name: "Elbow Lever",
+        level: "Iniciante",
+        category: "Empurrar/Equilibrio",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Flexoes de Braco Tradicionais", value: 0, target: 15, unit: "repeticoes" },
+            { exercise: "Prancha Lombar (Superman)", value: 0, target: 30, unit: "segundos" }
+        ],
+        phase2_progress: [
+            { exercise: "Elbow Lever com pes no chao", value: 0, target: 25, unit: "segundos" },
+            { exercise: "Elbow Lever em Straddle", value: 0, target: 8, unit: "segundos" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    },
+    l_sit: {
+        id: "l_sit",
+        name: "L-Sit",
+        level: "Intermediario",
+        category: "Core/Empurrar",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Abdominal Canoa (Hollow Body)", value: 0, target: 30, unit: "segundos" },
+            { exercise: "Fundos nas Paralelas (Dips)", value: 0, target: 10, unit: "repeticoes" }
+        ],
+        phase2_progress: [
+            { exercise: "Support Hold nas Paralelas", value: 0, target: 30, unit: "segundos" },
+            { exercise: "Tuck L-Sit", value: 0, target: 15, unit: "segundos" },
+            { exercise: "One-Leg L-Sit", value: 0, target: 10, unit: "segundos" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    },
+    handstand: {
+        id: "handstand",
+        name: "Handstand (Parada de Mao)",
+        level: "Intermediario",
+        category: "Empurrar/Equilibrio",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Flexao Pike", value: 0, target: 8, unit: "repeticoes" },
+            { exercise: "Prancha Alta", value: 0, target: 45, unit: "segundos" }
+        ],
+        phase2_progress: [
+            { exercise: "Handstand na Parede (Costas)", value: 0, target: 30, unit: "segundos" },
+            { exercise: "Handstand na Parede (Frente)", value: 0, target: 20, unit: "segundos" },
+            { exercise: "Wall Scissor", value: 0, target: 6, unit: "repeticoes" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    },
+    skin_the_cat: {
+        id: "skin_the_cat",
+        name: "Skin the Cat",
+        level: "Intermediario",
+        category: "Puxar/Mobilidade",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Barra Fixa (Pull-ups)", value: 0, target: 8, unit: "repeticoes" },
+            { exercise: "Elevacao de Joelhos na Barra", value: 0, target: 12, unit: "repeticoes" }
+        ],
+        phase2_progress: [
+            { exercise: "Toes to Bar (Pes na Barra)", value: 0, target: 5, unit: "repeticoes" },
+            { exercise: "Skin the Cat Assistido", value: 0, target: 4, unit: "repeticoes" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    },
+    human_flag: {
+        id: "human_flag",
+        name: "Bandeira Humana (Human Flag)",
+        level: "Avançado",
+        category: "Empurrar/Equilibrio",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Puxada escapular na barra fixa", value: 0, target: 12, unit: "repeticoes" },
+            { exercise: "Paralela", value: 0, target: 8, unit: "repeticoes" }
+        ],
+        phase2_progress: [
+            { exercise: "Elevação lateral com toalha na parede", value: 0, target: 10, unit: "repeticoes" },
+            { exercise: "Bandeira Humana", value: 0, target: 6, unit: "repeticoes" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    },
+    muscle_up: {
+        id: "muscle_up",
+        name: "Muscle Up",
+        level: "Avançado",
+        category: "Puxar/Empurrar",
+        status: "bloqueado",
+        phase1_progress: [
+            { exercise: "Barra Fixa com Pegada Supinada", value: 0, target: 8, unit: "repeticoes" },
+            { exercise: "Paralela", value: 0, target: 10, unit: "repeticoes" }
+        ],
+        phase2_progress: [
+            { exercise: "Puxada escapular na barra fixa", value: 0, target: 10, unit: "repeticoes" },
+            { exercise: "Muscle up", value: 0, target: 4, unit: "repeticoes" }
+        ],
+        phase2_unlocked: false,
+        maneuver_unlocked: false
+    }
+};
+
+export const mergeDefaultSkills = (skills) => {
+    if (!skills) return { merged: { ...CALISTHENICS_MANEUVERS_INITIAL }, hasChanges: true };
+    const merged = { ...skills };
+    let hasChanges = false;
+    Object.keys(CALISTHENICS_MANEUVERS_INITIAL).forEach(key => {
+        if (!merged[key]) {
+            merged[key] = JSON.parse(JSON.stringify(CALISTHENICS_MANEUVERS_INITIAL[key]));
+            hasChanges = true;
+        }
+    });
+    return { merged, hasChanges };
+};
+
+export const buildSkillsFromDb = (dbRows) => {
+    const skills = JSON.parse(JSON.stringify(CALISTHENICS_MANEUVERS_INITIAL));
+    if (!dbRows || dbRows.length === 0) return skills;
+    dbRows.forEach(row => {
+        const mId = row.maneuver_id;
+        if (skills[mId]) {
+            skills[mId].status = row.status;
+            skills[mId].phase2_unlocked = row.phase2_unlocked;
+            skills[mId].maneuver_unlocked = row.maneuver_unlocked;
+            
+            if (Array.isArray(row.phase1_progress)) {
+                row.phase1_progress.forEach(p => {
+                    const item = skills[mId].phase1_progress.find(req => req.exercise === p.exercise);
+                    if (item) item.value = p.value;
+                });
+            }
+            if (Array.isArray(row.phase2_progress)) {
+                row.phase2_progress.forEach(p => {
+                    const item = skills[mId].phase2_progress.find(req => req.exercise === p.exercise);
+                    if (item) item.value = p.value;
+                });
+            }
+        }
+    });
+    return skills;
+};
+
 export const PRESET_WORKOUTS = {
     AUTOR: {
         name: "ABC escolhido por mim",
@@ -433,16 +597,19 @@ export const AppProvider = ({ children }) => {
     const [measurements, setMeasurements] = useState([]);
 
     // 4.10 Habilidades de Calistenia (Skills)
-    const [calisthenicsSkills, setCalisthenicsSkills] = useState({
-        'Frog Stand': 'bloqueado',
-        'L-Sit': 'bloqueado',
-        'Muscle Up': 'bloqueado',
-        'Human Flag': 'bloqueado',
-        'Handstand': 'bloqueado'
+    const [calisthenicsSkills, setCalisthenicsSkills] = useState(() => {
+        return CALISTHENICS_MANEUVERS_INITIAL;
     });
+
+    // 4.10.1 Navegação / Foco da Calistenia
+    const [activeEvolutionSubTab, setActiveEvolutionSubTab] = useState('medidas');
+    const [expandedCalisthenicsSkillId, setExpandedCalisthenicsSkillId] = useState(null);
 
     // 4.11 Fotos de Evolução Física
     const [evolutionPhotos, setEvolutionPhotos] = useState([]);
+
+    // 4.12 Estado de Notificação de Validação Cruzada (Toast)
+    const [toastMessage, setToastMessage] = useState(null);
 
     // 4.9 Narração por Voz do Descanso (PWA / Text-to-Speech)
     const [voiceNotifications, setVoiceNotifications] = useState(() => {
@@ -540,9 +707,28 @@ export const AppProvider = ({ children }) => {
                     setMeasurements(pdData.measurements);
                     localStorage.setItem(`fitlife_v3_measurements_${profileId}`, JSON.stringify(pdData.measurements));
                 }
-                if (pdData.skills !== null) {
-                    setCalisthenicsSkills(pdData.skills);
-                    localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(pdData.skills));
+                // 3.5 Carregar progresso de calistenia dedicado
+                const { data: calisthenicsData, error: calisthenicsError } = await supabase
+                    .from('fitlife_calisthenics_progress')
+                    .select('*')
+                    .eq('profile_id', profileId);
+                    
+                if (!calisthenicsError && calisthenicsData && calisthenicsData.length > 0) {
+                    const skillsMerged = buildSkillsFromDb(calisthenicsData);
+                    const { merged } = mergeDefaultSkills(skillsMerged);
+                    setCalisthenicsSkills(merged);
+                    localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(merged));
+                } else if (pdData.skills !== null) {
+                    // Fallback para o JSON legado caso não haja registros na nova tabela
+                    const legacySkills = pdData.skills;
+                    if (legacySkills && legacySkills.frog_stand) {
+                        const { merged } = mergeDefaultSkills(legacySkills);
+                        setCalisthenicsSkills(merged);
+                        localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(merged));
+                    } else {
+                        setCalisthenicsSkills(CALISTHENICS_MANEUVERS_INITIAL);
+                        localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(CALISTHENICS_MANEUVERS_INITIAL));
+                    }
                 }
                 if (pdData.profile_details !== null) {
                     setProfileDetails(pdData.profile_details);
@@ -766,13 +952,16 @@ export const AppProvider = ({ children }) => {
             setMeasurements(savedMeasurements ? JSON.parse(savedMeasurements) : []);
 
             const savedSkills = localStorage.getItem(`fitlife_v3_skills_${activeProfileId}`);
-            setCalisthenicsSkills(savedSkills ? JSON.parse(savedSkills) : {
-                'Frog Stand': 'bloqueado',
-                'L-Sit': 'bloqueado',
-                'Muscle Up': 'bloqueado',
-                'Human Flag': 'bloqueado',
-                'Handstand': 'bloqueado'
-            });
+            if (savedSkills) {
+                const parsed = JSON.parse(savedSkills);
+                const { merged, hasChanges } = mergeDefaultSkills(parsed);
+                setCalisthenicsSkills(merged);
+                if (hasChanges) {
+                    localStorage.setItem(`fitlife_v3_skills_${activeProfileId}`, JSON.stringify(merged));
+                }
+            } else {
+                setCalisthenicsSkills(CALISTHENICS_MANEUVERS_INITIAL);
+            }
 
             const savedPhotos = localStorage.getItem(`fitlife_v3_evolution_photos_${activeProfileId}`);
             setEvolutionPhotos(savedPhotos ? JSON.parse(savedPhotos) : []);
@@ -804,13 +993,7 @@ export const AppProvider = ({ children }) => {
             setFavorites([]);
             setPersonalRecords({});
             setMeasurements([]);
-            setCalisthenicsSkills({
-                'Frog Stand': 'bloqueado',
-                'L-Sit': 'bloqueado',
-                'Muscle Up': 'bloqueado',
-                'Human Flag': 'bloqueado',
-                'Handstand': 'bloqueado'
-            });
+            setCalisthenicsSkills(CALISTHENICS_MANEUVERS_INITIAL);
             setEvolutionPhotos([]);
             setProfileDetails(null);
             setActiveWorkout(null);
@@ -970,6 +1153,13 @@ export const AppProvider = ({ children }) => {
         setWorkoutStreak(calculateStreak(history));
     }, [history]);
 
+    // Executa a checagem cruzada em segundo plano sempre que o histórico muda
+    useEffect(() => {
+        if (activeProfileId && history && history.length > 0 && calisthenicsSkills) {
+            runCalisthenicsCrossValidation(history, calisthenicsSkills);
+        }
+    }, [history]);
+
     // Salva ou atualiza um log de medidas corporais
     const saveMeasurement = (log) => {
         let newMeasurements = [...measurements];
@@ -1011,11 +1201,231 @@ export const AppProvider = ({ children }) => {
     };
 
     // Salva habilidades de calistenia
-    const saveCalisthenicsSkills = (newSkills) => {
+    const saveCalisthenicsSkills = async (newSkills) => {
         setCalisthenicsSkills(newSkills);
         if (activeProfileId) {
             localStorage.setItem(`fitlife_v3_skills_${activeProfileId}`, JSON.stringify(newSkills));
             updateProfileDataField(activeProfileId, 'skills', newSkills);
+
+            if (supabase) {
+                try {
+                    const upserts = Object.keys(newSkills).map(mId => {
+                        const m = newSkills[mId];
+                        return {
+                            profile_id: activeProfileId,
+                            maneuver_id: mId,
+                            status: m.status,
+                            phase1_progress: m.phase1_progress.map(p => ({ exercise: p.exercise, value: p.value })),
+                            phase2_progress: m.phase2_progress.map(p => ({ exercise: p.exercise, value: p.value })),
+                            phase2_unlocked: m.phase2_unlocked,
+                            maneuver_unlocked: m.maneuver_unlocked,
+                            updated_at: new Date().toISOString()
+                        };
+                    });
+                    
+                    await supabase
+                        .from('fitlife_calisthenics_progress')
+                        .upsert(upserts);
+                } catch (e) {
+                    console.error('Erro ao sincronizar progresso de calistenia para o Supabase:', e);
+                }
+            }
+        }
+    };
+
+    const updateManeuverProgress = (maneuverId, type, exerciseName, newValue) => {
+        const updatedSkills = JSON.parse(JSON.stringify(calisthenicsSkills));
+        const maneuver = updatedSkills[maneuverId];
+        if (!maneuver) return;
+
+        if (type === 'phase1') {
+            const prog = maneuver.phase1_progress.find(p => p.exercise === exerciseName);
+            if (prog) {
+                prog.value = Number(newValue) || 0;
+            }
+        } else if (type === 'phase2') {
+            if (!maneuver.phase2_unlocked) {
+                throw new Error('A Fase 2 está bloqueada. Cumpra todos os pré-requisitos da Fase 1 primeiro.');
+            }
+            const prog = maneuver.phase2_progress.find(p => p.exercise === exerciseName);
+            if (prog) {
+                prog.value = Number(newValue) || 0;
+            }
+        }
+
+        // Verifica se todos os requerimentos da Fase 1 foram atingidos
+        const phase1Completed = maneuver.phase1_progress.every(p => p.value >= p.target);
+        maneuver.phase2_unlocked = phase1Completed;
+
+        // Se a Fase 1 não foi cumprida, reseta a Fase 2
+        if (!phase1Completed) {
+            maneuver.phase2_progress.forEach(p => p.value = 0);
+        }
+
+        // Verifica se todos os requerimentos da Fase 2 foram atingidos
+        const phase2Completed = phase1Completed && maneuver.phase2_progress.every(p => p.value >= p.target);
+        maneuver.maneuver_unlocked = phase2Completed;
+
+        // Se a manobra deixou de ser elegível e estava dominada, move para treinando
+        if (!maneuver.maneuver_unlocked && maneuver.status === 'dominado') {
+            maneuver.status = 'treinando';
+        }
+
+        saveCalisthenicsSkills(updatedSkills);
+    };
+
+    const updateManeuverStatus = (maneuverId, nextStatus) => {
+        const updatedSkills = JSON.parse(JSON.stringify(calisthenicsSkills));
+        const maneuver = updatedSkills[maneuverId];
+        if (!maneuver) return;
+
+        if (nextStatus === 'treinando') {
+            // Regra 1: Limite de Metas Ativas
+            const activeManeuvers = Object.keys(updatedSkills).filter(id => id !== maneuverId && updatedSkills[id].status === 'treinando');
+            if (activeManeuvers.length >= 2) {
+                throw new Error('Você já possui o limite máximo de 2 metas ativas em treinamento simultaneamente.');
+            }
+
+            // Regra 2: Bloqueio por Categoria
+            const sameCategoryManeuver = Object.keys(updatedSkills).find(id => {
+                return id !== maneuverId && 
+                       updatedSkills[id].status === 'treinando' && 
+                       updatedSkills[id].category === maneuver.category;
+            });
+            if (sameCategoryManeuver) {
+                const nameConflicting = updatedSkills[sameCategoryManeuver].name;
+                throw new Error(`Bloqueio por Categoria: Você já está treinando a manobra "${nameConflicting}", que possui a mesma categoria ("${maneuver.category}").`);
+            }
+        }
+
+        if (nextStatus === 'dominado') {
+            // Regra 3: Liberação de tentativas apenas se Fase 2 finalizada
+            if (!maneuver.maneuver_unlocked) {
+                throw new Error('A manobra final só é liberada para domínio após a conclusão de todos os exercícios da Fase 2.');
+            }
+        }
+
+        maneuver.status = nextStatus;
+        saveCalisthenicsSkills(updatedSkills);
+    };
+
+    // Rotina de Checagem Cruzada Musculação -> Calistenia (24 horas)
+    const runCalisthenicsCrossValidation = (historyList = history, skillsState = calisthenicsSkills) => {
+        if (!activeProfileId || !historyList || historyList.length === 0 || !skillsState) return;
+
+        const now = new Date();
+        const past24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+        // Filtrar histórico concluído nas últimas 24h
+        const recentHistory = historyList.filter(h => {
+            const hDate = new Date(h.date);
+            return hDate >= past24h;
+        });
+
+        if (recentHistory.length === 0) return;
+
+        // Dicionário de mapeamento flexível de nomes de exercícios
+        const exerciseMapping = {
+            "Prancha Tradicional": ["prancha tradicional", "prancha abdominal", "prancha abdominal isometria", "prancha", "prancha alta"],
+            "Prancha Alta": ["prancha alta", "prancha alta de ombros"],
+            "Flexoes de Braco Tradicionais": ["flexões de braço", "flexao de braco", "flexoes de braco", "flexão", "flexões", "flexoes de braco tradicionais"],
+            "Prancha Lombar (Superman)": ["superman", "prancha lombar", "prancha lombar (superman)", "prancha lombar superman"],
+            "Abdominal Canoa (Hollow Body)": ["hollow body", "abdominal canoa", "abdominal canoa (hollow body)", "abdominal canoa hollow body"],
+            "Fundos nas Paralelas (Dips)": ["paralela", "dips", "fundos nas paralelas", "fundos nas paralelas (dips)", "dips paralelas"],
+            "Flexao Pike": ["flexão pike", "pike push-up", "flexao pike", "pike push-up (flexão pike)", "pike pushup"],
+            "Barra Fixa (Pull-ups)": ["barra fixa", "pull-up", "pull-ups", "barra fixa (pull-ups)", "barra fixa com pegada supinada", "pullup", "pullups"],
+            "Elevacao de Joelhos na Barra": ["elevação de joelhos na barra", "elevacao de joelhos na barra", "elevação de joelhos", "elevacao de joelhos", "joelhos na barra"]
+        };
+
+        const updatedSkills = JSON.parse(JSON.stringify(skillsState));
+        let updatedAny = false;
+        let notifiedExerciseName = "";
+
+        // Coleta os maiores valores realizados no histórico recente para os mapeados
+        const maxGymValues = {};
+        recentHistory.forEach(h => {
+            if (h.exercises) {
+                h.exercises.forEach(ex => {
+                    const gymNameClean = ex.name.toLowerCase().trim();
+                    Object.keys(exerciseMapping).forEach(caliExName => {
+                        const matches = exerciseMapping[caliExName];
+                        const isMatch = matches.some(pattern => 
+                            gymNameClean.includes(pattern) || pattern.includes(gymNameClean)
+                        );
+                        
+                        if (isMatch) {
+                            let maxVal = 0;
+                            if (ex.series) {
+                                ex.series.forEach(s => {
+                                    const val = s.actualReps || s.reps || 0;
+                                    if (val > maxVal) maxVal = val;
+                                });
+                            }
+                            if (maxVal > 0) {
+                                if (!maxGymValues[caliExName] || maxVal > maxGymValues[caliExName]) {
+                                    maxGymValues[caliExName] = maxVal;
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        // Aplica e atualiza no progresso da Calistenia
+        Object.keys(updatedSkills).forEach(mId => {
+            const maneuver = updatedSkills[mId];
+            
+            // Fase 1
+            maneuver.phase1_progress.forEach(p => {
+                const gymVal = maxGymValues[p.exercise];
+                if (gymVal && gymVal > p.value) {
+                    p.value = gymVal;
+                    updatedAny = true;
+                    notifiedExerciseName = p.exercise;
+                }
+            });
+
+            // Recalcula Phase 2 Unlocked
+            const phase1Completed = maneuver.phase1_progress.every(p => p.value >= p.target);
+            maneuver.phase2_unlocked = phase1Completed;
+
+            // Fase 2 (Apenas se Fase 1 destravada)
+            if (maneuver.phase2_unlocked) {
+                maneuver.phase2_progress.forEach(p => {
+                    const gymVal = maxGymValues[p.exercise];
+                    if (gymVal && gymVal > p.value) {
+                        p.value = gymVal;
+                        updatedAny = true;
+                        notifiedExerciseName = p.exercise;
+                    }
+                });
+            } else {
+                maneuver.phase2_progress.forEach(p => p.value = 0);
+            }
+
+            // Recalcula Maneuver Unlocked
+            const phase2Completed = maneuver.phase2_unlocked && maneuver.phase2_progress.every(p => p.value >= p.target);
+            maneuver.maneuver_unlocked = phase2Completed;
+
+            if (!maneuver.maneuver_unlocked && maneuver.status === 'dominado') {
+                maneuver.status = 'treinando';
+            }
+        });
+
+        if (updatedAny) {
+            saveCalisthenicsSkills(updatedSkills);
+            setToastMessage(`Aproveitamos seu exercício "${notifiedExerciseName}" da musculação para computar sua meta de Calistenia de hoje!`);
+            
+            // Limpa após 8 segundos de forma segura
+            setTimeout(() => {
+                setToastMessage(prev => {
+                    if (prev && prev.includes(notifiedExerciseName)) {
+                        return null;
+                    }
+                    return prev;
+                });
+            }, 8000);
         }
     };
 
@@ -1117,9 +1527,7 @@ export const AppProvider = ({ children }) => {
             updatedFields.profile_details = data.profileDetails;
         }
         if (data.skills) {
-            localStorage.setItem(`fitlife_v3_skills_${activeProfileId}`, JSON.stringify(data.skills));
-            setCalisthenicsSkills(data.skills);
-            updatedFields.skills = data.skills;
+            await saveCalisthenicsSkills(data.skills);
         }
         if (data.evolutionPhotos) {
             localStorage.setItem(`fitlife_v3_evolution_photos_${activeProfileId}`, JSON.stringify(data.evolutionPhotos));
@@ -1448,6 +1856,14 @@ export const AppProvider = ({ children }) => {
             saveProfileDetails,
             calisthenicsSkills,
             saveCalisthenicsSkills,
+            updateManeuverProgress,
+            updateManeuverStatus,
+            activeEvolutionSubTab,
+            setActiveEvolutionSubTab,
+            expandedCalisthenicsSkillId,
+            setExpandedCalisthenicsSkillId,
+            toastMessage,
+            setToastMessage,
             evolutionPhotos,
             saveEvolutionPhotos,
             speakExerciseStart

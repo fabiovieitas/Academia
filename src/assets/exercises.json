@@ -5770,5 +5770,131 @@
     "path": "Exercicios/Trapézio/remada invertida com halteres inclinado.gif",
     "thumbnail": "thumbnails/remada invertida com halteres inclinado.png",
     "description": "Descrição para o exercício: remada invertida com halteres inclinado"
+  },
+  {
+    "name": "Prancha Tradicional",
+    "path": "Exercicios/Calistenia/Prancha Tradicional.gif",
+    "thumbnail": "thumbnails/Prancha Tradicional.png",
+    "description": "Prancha abdominal tradicional para fortalecimento de core e estabilizadores."
+  },
+  {
+    "name": "Prancha Alta",
+    "path": "Exercicios/Calistenia/Prancha Alta.gif",
+    "thumbnail": "thumbnails/Prancha Alta.png",
+    "description": "Prancha com braços estendidos para fortalecimento escapular e ombros."
+  },
+  {
+    "name": "Lean Plank",
+    "path": "Exercicios/Calistenia/Lean Plank.gif",
+    "thumbnail": "thumbnails/Lean Plank.png",
+    "description": "Prancha com inclinação para frente para ativação intensa de ombros e serrátil."
+  },
+  {
+    "name": "Frog Stand Assistido",
+    "path": "Exercicios/Calistenia/Frog Stand Assistido.gif",
+    "thumbnail": "thumbnails/Frog Stand Assistido.png",
+    "description": "Exercício de transição e equilíbrio para o Frog Stand com apoio de pés."
+  },
+  {
+    "name": "Flexoes de Braco Tradicionais",
+    "path": "Exercicios/Calistenia/Flexoes de Braco Tradicionais.gif",
+    "thumbnail": "thumbnails/Flexoes de Braco Tradicionais.png",
+    "description": "Flexão de braço clássica no chão."
+  },
+  {
+    "name": "Prancha Lombar (Superman)",
+    "path": "Exercicios/Eretor Lombar/Superman.gif",
+    "thumbnail": "thumbnails/Superman.png",
+    "description": "Extensão lombar deitado de bruços (Superman)."
+  },
+  {
+    "name": "Elbow Lever com pes no chao",
+    "path": "Exercicios/Calistenia/Elbow Lever com pes no chao.gif",
+    "thumbnail": "thumbnails/Elbow Lever com pes no chao.png",
+    "description": "Exercício preparatório para Elbow Lever mantendo os pés apoiados."
+  },
+  {
+    "name": "Elbow Lever em Straddle",
+    "path": "Exercicios/Calistenia/Elbow Lever em Straddle.gif",
+    "thumbnail": "thumbnails/Elbow Lever em Straddle.png",
+    "description": "Elbow Lever com pernas afastadas para equilíbrio."
+  },
+  {
+    "name": "Abdominal Canoa (Hollow Body)",
+    "path": "Exercicios/Calistenia/Abdominal Canoa (Hollow Body).gif",
+    "thumbnail": "thumbnails/Abdominal Canoa (Hollow Body).png",
+    "description": "Posição estática de canoa no chão para ativação e força do core."
+  },
+  {
+    "name": "Fundos nas Paralelas (Dips)",
+    "path": "Exercicios/Calistenia/Paralela.gif",
+    "thumbnail": "thumbnails/Paralela.png",
+    "description": "Flexão de braços nas barras paralelas."
+  },
+  {
+    "name": "Support Hold nas Paralelas",
+    "path": "Exercicios/Calistenia/Support Hold nas Paralelas.gif",
+    "thumbnail": "thumbnails/Support Hold nas Paralelas.png",
+    "description": "Sustentação isométrica de braços estendidos nas paralelas."
+  },
+  {
+    "name": "Tuck L-Sit",
+    "path": "Exercicios/Calistenia/Tuck L-Sit.gif",
+    "thumbnail": "thumbnails/Tuck L-Sit.png",
+    "description": "L-Sit com os joelhos encolhidos."
+  },
+  {
+    "name": "One-Leg L-Sit",
+    "path": "Exercicios/Calistenia/One-Leg L-Sit.gif",
+    "thumbnail": "thumbnails/One-Leg L-Sit.png",
+    "description": "L-Sit estendendo uma perna de cada vez."
+  },
+  {
+    "name": "Flexao Pike",
+    "path": "Exercicios/Calistenia/Flexões de apoio de mão na parede.gif",
+    "thumbnail": "thumbnails/Flexões de apoio de mão na parede.png",
+    "description": "Flexão com quadril elevado (Pike Push-up) para ombros."
+  },
+  {
+    "name": "Handstand na Parede (Costas)",
+    "path": "Exercicios/Calistenia/Handstand na Parede (Costas).gif",
+    "thumbnail": "thumbnails/Handstand na Parede (Costas).png",
+    "description": "Parada de mão de costas para a parede."
+  },
+  {
+    "name": "Handstand na Parede (Frente)",
+    "path": "Exercicios/Calistenia/Handstand na Parede (Frente).gif",
+    "thumbnail": "thumbnails/Handstand na Parede (Frente).png",
+    "description": "Parada de mão de frente para a parede."
+  },
+  {
+    "name": "Wall Scissor",
+    "path": "Exercicios/Calistenia/Wall Scissor.gif",
+    "thumbnail": "thumbnails/Wall Scissor.png",
+    "description": "Movimento de tesoura com as pernas na parede para controle de parada de mão."
+  },
+  {
+    "name": "Barra Fixa (Pull-ups)",
+    "path": "Exercicios/Calistenia/Barra Fixa (Pull-ups).gif",
+    "thumbnail": "thumbnails/Barra Fixa (Pull-ups).png",
+    "description": "Puxada clássica na barra fixa com pegada pronada."
+  },
+  {
+    "name": "Elevacao de Joelhos na Barra",
+    "path": "Exercicios/Calistenia/Elevacao de Joelhos na Barra.gif",
+    "thumbnail": "thumbnails/Elevacao de Joelhos na Barra.png",
+    "description": "Elevação de joelhos até o peito pendurado na barra."
+  },
+  {
+    "name": "Toes to Bar (Pes na Barra)",
+    "path": "Exercicios/Calistenia/Toes to Bar.gif",
+    "thumbnail": "thumbnails/Toes to Bar.png",
+    "description": "Elevação das pernas até tocar os pés na barra."
+  },
+  {
+    "name": "Skin the Cat Assistido",
+    "path": "Exercicios/Calistenia/Skin the Cat.gif",
+    "thumbnail": "thumbnails/Skin the Cat.png",
+    "description": "Exercício de mobilidade de ombros e core pendurado na barra com assistência."
   }
 ]

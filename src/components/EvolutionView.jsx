@@ -628,201 +628,595 @@ const EvolutionPhotosTab = ({ evolutionPhotos, saveEvolutionPhotos }) => {
     );
 };
 
-const CalisthenicsSkillsTab = ({ calisthenicsSkills, saveCalisthenicsSkills }) => {
-    const [expandedSkill, setExpandedSkill] = useState(null);
+const CalisthenicsSkillsTab = ({ 
+    calisthenicsSkills, 
+    updateManeuverProgress, 
+    updateManeuverStatus,
+    expandedSkillId,
+    setExpandedSkillId
+}) => {
+    const [inputs, setInputs] = useState({});
+    const [errorMsg, setErrorMsg] = useState(null);
 
-    const skillsData = [
-        {
-            name: "Frog Stand (Corvo)",
-            level: "Iniciante",
-            desc: "Equilíbrio de sustentação do peso corporal sobre as mãos com cotovelos servindo de apoio para as coxas/joelhos. Prepara para apoio vertical.",
-            requirements: [
-                { name: "Pike Push-up (Flexão Pike)", reps: "3x8 reps" },
-                { name: "Flexão diamante", reps: "3x12 reps" },
-                { name: "Prancha abdominal", reps: "60 segundos" }
-            ]
-        },
-        {
-            name: "L-Sit",
-            level: "Intermediário",
-            desc: "Sustentar o corpo nas barras paralelas ou no chão mantendo os braços esticados e as pernas esticadas paralelas ao chão formando um L.",
-            requirements: [
-                { name: "Sustentação na paralela com pernas esticadas", reps: "30 segundos" },
-                { name: "Abdominais infra na paralela", reps: "3x12 reps" },
-                { name: "Contração abdominal isométrica", reps: "45 segundos" }
-            ]
-        },
-        {
-            name: "Handstand (Parada de Mão)",
-            level: "Intermediário",
-            desc: "Equilíbrio vertical completo com sustentação integral do corpo sobre as mãos sem apoios externos.",
-            requirements: [
-                { name: "Sustentação na parede de cabeça para baixo", reps: "60 segundos" },
-                { name: "Pike Push-up (Flexão Pike)", reps: "3x12 reps" },
-                { name: "Estabilidade de Punhos e Core", reps: "Nível avançado" }
-            ]
-        },
-        {
-            name: "Human Flag (Bandeira Humana)",
-            level: "Avançado",
-            desc: "Segurar em um mastro vertical ou espaldar lateral e elevar o corpo até que ele fique em linha reta e horizontal, perpendicular ao mastro.",
-            requirements: [
-                { name: "Elevação lateral na parede", reps: "3x10 reps" },
-                { name: "Puxada escapular na barra fixa", reps: "3x15 reps" },
-                { name: "Paralela", reps: "3x12 reps" }
-            ]
-        },
-        {
-            name: "Muscle Up",
-            level: "Avançado",
-            desc: "Barra fixa explosiva onde o corpo sobe até que a barra esteja na altura do quadril, terminando na posição de suporte na paralela.",
-            requirements: [
-                { name: "Barra Fixa com Pegada Supinada (Explosiva)", reps: "15 reps seguidas" },
-                { name: "Paralela (Dips) com amplitude máxima", reps: "15 reps" },
-                { name: "Barra fixa explosiva até o peito", reps: "5 reps" }
-            ]
+    const activeCount = Object.values(calisthenicsSkills || {}).filter(m => m.status === 'treinando').length;
+
+    const handleRegister = (maneuverId, type, exerciseName) => {
+        const key = `${maneuverId}_${exerciseName}`;
+        const rawValue = inputs[key];
+        const val = parseFloat(rawValue);
+        if (isNaN(val) || val <= 0) {
+            alert("Por favor, insira um valor numérico válido maior que zero.");
+            return;
         }
-    ];
 
-    const handleUpdateStatus = (skillName, nextStatus) => {
-        const updated = {
-            ...calisthenicsSkills,
-            [skillName]: nextStatus
-        };
-        saveCalisthenicsSkills(updated);
+        try {
+            updateManeuverProgress(maneuverId, type, exerciseName, val);
+            setInputs(prev => ({ ...prev, [key]: '' }));
+            setErrorMsg(null);
+        } catch (err) {
+            setErrorMsg(err.message);
+        }
     };
 
-    const getStatusStyle = (status) => {
-        if (status === 'dominado') return { color: '#34d399', bg: 'rgba(52, 211, 153, 0.15)', border: '1px solid rgba(52, 211, 153, 0.3)', dot: '🏆' };
-        if (status === 'treinando') return { color: '#f59e0b', bg: 'rgba(234, 179, 8, 0.15)', border: '1px solid rgba(234, 179, 8, 0.3)', dot: '⏳' };
-        return { color: 'var(--text-muted)', bg: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', dot: '🔒' };
+    const handleStatusChange = (maneuverId, nextStatus) => {
+        try {
+            updateManeuverStatus(maneuverId, nextStatus);
+            setErrorMsg(null);
+        } catch (err) {
+            setErrorMsg(err.message);
+        }
+    };
+
+    const getLevelBadgeColor = (level) => {
+        switch (level) {
+            case 'Iniciante': return { bg: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' };
+            case 'Intermediario': return { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.2)' };
+            case 'Avançado': return { bg: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)' };
+            default: return { bg: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' };
+        }
     };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div className="card" style={{ padding: '15px' }}>
-                <h3 style={{ fontSize: '16px', marginBottom: '4px' }}>🤸 Árvore de Skills de Calistenia</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '15px' }}>
-                    Sua jornada para alcançar movimentos complexos. Monitore pré-requisitos e seu progresso atual.
-                </p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {skillsData.map((skill, idx) => {
-                        const status = calisthenicsSkills[skill.name] || 'bloqueado';
-                        const style = getStatusStyle(status);
-                        const isExpanded = expandedSkill === skill.name;
+            <style>{`
+                @keyframes pulseGold {
+                    0% {
+                        box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
+                        border-color: rgba(251, 191, 36, 0.4);
+                    }
+                    100% {
+                        box-shadow: 0 0 18px rgba(251, 191, 36, 0.5);
+                        border-color: rgba(251, 191, 36, 0.8);
+                    }
+                }
+            `}</style>
 
-                        return (
-                            <div key={idx} style={{
-                                background: 'var(--bg-secondary)',
-                                border: isExpanded ? '1px solid var(--accent)' : '1px solid rgba(255,255,255,0.05)',
-                                borderRadius: '12px',
-                                overflow: 'hidden',
-                                transition: 'var(--transition)'
-                            }}>
-                                {/* Cabeçalho da Skill */}
-                                <div 
-                                    onClick={() => setExpandedSkill(isExpanded ? null : skill.name)}
-                                    style={{
-                                        padding: '12px 15px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <div>
-                                        <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            {skill.name}
-                                        </h4>
-                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{skill.level}</span>
+            {/* Active Goals Limit Banner */}
+            <div style={{
+                background: 'rgba(18, 20, 28, 0.6)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: '12px',
+                padding: '12px 15px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+            }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    🎯 Metas de Treinamento Ativas:
+                </span>
+                <strong style={{ 
+                    fontSize: '14px', 
+                    color: activeCount >= 2 ? '#f59e0b' : 'var(--accent)',
+                    background: activeCount >= 2 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(var(--accent-rgb), 0.1)',
+                    padding: '3px 8px',
+                    borderRadius: '8px'
+                }}>
+                    {activeCount} / 2 Ativas
+                </strong>
+            </div>
+
+            {/* Error Message alert */}
+            {errorMsg && (
+                <div style={{
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#f87171',
+                    borderRadius: '12px',
+                    padding: '12px 15px',
+                    fontSize: '12px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    animation: 'fadeIn 0.3s ease-out'
+                }}>
+                    <span>⚠️ {errorMsg}</span>
+                    <button 
+                        onClick={() => setErrorMsg(null)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#f87171',
+                            fontSize: '18px',
+                            cursor: 'pointer',
+                            padding: '0 5px'
+                        }}
+                    >
+                        &times;
+                    </button>
+                </div>
+            )}
+
+            {/* Skills List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {Object.values(calisthenicsSkills || {}).map((maneuver) => {
+                    const isExpanded = expandedSkillId === maneuver.id;
+                    const badge = getLevelBadgeColor(maneuver.level);
+                    
+                    // Determine Status Indicator
+                    let statusLabel = "Bloqueado";
+                    let statusBg = "rgba(255,255,255,0.05)";
+                    let statusColor = "var(--text-muted)";
+                    let statusBorder = "1px solid rgba(255,255,255,0.08)";
+                    
+                    if (maneuver.status === 'treinando') {
+                        statusLabel = "Treinando";
+                        statusBg = "rgba(var(--accent-rgb), 0.15)";
+                        statusColor = "var(--accent)";
+                        statusBorder = "1px solid var(--accent)";
+                    } else if (maneuver.status === 'dominado') {
+                        statusLabel = "Dominado 🏆";
+                        statusBg = "rgba(251, 191, 36, 0.15)";
+                        statusColor = "#fbbf24";
+                        statusBorder = "1px solid #fbbf24";
+                    }
+
+                    return (
+                        <div key={maneuver.id} style={{
+                            background: 'var(--bg-secondary)',
+                            border: isExpanded ? `1px solid ${statusColor}` : '1px solid rgba(255,255,255,0.05)',
+                            borderRadius: '16px',
+                            overflow: 'hidden',
+                            boxShadow: isExpanded ? `0 4px 20px rgba(0,0,0,0.4)` : 'none',
+                            transition: 'var(--transition)'
+                        }}>
+                            {/* Card Header (clickable to expand) */}
+                            <div 
+                                onClick={() => setExpandedSkillId(isExpanded ? null : maneuver.id)}
+                                style={{
+                                    padding: '16px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    userSelect: 'none'
+                                }}
+                            >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {maneuver.name}
+                                    </h3>
+                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                        <span style={{
+                                            fontSize: '9px',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                            background: badge.bg,
+                                            color: badge.color,
+                                            border: badge.border,
+                                            fontWeight: '700'
+                                        }}>
+                                            {maneuver.level}
+                                        </span>
+                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                            • {maneuver.category}
+                                        </span>
                                     </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span style={{
-                                        fontSize: '11px',
+                                        fontSize: '10px',
                                         padding: '4px 8px',
                                         borderRadius: '12px',
-                                        background: style.bg,
-                                        color: style.color,
-                                        border: style.border,
-                                        fontWeight: '700',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
+                                        background: statusBg,
+                                        color: statusColor,
+                                        border: statusBorder,
+                                        fontWeight: '700'
                                     }}>
-                                        {style.dot} {status.toUpperCase()}
+                                        {statusLabel}
+                                    </span>
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
+                                        {isExpanded ? '▲' : '▼'}
                                     </span>
                                 </div>
+                            </div>
 
-                                {/* Conteúdo Expandido */}
-                                {isExpanded && (
-                                    <div style={{
-                                        padding: '15px',
-                                        borderTop: '1px solid rgba(255,255,255,0.04)',
-                                        background: 'rgba(255,255,255,0.01)'
-                                    }}>
-                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '15px' }}>
-                                            {skill.desc}
-                                        </p>
-
-                                        {/* Pré-requisitos */}
-                                        <div style={{ marginBottom: '15px' }}>
-                                            <h5 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', marginBottom: '8px' }}>
-                                                📋 Pré-requisitos Recomendados
-                                            </h5>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                                {skill.requirements.map((req, rIdx) => (
-                                                    <div key={rIdx} style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        fontSize: '11px',
-                                                        background: 'var(--bg-tertiary)',
-                                                        padding: '6px 10px',
-                                                        borderRadius: '6px',
-                                                        border: '1px solid rgba(255,255,255,0.03)'
-                                                    }}>
-                                                        <span style={{ color: '#fff' }}>{req.name}</span>
-                                                        <span style={{ color: 'var(--text-muted)' }}>{req.reps}</span>
-                                                    </div>
-                                                ))}
+                            {/* Expanded Content */}
+                            {isExpanded && (
+                                <div style={{
+                                    padding: '16px',
+                                    borderTop: '1px solid rgba(255,255,255,0.04)',
+                                    background: 'rgba(255,255,255,0.01)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '15px'
+                                }}>
+                                    {/* Preview Mode Banner */}
+                                    {maneuver.status === 'bloqueado' && (
+                                        <div style={{
+                                            background: 'rgba(255, 255, 255, 0.02)',
+                                            border: '1px dashed rgba(255, 255, 255, 0.08)',
+                                            borderRadius: '12px',
+                                            padding: '12px 15px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            fontSize: '11px',
+                                            color: 'var(--text-muted)'
+                                        }}>
+                                            <span style={{ fontSize: '18px' }}>👁️</span>
+                                            <div>
+                                                <strong style={{ display: 'block', color: '#fff', marginBottom: '2px' }}>Modo de Pré-visualização</strong>
+                                                Consulte todas as metas e pré-requisitos abaixo. Clique em "🎯 Treinar" para ativar e começar a registrar progresso.
                                             </div>
                                         </div>
+                                    )}
 
-                                        {/* Seletor de Status */}
-                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '15px' }}>
-                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Seu Status:</span>
-                                            <div style={{ display: 'flex', gap: '5px', flex: 1 }}>
-                                                {['bloqueado', 'treinando', 'dominado'].map(st => (
-                                                    <button
-                                                        key={st}
-                                                        type="button"
-                                                        onClick={() => handleUpdateStatus(skill.name, st)}
+                                    {/* Action Button for setting status */}
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '10px',
+                                        alignItems: 'center',
+                                        background: 'rgba(255,255,255,0.02)',
+                                        padding: '10px',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(255,255,255,0.04)'
+                                    }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', flex: 1 }}>
+                                            Definir como objetivo de calistenia para registrar progresso:
+                                        </span>
+                                        {maneuver.status !== 'treinando' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleStatusChange(maneuver.id, 'treinando')}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '11px',
+                                                    background: 'var(--accent)',
+                                                    color: 'var(--text-dark)',
+                                                    fontWeight: '700',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                🎯 Treinar
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleStatusChange(maneuver.id, 'bloqueado')}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '11px',
+                                                    background: 'rgba(239, 68, 68, 0.15)',
+                                                    color: '#f87171',
+                                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                    fontWeight: '700',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                ⏸️ Pausar
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Gold Completion Card (Phase 2 completed & maneuver unlocked) */}
+                                    {maneuver.maneuver_unlocked && maneuver.status !== 'dominado' && (
+                                        <div style={{
+                                            background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%)',
+                                            border: '1px solid rgba(251, 191, 36, 0.4)',
+                                            borderRadius: '14px',
+                                            padding: '15px',
+                                            textAlign: 'center',
+                                            boxShadow: '0 0 15px rgba(251, 191, 36, 0.2)',
+                                            animation: 'pulseGold 2.5s infinite alternate',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '10px'
+                                        }}>
+                                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                ✨ Requisitos Cumpridos! ✨
+                                            </div>
+                                            <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.85)' }}>
+                                                Você bateu as metas mínimas de todas as fases. Está apto para dominar esta manobra estática livre!
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleStatusChange(maneuver.id, 'dominado')}
+                                                style={{
+                                                    background: 'linear-gradient(90deg, #fbbf24 0%, #d97706 100%)',
+                                                    color: '#000',
+                                                    padding: '10px 15px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '12px',
+                                                    fontWeight: '800',
+                                                    width: '100%',
+                                                    cursor: 'pointer',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 10px rgba(217, 119, 6, 0.3)',
+                                                    transition: 'var(--transition)'
+                                                }}
+                                            >
+                                                Liberado para Tentativa de Manobra Livre! 🏆
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Celebratory Mastered Banner */}
+                                    {maneuver.status === 'dominado' && (
+                                        <div style={{
+                                            background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%)',
+                                            border: '1px solid rgba(251, 191, 36, 0.5)',
+                                            borderRadius: '14px',
+                                            padding: '15px',
+                                            textAlign: 'center',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '8px',
+                                            alignItems: 'center'
+                                        }}>
+                                            <span style={{ fontSize: '24px' }}>🏆</span>
+                                            <h4 style={{ fontSize: '14px', fontWeight: '800', color: '#fbbf24' }}>
+                                                MANOBRA DOMINADA!
+                                            </h4>
+                                            <p style={{ fontSize: '11px', color: '#e5e7eb' }}>
+                                                Parabéns! Você alcançou o nível mais alto desta habilidade de calistenia.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleStatusChange(maneuver.id, 'treinando')}
+                                                style={{
+                                                    marginTop: '5px',
+                                                    padding: '5px 10px',
+                                                    fontSize: '10px',
+                                                    background: 'rgba(255,255,255,0.05)',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    color: 'var(--text-muted)',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Treinar Novamente
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Phase 1: Pré-requisitos */}
+                                    <div>
+                                        <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span>Fase 1</span> • Pré-requisitos Recomendados
+                                        </h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {maneuver.phase1_progress.map((prog, idx) => {
+                                                const target = prog.target;
+                                                const value = prog.value || 0;
+                                                const isMet = value >= target;
+                                                const progressPercentage = Math.min(100, (value / target) * 100);
+                                                const inputKey = `${maneuver.id}_${prog.exercise}`;
+                                                const enteredVal = inputs[inputKey] || '';
+                                                const isManeuverActive = maneuver.status === 'treinando';
+
+                                                return (
+                                                    <div 
+                                                        key={idx} 
                                                         style={{
-                                                            flex: 1,
-                                                            padding: '6px 2px',
-                                                            borderRadius: '6px',
-                                                            fontSize: '10px',
-                                                            fontWeight: 'bold',
-                                                            background: status === st ? 'var(--accent)' : 'rgba(255,255,255,0.03)',
-                                                            color: status === st ? 'var(--text-dark)' : 'var(--text-muted)',
-                                                            cursor: 'pointer',
-                                                            border: 'none'
+                                                            background: isMet ? 'rgba(52, 211, 153, 0.05)' : 'var(--bg-tertiary)',
+                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.25)' : '1px solid rgba(255, 255, 255, 0.04)',
+                                                            borderRadius: '12px',
+                                                            padding: '12px',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '8px',
+                                                            transition: 'var(--transition)'
                                                         }}
                                                     >
-                                                        {st.toUpperCase()}
-                                                    </button>
-                                                ))}
-                                            </div>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <div>
+                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: isMet ? '#34d399' : '#fff' }}>
+                                                                    {prog.exercise}
+                                                                </span>
+                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                                    Meta: {target} {prog.unit} | Registrado: {value} {prog.unit}
+                                                                </div>
+                                                            </div>
+                                                            <span style={{
+                                                                fontSize: '10px',
+                                                                padding: '2px 6px',
+                                                                borderRadius: '8px',
+                                                                background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.1)',
+                                                                color: isMet ? '#34d399' : '#f59e0b',
+                                                                fontWeight: '700'
+                                                            }}>
+                                                                {isMet ? 'Alcançado ✅' : 'Em andamento ⏳'}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Progress bar for not completed */}
+                                                        {!isMet && (
+                                                            <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                                <div style={{ width: `${progressPercentage}%`, height: '100%', background: '#f59e0b', borderRadius: '3px' }} />
+                                                            </div>
+                                                        )}
+
+                                                        {/* Log Input if training active */}
+                                                        {isManeuverActive && !isMet && (
+                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                                <input 
+                                                                    type="number"
+                                                                    placeholder={`${prog.unit === 'segundos' ? 's' : 'reps'}`}
+                                                                    className="input-field"
+                                                                    style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '8px', height: '32px' }}
+                                                                    value={enteredVal}
+                                                                    onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRegister(maneuver.id, 'phase1', prog.exercise)}
+                                                                    style={{
+                                                                        padding: '0 12px',
+                                                                        borderRadius: '8px',
+                                                                        fontSize: '11px',
+                                                                        background: 'rgba(255,255,255,0.05)',
+                                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                                        color: '#fff',
+                                                                        height: '32px',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Registrar
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+
+                                    {/* Phase 2: Fortalecimento Específico */}
+                                    <div>
+                                        <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span>Fase 2</span> • Fortalecimento Específico
+                                        </h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {maneuver.phase2_progress.map((prog, idx) => {
+                                                const target = prog.target;
+                                                const value = prog.value || 0;
+                                                const isLocked = !maneuver.phase2_unlocked;
+                                                const isMet = value >= target && !isLocked;
+                                                const progressPercentage = Math.min(100, (value / target) * 100);
+                                                const inputKey = `${maneuver.id}_${prog.exercise}`;
+                                                const enteredVal = inputs[inputKey] || '';
+                                                const isManeuverActive = maneuver.status === 'treinando';
+
+                                                if (isLocked) {
+                                                    return (
+                                                        <div 
+                                                            key={idx} 
+                                                            style={{
+                                                                opacity: 0.4,
+                                                                background: 'var(--bg-tertiary)',
+                                                                border: '1px dashed rgba(255,255,255,0.1)',
+                                                                borderRadius: '12px',
+                                                                padding: '12px',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                gap: '4px',
+                                                                cursor: 'not-allowed',
+                                                                userSelect: 'none'
+                                                            }}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    <span>🔒</span> {prog.exercise}
+                                                                </span>
+                                                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '700' }}>
+                                                                    Bloqueado
+                                                                </span>
+                                                            </div>
+                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                                Meta: {target} {prog.unit} | Conclua a Fase anterior para liberar
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <div 
+                                                        key={idx} 
+                                                        style={{
+                                                            background: isMet ? 'rgba(52, 211, 153, 0.05)' : 'var(--bg-tertiary)',
+                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.25)' : '1px solid rgba(255, 255, 255, 0.04)',
+                                                            borderRadius: '12px',
+                                                            padding: '12px',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '8px',
+                                                            transition: 'var(--transition)'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <div>
+                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: isMet ? '#34d399' : '#fff' }}>
+                                                                    {prog.exercise}
+                                                                </span>
+                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                                    Meta: {target} {prog.unit} | Registrado: {value} {prog.unit}
+                                                                </div>
+                                                            </div>
+                                                            <span style={{
+                                                                fontSize: '10px',
+                                                                padding: '2px 6px',
+                                                                borderRadius: '8px',
+                                                                background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.1)',
+                                                                color: isMet ? '#34d399' : '#f59e0b',
+                                                                fontWeight: '700'
+                                                            }}>
+                                                                {isMet ? 'Alcançado ✅' : 'Em andamento ⏳'}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Progress bar for not completed */}
+                                                        {!isMet && (
+                                                            <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                                <div style={{ width: `${progressPercentage}%`, height: '100%', background: '#f59e0b', borderRadius: '3px' }} />
+                                                            </div>
+                                                        )}
+
+                                                        {/* Log Input if training active */}
+                                                        {isManeuverActive && !isMet && (
+                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                                <input 
+                                                                    type="number"
+                                                                    placeholder={`${prog.unit === 'segundos' ? 's' : 'reps'}`}
+                                                                    className="input-field"
+                                                                    style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '8px', height: '32px' }}
+                                                                    value={enteredVal}
+                                                                    onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRegister(maneuver.id, 'phase2', prog.exercise)}
+                                                                    style={{
+                                                                        padding: '0 12px',
+                                                                        borderRadius: '8px',
+                                                                        fontSize: '11px',
+                                                                        background: 'rgba(255,255,255,0.05)',
+                                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                                        color: '#fff',
+                                                                        height: '32px',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Registrar
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
 };
+
 
 export default function EvolutionView() {
     const { 
@@ -832,13 +1226,16 @@ export default function EvolutionView() {
         history,
         personalRecords,
         calisthenicsSkills,
-        saveCalisthenicsSkills,
+        updateManeuverProgress,
+        updateManeuverStatus,
         evolutionPhotos,
         saveEvolutionPhotos,
-        profileDetails
+        profileDetails,
+        activeEvolutionSubTab: activeSubTab,
+        setActiveEvolutionSubTab: setActiveSubTab,
+        expandedCalisthenicsSkillId,
+        setExpandedCalisthenicsSkillId
     } = useApp();
-    
-    const [activeSubTab, setActiveSubTab] = useState('medidas'); // 'medidas', 'photos', 'skills'
     const [showLogModal, setShowLogModal] = useState(false);
     const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
     const [weight, setWeight] = useState('');
@@ -1307,7 +1704,13 @@ export default function EvolutionView() {
 
             {/* SUB-ABA 3: SKILLS DE CALISTENIA */}
             {activeSubTab === 'skills' && (
-                <CalisthenicsSkillsTab calisthenicsSkills={calisthenicsSkills} saveCalisthenicsSkills={saveCalisthenicsSkills} />
+                <CalisthenicsSkillsTab 
+                    calisthenicsSkills={calisthenicsSkills} 
+                    updateManeuverProgress={updateManeuverProgress} 
+                    updateManeuverStatus={updateManeuverStatus} 
+                    expandedSkillId={expandedCalisthenicsSkillId}
+                    setExpandedSkillId={setExpandedCalisthenicsSkillId}
+                />
             )}
 
             {/* MODAL FORM SHEET */}

@@ -18,7 +18,9 @@ function MainAppContent() {
         saveWorkout,
         timerActive,
         timeLeft,
-        setTimeLeft
+        setTimeLeft,
+        toastMessage,
+        setToastMessage
     } = useApp();
 
     const [currentTab, setCurrentTab] = useState('dashboard'); // 'dashboard', 'history', 'exercises'
@@ -115,9 +117,12 @@ function MainAppContent() {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '20px' }}>⚡</span>
-                        <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            FitLife
-                        </h1>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
+                            <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                FitLife
+                            </h1>
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold' }}>v0.8</span>
+                        </div>
                     </div>
                     {isInstallable && (
                         <button 
@@ -172,6 +177,7 @@ function MainAppContent() {
                             setIsCreating(true);
                         }}
                         onLogout={() => selectProfile(null)}
+                        onChangeTab={setCurrentTab}
                     />
                 )}
 
@@ -413,6 +419,60 @@ function MainAppContent() {
                     <span>Ajustes</span>
                 </div>
             </nav>
+
+            {/* Toast de Validação Cruzada */}
+            {toastMessage && (
+                <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 9999,
+                    background: 'rgba(18, 20, 28, 0.96)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid var(--accent)',
+                    borderRadius: '12px',
+                    padding: '12px 18px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(var(--accent-rgb), 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    maxWidth: '92%',
+                    width: '380px',
+                    animation: 'slideDown 0.3s ease-out, toastPulse 2s infinite',
+                    transition: 'all 0.3s ease'
+                }}>
+                    <span style={{ fontSize: '20px' }}>⚡</span>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                            Sincronização Cruzada
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#fff', fontWeight: '500', lineHeight: '1.4', display: 'block', marginTop: '2px' }}>
+                            {toastMessage}
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => setToastMessage(null)}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '18px', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        &times;
+                    </button>
+                </div>
+            )}
+            
+            {/* Estilo Dinâmico para Animação do Toast */}
+            <style>{`
+                @keyframes slideDown {
+                    from { transform: translate(-50%, -40px); opacity: 0; }
+                    to { transform: translate(-50%, 0); opacity: 1; }
+                }
+                @keyframes toastPulse {
+                    0% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 rgba(var(--accent-rgb), 0.4); }
+                    70% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 8px rgba(var(--accent-rgb), 0); }
+                    100% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 rgba(var(--accent-rgb), 0); }
+                }
+            `}</style>
         </div>
     );
 }

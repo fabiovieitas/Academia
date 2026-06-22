@@ -21,7 +21,7 @@ const COVER_IMAGES = {
     geral: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop'
 };
 
-export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorkout, onLogout }) {
+export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorkout, onLogout, onChangeTab }) {
     const { 
         activeProfile, 
         workouts, 
@@ -34,7 +34,11 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         exercises,
         saveWorkout,
         profileDetails,
-        measurements
+        measurements,
+        calisthenicsSkills,
+        setActiveEvolutionSubTab,
+        setExpandedCalisthenicsSkillId,
+        updateManeuverStatus
     } = useApp();
 
     const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -662,60 +666,176 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
             )}
 
             {/* CARD DESTACADO DA CALISTENIA (PESO CORPORAL) */}
-            <div className="card" style={{
-                marginTop: '30px',
-                marginBottom: '20px',
-                background: 'linear-gradient(135deg, rgba(18, 20, 28, 0.9) 0%, rgba(var(--accent-rgb), 0.05) 100%)',
-                border: '1px solid rgba(var(--accent-rgb), 0.15)',
-                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Efeito decorativo no fundo */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-50px',
-                    right: '-50px',
-                    width: '150px',
-                    height: '150px',
-                    borderRadius: '50%',
-                    background: 'rgba(var(--accent-rgb), 0.03)',
-                    filter: 'blur(30px)',
-                    zIndex: 0
-                }}></div>
+            {(() => {
+                const activeManeuvers = Object.values(calisthenicsSkills || {}).filter(m => m.status === 'treinando');
+                
+                const handleActiveManeuverClick = (maneuverId) => {
+                    if (setActiveEvolutionSubTab && setExpandedCalisthenicsSkillId && onChangeTab) {
+                        setActiveEvolutionSubTab('skills');
+                        setExpandedCalisthenicsSkillId(maneuverId);
+                        onChangeTab('evolution');
+                    }
+                };
 
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <h3 style={{ fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            🤸 Módulo Calistenia (Peso Corporal)
-                        </h3>
-                        <span style={{ fontSize: '11px', background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                            FitLife 🤸
-                        </span>
+                return (
+                    <div className="card" style={{
+                        marginTop: '30px',
+                        marginBottom: '20px',
+                        background: 'linear-gradient(135deg, rgba(18, 20, 28, 0.9) 0%, rgba(var(--accent-rgb), 0.05) 100%)',
+                        border: '1px solid rgba(var(--accent-rgb), 0.15)',
+                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Efeito decorativo no fundo */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '-50px',
+                            right: '-50px',
+                            width: '150px',
+                            height: '150px',
+                            borderRadius: '50%',
+                            background: 'rgba(var(--accent-rgb), 0.03)',
+                            filter: 'blur(30px)',
+                            zIndex: 0
+                        }}></div>
+
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                <h3 style={{ fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    🤸 Módulo Calistenia (Peso Corporal)
+                                </h3>
+                                <span style={{ fontSize: '11px', background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                    FitLife 🤸
+                                </span>
+                            </div>
+
+                            {activeManeuvers.length === 0 ? (
+                                <>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>
+                                        Rotinas completas utilizando apenas o peso corporal, barras e paralelas. Dividido em 3 níveis progressivos para construir força real de adaptação ao avançado.
+                                    </p>
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={() => setShowCalisteniaModal(true)}
+                                        style={{
+                                            width: 'auto',
+                                            padding: '8px 16px',
+                                            fontSize: '13px',
+                                            background: 'rgba(var(--accent-rgb), 0.1)',
+                                            border: '1px solid rgba(var(--accent-rgb), 0.25)',
+                                            color: 'var(--accent)',
+                                            boxShadow: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        ⚡ Acessar Projeto Calistenia
+                                    </button>
+                                </>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                                        Você está treinando as seguintes manobras. Clique nelas para gerenciar ou registrar progresso:
+                                    </p>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {activeManeuvers.map(maneuver => {
+                                            const progressArray = maneuver.phase2_unlocked ? maneuver.phase2_progress : maneuver.phase1_progress;
+                                            const total = progressArray.length;
+                                            const completed = progressArray.filter(p => p.value >= p.target).length;
+                                            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+                                            const phaseLabel = maneuver.phase2_unlocked ? "Fase 2: Específico" : "Fase 1: Pré-requisitos";
+                                            
+                                            return (
+                                                <div 
+                                                    key={maneuver.id}
+                                                    onClick={() => handleActiveManeuverClick(maneuver.id)}
+                                                    style={{
+                                                        background: 'rgba(255, 255, 255, 0.02)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                        borderRadius: '12px',
+                                                        padding: '12px 15px',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '8px'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                                                        e.currentTarget.style.transform = 'none';
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <strong style={{ color: '#fff', fontSize: '13.5px' }}>
+                                                            {maneuver.name}
+                                                        </strong>
+                                                        <span style={{ fontSize: '10px', background: 'rgba(var(--accent-rgb), 0.15)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                                            {maneuver.level}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                        <span>{phaseLabel}</span>
+                                                        <span>{percent}% Concluído ({completed}/{total})</span>
+                                                    </div>
+                                                    
+                                                    <div style={{ height: '6px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                        <div style={{ height: '100%', width: `${percent}%`, background: 'var(--accent)', transition: 'width 0.3s ease' }}></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                        <button 
+                                            className="btn-secondary" 
+                                            onClick={() => onChangeTab && onChangeTab('evolution')}
+                                            style={{
+                                                flex: 1,
+                                                padding: '8px 12px',
+                                                fontSize: '12px',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}
+                                        >
+                                            🌳 Ver Habilidades
+                                        </button>
+                                        <button 
+                                            className="btn-primary" 
+                                            onClick={() => setShowCalisteniaModal(true)}
+                                            style={{
+                                                flex: 1,
+                                                padding: '8px 12px',
+                                                fontSize: '12px',
+                                                background: 'rgba(var(--accent-rgb), 0.1)',
+                                                border: '1px solid rgba(var(--accent-rgb), 0.25)',
+                                                color: 'var(--accent)',
+                                                boxShadow: 'none',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}
+                                        >
+                                            ⚡ Ver Planilhas
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>
-                        Rotinas completas utilizando apenas o peso corporal, barras e paralelas. Dividido em 3 níveis progressivos para construir força real de adaptação ao avançado.
-                    </p>
-                    <button 
-                        className="btn-primary" 
-                        onClick={() => setShowCalisteniaModal(true)}
-                        style={{
-                            width: 'auto',
-                            padding: '8px 16px',
-                            fontSize: '13px',
-                            background: 'rgba(var(--accent-rgb), 0.1)',
-                            border: '1px solid rgba(var(--accent-rgb), 0.25)',
-                            color: 'var(--accent)',
-                            boxShadow: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                        }}
-                    >
-                        ⚡ Acessar Projeto Calistenia
-                    </button>
-                </div>
-            </div>
+                );
+            })()}
+
 
             {/* MODAL DE PRESETS */}
             {showPresetsModal && (
@@ -1310,25 +1430,38 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                         
                         <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                                {CALISTENIA_PROJECT.description}
+                                Selecione e pré-visualize os requisitos de todas as manobras estáticas do projeto. Você pode definir qualquer manobra como meta de treinamento ativa.
                             </p>
                             
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                {CALISTENIA_PROJECT.workouts.map((w, wIdx) => (
-                                    <div key={wIdx} style={{ 
-                                        background: 'var(--bg-secondary)', 
-                                        borderRadius: '16px', 
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-                                    }}>
-                                        {/* Imagem de Capa do Treino de Calistenia */}
-                                        {w.coverUrl && (
+                                {Object.values(calisthenicsSkills || {}).map((m, mIdx) => {
+                                    const covers = {
+                                        frog_stand: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
+                                        elbow_lever: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=600&auto=format&fit=crop",
+                                        l_sit: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop",
+                                        handstand: "https://images.unsplash.com/photo-1566241477600-ac026ad43874?q=80&w=600&auto=format&fit=crop",
+                                        skin_the_cat: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=600&auto=format&fit=crop",
+                                        human_flag: "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?q=80&w=600&auto=format&fit=crop",
+                                        muscle_up: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=600&auto=format&fit=crop"
+                                    };
+                                    const coverUrl = covers[m.id] || "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop";
+                                    
+                                    const isTraining = m.status === 'treinando';
+                                    const isDominated = m.status === 'dominado';
+                                    
+                                    return (
+                                        <div key={m.id} style={{ 
+                                            background: 'var(--bg-secondary)', 
+                                            borderRadius: '16px', 
+                                            border: isTraining ? '1px solid var(--accent)' : '1px solid rgba(255,255,255,0.05)',
+                                            overflow: 'hidden',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                                        }}>
                                             <div style={{
                                                 height: '120px',
-                                                backgroundImage: `url(${w.coverUrl})`,
+                                                backgroundImage: `url(${coverUrl})`,
                                                 backgroundSize: 'cover',
                                                 backgroundPosition: 'center',
                                                 position: 'relative'
@@ -1348,69 +1481,106 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                     alignItems: 'flex-end'
                                                 }}>
                                                     <h4 style={{ fontSize: '14px', color: '#fff', fontWeight: '800', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-                                                        {w.name}
+                                                        {m.name}
                                                     </h4>
-                                                    <span style={{ 
-                                                        fontSize: '9px', 
-                                                        background: wIdx === 1 || wIdx === 2 ? 'rgba(239, 68, 68, 0.25)' : 'rgba(59, 130, 246, 0.25)', 
-                                                        border: wIdx === 1 || wIdx === 2 ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(59, 130, 246, 0.4)',
-                                                        color: wIdx === 1 || wIdx === 2 ? '#f87171' : '#60a5fa', 
-                                                        padding: '2px 8px', 
-                                                        borderRadius: '12px', 
-                                                        fontWeight: 'bold' 
-                                                    }}>
-                                                        {wIdx === 1 || wIdx === 2 ? 'Avançado' : 'Médio'}
-                                                    </span>
+                                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                        <span style={{ 
+                                                            fontSize: '9px', 
+                                                            background: m.level === 'Avançado' ? 'rgba(239, 68, 68, 0.25)' : m.level === 'Intermediario' ? 'rgba(245, 158, 11, 0.25)' : 'rgba(59, 130, 246, 0.25)', 
+                                                            border: m.level === 'Avançado' ? '1px solid rgba(239, 68, 68, 0.4)' : m.level === 'Intermediario' ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(59, 130, 246, 0.4)',
+                                                            color: m.level === 'Avançado' ? '#f87171' : m.level === 'Intermediario' ? '#fbbf24' : '#60a5fa', 
+                                                            padding: '2px 8px', 
+                                                            borderRadius: '12px', 
+                                                            fontWeight: 'bold' 
+                                                        }}>
+                                                            {m.level}
+                                                        </span>
+                                                        {isTraining && (
+                                                            <span style={{ fontSize: '9px', background: 'rgba(var(--accent-rgb), 0.25)', border: '1px solid var(--accent)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                                                Treinando
+                                                            </span>
+                                                        )}
+                                                        {isDominated && (
+                                                            <span style={{ fontSize: '9px', background: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgb(52, 211, 153)', color: '#34d399', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                                                Dominado 🏆
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        )}
-                                        
-                                        <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.45' }}>{w.description}</p>
                                             
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px solid rgba(var(--accent-rgb), 0.3)', paddingLeft: '10px' }}>
-                                                {w.exercises.map((ex, exIdx) => (
-                                                    <div key={exIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                        <span style={{ color: '#fff', fontWeight: '500' }}>• {ex.name}</span>
-                                                        <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                                                            {ex.series}x{ex.reps}
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            
-                                            <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                                <button 
-                                                    className="btn-secondary"
-                                                    onClick={() => {
-                                                        loadPreset('CALISTENIA');
-                                                        alert('As 3 rotinas de calistenia foram adicionadas às suas rotinas da tela inicial!');
-                                                        setShowCalisteniaModal(false);
-                                                    }}
-                                                    style={{ flex: 1, padding: '10px', fontSize: '12px', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}
-                                                >
-                                                    📥 Salvar Planilha
-                                                </button>
-                                                <button 
-                                                    className="btn-primary"
-                                                    onClick={() => {
-                                                        onStartWorkout({
-                                                            id: 'calistenia_' + wIdx,
-                                                            name: w.name,
-                                                            description: w.description,
-                                                            exercises: w.exercises,
-                                                            coverStyle: w.coverStyle
-                                                        });
-                                                        setShowCalisteniaModal(false);
-                                                    }}
-                                                    style={{ flex: 1.2, padding: '10px', fontSize: '12px', background: 'var(--accent)', color: 'var(--text-dark)', fontWeight: 'bold', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}
-                                                >
-                                                    ▶ Treinar Agora
-                                                </button>
+                                            <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                {/* Phase 1 Requirements */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px solid rgba(var(--accent-rgb), 0.3)', paddingLeft: '10px' }}>
+                                                    <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fase 1: Pré-requisitos</div>
+                                                    {m.phase1_progress.map((ex, exIdx) => (
+                                                        <div key={exIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>• {ex.exercise}</span>
+                                                            <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                                                &ge; {ex.target} {ex.unit === 'segundos' ? 'seg' : 'reps'}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                
+                                                {/* Phase 2 Requirements */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px solid rgba(251, 191, 36, 0.3)', paddingLeft: '10px' }}>
+                                                    <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fase 2: Fortalecimento Específico</div>
+                                                    {m.phase2_progress.map((ex, exIdx) => (
+                                                        <div key={exIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>• {ex.exercise}</span>
+                                                            <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                                                &ge; {ex.target} {ex.unit === 'segundos' ? 'seg' : 'reps'}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                
+                                                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                                    <button 
+                                                        className="btn-secondary"
+                                                        onClick={async () => {
+                                                            try {
+                                                                const nextStatus = isTraining ? 'bloqueado' : 'treinando';
+                                                                await updateManeuverStatus(m.id, nextStatus);
+                                                            } catch (err) {
+                                                                alert(err.message);
+                                                            }
+                                                        }}
+                                                        style={{ 
+                                                            flex: 1.2, 
+                                                            padding: '8px 10px', 
+                                                            fontSize: '12px', 
+                                                            display: 'inline-flex', 
+                                                            justifyContent: 'center', 
+                                                            alignItems: 'center', 
+                                                            gap: '4px',
+                                                            background: isTraining ? 'rgba(239, 68, 68, 0.1)' : 'rgba(var(--accent-rgb), 0.05)',
+                                                            color: isTraining ? '#f87171' : 'var(--accent)',
+                                                            border: isTraining ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(var(--accent-rgb), 0.2)'
+                                                        }}
+                                                    >
+                                                        {isTraining ? '❌ Parar Treino' : '🏋️ Definir como Meta'}
+                                                    </button>
+                                                    <button 
+                                                        className="btn-primary"
+                                                        onClick={() => {
+                                                            if (setActiveEvolutionSubTab && setExpandedCalisthenicsSkillId && onChangeTab) {
+                                                                setActiveEvolutionSubTab('skills');
+                                                                setExpandedCalisthenicsSkillId(m.id);
+                                                                onChangeTab('evolution');
+                                                                setShowCalisteniaModal(false);
+                                                            }
+                                                        }}
+                                                        style={{ flex: 1, padding: '8px 10px', fontSize: '12px', background: 'var(--accent)', color: 'var(--text-dark)', fontWeight: 'bold', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}
+                                                    >
+                                                        🌳 Ver Evolução
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                         
