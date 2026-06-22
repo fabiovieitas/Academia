@@ -299,7 +299,7 @@ export const PRESET_WORKOUTS = {
                 exercises: [
                     { name: "Cadeira Flexora Sentada", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 4, reps: 12, weight: 15, targetWeight: 25, notes: "Faixa de 10 a 12 repetições." },
                     { name: "Leg Press 45° Articulado por Tijolos", path: "Exercicios/Pernas/Leg Press Horizontal.gif", series: 4, reps: 12, weight: 20, targetWeight: 40, notes: "Posicione os pés mais no alto para focar no posterior." },
-                    { name: "Cadeira Abdutora", path: "Exercicios/Pernas/Cadeira abdutora.gif", series: 4, reps: 15, weight: 20, targetWeight: 35, notes: "Tronco levemente inclinado para a frente." },
+                    { name: "Cadeira Abdutora", path: "Exercicios/Glúteos/Máquina de Abdução de Quadril.gif", series: 4, reps: 15, weight: 20, targetWeight: 35, notes: "Tronco levemente inclinado para a frente." },
                     { name: "Mesa Flexora Deitado", path: "Exercicios/Pernas/Mesa flexora.gif", series: 3, reps: 12, weight: 10, targetWeight: 20, notes: "Não levante o quadril durante a execução." },
                     { name: "Gêmeos Sentado", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 10, targetWeight: 20, notes: "Movimento completo com alongamento." }
                 ]
