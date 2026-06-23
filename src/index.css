@@ -919,6 +919,41 @@ button {
   color: var(--text-muted);
 }
 
+/* Botões compactos de ajuste de séries */
+.adjust-btn.btn-mini {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.adjust-btn.btn-mini:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb), 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.adjust-btn.btn-mini:active:not(:disabled) {
+  background: var(--accent);
+  color: var(--text-dark);
+}
+
+.adjust-btn.btn-mini:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 /* Checkbox Estilizado */
 .checkbox-completed {
   display: inline-flex;

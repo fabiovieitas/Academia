@@ -86,6 +86,11 @@ export default function GymMode({ onFinish, onCancel }) {
     const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false);
     const [gifLoadError, setGifLoadError] = useState(false);
 
+    // Estados do cronômetro específico da série
+    const [activeSeriesTimer, setActiveSeriesTimer] = useState(0);
+    const [isSeriesTimerRunning, setIsSeriesTimerRunning] = useState(false);
+    const [timerSetIndex, setTimerSetIndex] = useState(0);
+
     const toggleFocusMode = () => {
         setIsFocusMode(prev => {
             const next = !prev;
@@ -104,6 +109,82 @@ export default function GymMode({ onFinish, onCancel }) {
         }, 1000);
         return () => clearInterval(interval);
     }, [activeWorkout]);
+
+    // Efeito para contar o tempo da série ativa
+    useEffect(() => {
+        let interval = null;
+        if (isSeriesTimerRunning) {
+            interval = setInterval(() => {
+                setActiveSeriesTimer(prev => prev + 1);
+            }, 1000);
+        } else {
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [isSeriesTimerRunning]);
+
+    // Detecção se o exercício é baseado em tempo
+    const isTimeBasedExercise = (name, notes = "") => {
+        const nameLower = (name || "").toLowerCase();
+        const notesLower = (notes || "").toLowerCase();
+        return (
+            notesLower.includes(" s.") || 
+            notesLower.includes("segundos") ||
+            notesLower.includes(" s ") ||
+            nameLower.includes("prancha") || 
+            nameLower.includes("plank") || 
+            nameLower.includes("hold") || 
+            nameLower.includes("sit") || 
+            nameLower.includes("superman") || 
+            nameLower.includes("lever") || 
+            nameLower.includes("stand") ||
+            nameLower.includes("canoa") ||
+            nameLower.includes("body")
+        );
+    };
+
+    const isCurrentTimeBased = currentExercise ? isTimeBasedExercise(currentExercise.name, currentExercise.notes) : false;
+
+    // Sincronizar o índice da série que o cronômetro deve rodar por padrão
+    useEffect(() => {
+        if (currentExercise?.series) {
+            const firstIncomplete = currentExercise.series.findIndex(s => !s.completed);
+            setTimerSetIndex(firstIncomplete !== -1 ? firstIncomplete : 0);
+            setActiveSeriesTimer(0);
+            setIsSeriesTimerRunning(false);
+        }
+    }, [currentExerciseIndex, currentExercise?.series?.length]);
+
+    const handleAdjustSet = (setIdx, field, amount) => {
+        const currentSet = currentExercise.series[setIdx];
+        if (!currentSet) return;
+        const currentValue = parseFloat(currentSet[field]) || 0;
+        let nextValue = currentValue + amount;
+        if (field === 'actualReps') {
+            nextValue = Math.round(nextValue);
+        }
+        nextValue = Math.max(0, nextValue);
+        handleUpdateSet(setIdx, field, nextValue);
+    };
+
+    const handleToggleSeriesTimer = () => {
+        setIsSeriesTimerRunning(prev => !prev);
+    };
+
+    const handleStopSeriesTimer = (setIdx) => {
+        setIsSeriesTimerRunning(false);
+        // Registra o tempo atual no campo reps/tempo (actualReps) da série correspondente
+        handleUpdateSet(setIdx, 'actualReps', activeSeriesTimer);
+        // Marca a série como concluída
+        handleToggleSetComplete(setIdx);
+        // Zerar o cronômetro da série
+        setActiveSeriesTimer(0);
+    };
+
+    const handleResetSeriesTimer = () => {
+        setIsSeriesTimerRunning(false);
+        setActiveSeriesTimer(0);
+    };
 
 
     const getLastSessionLoad = (exerciseName) => {
@@ -210,16 +291,22 @@ export default function GymMode({ onFinish, onCancel }) {
         }
     };
 
-    // Atualizar dados de uma série (peso / repetições)
+    // Atualizar dados de uma série (peso / repetições / tempo) com propagação subsequente
     const handleUpdateSet = (setIndex, field, value) => {
         const updatedExercises = exercises.map((ex, exIndex) => {
             if (exIndex === currentExerciseIndex) {
                 const updatedSeries = ex.series.map((s, sIndex) => {
+                    // Série atual sendo modificada
                     if (sIndex === setIndex) {
+                        return { ...s, [field]: value };
+                    }
+                    // Propagar para séries subsequentes se NÃO concluídas
+                    if (sIndex > setIndex && !s.completed) {
                         return { ...s, [field]: value };
                     }
                     return s;
                 });
+
                 return { ...ex, series: updatedSeries };
             }
             return ex;
@@ -685,120 +772,219 @@ export default function GymMode({ onFinish, onCancel }) {
                     {/* Mostra carga anterior */}
                     {prevSet ? (
                         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--accent)', background: 'rgba(var(--accent-rgb), 0.05)', padding: '6px 12px', borderRadius: '8px', fontWeight: '600' }}>
-                            ⏮️ Treino Anterior: {prevSet.actualWeight} kg x {prevSet.actualReps} reps
+                            ⏮️ Anterior: {isCurrentTimeBased ? `${prevSet.actualReps} s` : `${prevSet.actualWeight} kg x ${prevSet.actualReps} reps`}
                         </div>
                     ) : pr ? (
                         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--accent)', background: 'rgba(var(--accent-rgb), 0.05)', padding: '6px 12px', borderRadius: '8px', fontWeight: '600' }}>
-                            🏆 Recorde Pessoal: {pr.weight} kg x {pr.reps} reps
+                            🏆 Recorde Pessoal: {isCurrentTimeBased ? `${pr.reps} s` : `${pr.weight} kg x ${pr.reps} reps`}
                         </div>
                     ) : null}
 
-                    {/* Input Gigante de Peso */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>Carga (kg)</label>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
-                            <button 
+                    {isCurrentTimeBased ? (
+                        /* Modo Foco - Seletor / Cronômetro de Exercício Baseado em Tempo */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+                            {/* Cronômetro Visual Gigante */}
+                            <div style={{
+                                fontSize: '42px',
+                                fontFamily: 'monospace',
+                                fontWeight: '800',
+                                color: isSeriesTimerRunning ? 'var(--accent)' : '#fff',
+                                textShadow: isSeriesTimerRunning ? '0 0 15px rgba(var(--accent-rgb), 0.4)' : 'none',
+                                background: 'var(--bg-tertiary)',
+                                padding: '15px 30px',
+                                borderRadius: '16px',
+                                border: '1px solid rgba(255,255,255,0.06)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}>
+                                ⏱️ {activeSeriesTimer}s
+                            </div>
+
+                            {/* Controles do Cronômetro de Série */}
+                            <div style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '280px' }}>
+                                <button
+                                    type="button"
+                                    onClick={handleToggleSeriesTimer}
+                                    style={{
+                                        flex: 2,
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        background: isSeriesTimerRunning ? '#eab308' : '#34d399',
+                                        color: '#000',
+                                        fontWeight: '700',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    {isSeriesTimerRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleResetSeriesTimer}
+                                    style={{
+                                        flex: 1,
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        background: 'rgba(255,255,255,0.06)',
+                                        color: '#fff',
+                                        fontWeight: '600',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        cursor: 'pointer',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    🔄 Zerar
+                                </button>
+                            </div>
+
+                            {/* Campo de edição manual do tempo */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginTop: '10px', width: '100%' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tempo Manual (s)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualReps', -1)}
+                                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
+                                    >
+                                        -
+                                    </button>
+                                    <input 
+                                        type="number" 
+                                        value={activeSet.actualReps ?? ''} 
+                                        onChange={e => handleUpdateSet(displaySetIdx, 'actualReps', e.target.value)}
+                                        disabled={activeSet.completed}
+                                        style={{ width: '100px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '24px', fontWeight: '800', textAlign: 'center', padding: '8px', borderRadius: '12px' }}
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualReps', 1)}
+                                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Botão de salvar e concluir */}
+                            <button
                                 type="button"
-                                onClick={() => handleAdjustActiveSet('actualWeight', -5)}
-                                style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                onClick={() => handleStopSeriesTimer(displaySetIdx)}
+                                style={{
+                                    width: '100%',
+                                    padding: '16px',
+                                    borderRadius: '12px',
+                                    background: 'var(--accent)',
+                                    color: 'var(--text-dark)',
+                                    fontWeight: '800',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    marginTop: '10px',
+                                    boxShadow: 'var(--shadow-glow)'
+                                }}
                             >
-                                -5
-                            </button>
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualWeight', -1)}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
-                            >
-                                -1
-                            </button>
-                            <input 
-                                type="number" 
-                                value={activeSet.actualWeight} 
-                                onChange={e => handleUpdateSet(displaySetIdx, 'actualWeight', parseFloat(e.target.value) || 0)}
-                                disabled={activeSet.completed}
-                                style={{ width: '80px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '28px', fontWeight: '800', textAlign: 'center', padding: '10px', borderRadius: '12px' }}
-                            />
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualWeight', 1)}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
-                            >
-                                +1
-                            </button>
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualWeight', 5)}
-                                style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
-                            >
-                                +5
+                                ⏱️ Parar & Concluir Série
                             </button>
                         </div>
-                    </div>
+                    ) : (
+                        /* Modo Foco - Seletores Tradicionais de Musculação */
+                        <>
+                            {/* Input Gigante de Peso */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>Carga (kg)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualWeight', -5)}
+                                        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                    >
+                                        -5
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualWeight', -1)}
+                                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
+                                    >
+                                        -1
+                                    </button>
+                                    <input 
+                                        type="number" 
+                                        value={activeSet.actualWeight ?? ''} 
+                                        onChange={e => handleUpdateSet(displaySetIdx, 'actualWeight', e.target.value)}
+                                        disabled={activeSet.completed}
+                                        style={{ width: '80px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '28px', fontWeight: '800', textAlign: 'center', padding: '10px', borderRadius: '12px' }}
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualWeight', 1)}
+                                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
+                                    >
+                                        +1
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualWeight', 5)}
+                                        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                    >
+                                        +5
+                                    </button>
+                                </div>
+                            </div>
 
-                    {/* Input Gigante de Repetições */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>Repetições</label>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualReps', -5)}
-                                style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
-                            >
-                                -5
-                            </button>
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualReps', -1)}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
-                            >
-                                -1
-                            </button>
-                            <input 
-                                type="number" 
-                                value={activeSet.actualReps} 
-                                onChange={e => handleUpdateSet(displaySetIdx, 'actualReps', parseInt(e.target.value) || 0)}
-                                disabled={activeSet.completed}
-                                style={{ width: '80px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '28px', fontWeight: '800', textAlign: 'center', padding: '10px', borderRadius: '12px' }}
-                            />
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualReps', 1)}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
-                            >
-                                +1
-                            </button>
-                            <button 
-                                type="button"
-                                onClick={() => handleAdjustActiveSet('actualReps', 5)}
-                                style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
-                            >
-                                +5
-                            </button>
-                        </div>
-                    </div>
+                            {/* Input Gigante de Repetições (Apenas de 1 em 1 conforme pedido) */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>Repetições</label>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualReps', -1)}
+                                        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                    >
+                                        -
+                                    </button>
+                                    <input 
+                                        type="number" 
+                                        value={activeSet.actualReps ?? ''} 
+                                        onChange={e => handleUpdateSet(displaySetIdx, 'actualReps', e.target.value)}
+                                        disabled={activeSet.completed}
+                                        style={{ width: '80px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '28px', fontWeight: '800', textAlign: 'center', padding: '10px', borderRadius: '12px' }}
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAdjustActiveSet('actualReps', 1)}
+                                        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
 
-                    {/* Botão Gigante de Conclusão de Série */}
-                    <button 
-                        type="button"
-                        onClick={() => handleToggleSetComplete(displaySetIdx)}
-                        style={{
-                            width: '100%',
-                            padding: '20px',
-                            borderRadius: '16px',
-                            background: activeSet.completed ? 'rgba(239, 68, 68, 0.15)' : 'var(--accent)',
-                            color: activeSet.completed ? '#f87171' : 'var(--text-dark)',
-                            fontSize: '18px',
-                            fontWeight: '800',
-                            border: activeSet.completed ? '1px solid rgba(239, 68, 68, 0.3)' : 'none',
-                            boxShadow: activeSet.completed ? 'none' : 'var(--shadow-glow)',
-                            cursor: 'pointer',
-                            marginTop: '10px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px'
-                        }}
-                    >
-                        {activeSet.completed ? 'Desfazer Série' : 'Concluir Série'}
-                    </button>
+                            {/* Botão Gigante de Conclusão de Série */}
+                            <button 
+                                type="button"
+                                onClick={() => handleToggleSetComplete(displaySetIdx)}
+                                style={{
+                                    width: '100%',
+                                    padding: '20px',
+                                    borderRadius: '16px',
+                                    background: activeSet.completed ? 'rgba(239, 68, 68, 0.15)' : 'var(--accent)',
+                                    color: activeSet.completed ? '#f87171' : 'var(--text-dark)',
+                                    fontSize: '18px',
+                                    fontWeight: '800',
+                                    border: activeSet.completed ? '1px solid rgba(239, 68, 68, 0.3)' : 'none',
+                                    boxShadow: activeSet.completed ? 'none' : 'var(--shadow-glow)',
+                                    cursor: 'pointer',
+                                    marginTop: '10px',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '1px'
+                                }}
+                            >
+                                {activeSet.completed ? 'Desfazer Série' : 'Concluir Série'}
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 {/* Controles Inferiores no Modo Foco */}
@@ -1080,6 +1266,83 @@ export default function GymMode({ onFinish, onCancel }) {
                 </div>
             )}
 
+            {/* Cronômetro Compacto para Exercícios de Tempo no Modo Clássico */}
+            {isCurrentTimeBased && (
+                <div style={{
+                    background: 'rgba(18, 20, 28, 0.9)',
+                    border: '1px solid rgba(var(--accent-rgb), 0.15)',
+                    borderRadius: '16px',
+                    padding: '15px',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)' }}>
+                            ⏱️ Cronômetro da Série {timerSetIndex + 1}
+                        </span>
+                        <span style={{ fontSize: '20px', fontFamily: 'monospace', fontWeight: '800', color: '#fff' }}>
+                            {activeSeriesTimer}s
+                        </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                        <button
+                            type="button"
+                            onClick={handleToggleSeriesTimer}
+                            style={{
+                                flex: 2,
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                background: isSeriesTimerRunning ? '#eab308' : '#34d399',
+                                color: '#000',
+                                fontWeight: '700',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                            }}
+                        >
+                            {isSeriesTimerRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleResetSeriesTimer}
+                            style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                background: 'rgba(255,255,255,0.06)',
+                                color: '#fff',
+                                fontWeight: '600',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                            }}
+                        >
+                            Zerar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleStopSeriesTimer(timerSetIndex)}
+                            style={{
+                                flex: 2,
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                background: 'var(--accent)',
+                                color: 'var(--text-dark)',
+                                fontWeight: '700',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                            }}
+                        >
+                            Salvar & OK
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Lista de Séries */}
             <div className="gym-series-panel">
                 {pr ? (
@@ -1095,7 +1358,7 @@ export default function GymMode({ onFinish, onCancel }) {
                         marginBottom: '10px',
                         fontWeight: '600'
                     }}>
-                        🏆 Recorde Pessoal: {pr.weight} kg x {pr.reps} reps
+                        🏆 Recorde Pessoal: {isCurrentTimeBased ? `${pr.reps} s` : `${pr.weight} kg x ${pr.reps} reps`}
                     </div>
                 ) : (
                     <div style={{
@@ -1110,9 +1373,10 @@ export default function GymMode({ onFinish, onCancel }) {
                         💪 Nenhum recorde registrado ainda
                     </div>
                 )}
+                
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: '40px 1fr 1fr 60px',
+                    gridTemplateColumns: isCurrentTimeBased ? '45px 1fr 60px' : '45px 1.4fr 1fr 60px',
                     padding: '0 15px 5px',
                     fontSize: '11px',
                     color: 'var(--text-muted)',
@@ -1120,13 +1384,21 @@ export default function GymMode({ onFinish, onCancel }) {
                     letterSpacing: '0.5px'
                 }}>
                     <div>Série</div>
-                    <div style={{ textAlign: 'center' }}>Peso (kg)</div>
-                    <div style={{ textAlign: 'center' }}>Reps</div>
+                    {!isCurrentTimeBased && <div style={{ textAlign: 'center' }}>Peso (kg)</div>}
+                    <div style={{ textAlign: 'center' }}>{isCurrentTimeBased ? 'Tempo (s)' : 'Reps'}</div>
                     <div style={{ textAlign: 'right' }}>Status</div>
                 </div>
 
                 {currentExercise.series.map((set, setIdx) => (
-                    <div key={setIdx} className={`set-row-item ${set.completed ? 'done' : ''} ${set.isWarmup ? 'warmup-row' : ''}`}>
+                    <div 
+                        key={setIdx} 
+                        className={`set-row-item ${set.completed ? 'done' : ''} ${set.isWarmup ? 'warmup-row' : ''}`}
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: isCurrentTimeBased ? '45px 1fr 60px' : '45px 1.4fr 1fr 60px',
+                            alignItems: 'center'
+                        }}
+                    >
                         <div className="set-number" style={set.isWarmup ? {
                             background: 'rgba(234, 179, 8, 0.15)',
                             color: '#eab308',
@@ -1135,40 +1407,57 @@ export default function GymMode({ onFinish, onCancel }) {
                             {set.isWarmup ? 'AQ' : setIdx + 1}
                         </div>
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <div className="set-input-wrap">
-                                <input 
-                                    type="number" 
-                                    value={set.actualWeight} 
-                                    onChange={e => handleUpdateSet(setIdx, 'actualWeight', parseFloat(e.target.value) || 0)}
-                                    disabled={set.completed}
-                                />
-                                <span>kg</span>
+                        {/* Peso (Ocultado em exercícios de tempo) */}
+                        {!isCurrentTimeBased && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}>
+                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -5)} disabled={set.completed}>-5</button>
+                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -1)} disabled={set.completed}>-</button>
+                                    <div className="set-input-wrap" style={{ width: '52px', padding: '4px 6px' }}>
+                                        <input 
+                                            type="number" 
+                                            value={set.actualWeight ?? ''} 
+                                            onChange={e => handleUpdateSet(setIdx, 'actualWeight', e.target.value)}
+                                            disabled={set.completed}
+                                            style={{ fontSize: '13px' }}
+                                        />
+                                        <span>kg</span>
+                                    </div>
+                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', 1)} disabled={set.completed}>+</button>
+                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', 5)} disabled={set.completed}>+5</button>
+                                </div>
+                                {lastLoadSeries && lastLoadSeries[setIdx] && (
+                                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                        Ant: {lastLoadSeries[setIdx].actualWeight}kg
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Repetições ou Tempo */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}>
+                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)} disabled={set.completed}>-</button>
+                                <div className="set-input-wrap" style={{ width: '60px', padding: '4px 6px' }}>
+                                    <input 
+                                        type="number" 
+                                        value={set.actualReps ?? ''} 
+                                        onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
+                                        disabled={set.completed}
+                                        style={{ fontSize: '13px' }}
+                                    />
+                                    <span>{isCurrentTimeBased ? 'seg' : 'reps'}</span>
+                                </div>
+                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)} disabled={set.completed}>+</button>
                             </div>
                             {lastLoadSeries && lastLoadSeries[setIdx] && (
-                                <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '2px' }}>
-                                    Ant: {lastLoadSeries[setIdx].actualWeight}kg
+                                <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                    Ant: {lastLoadSeries[setIdx].actualReps}{isCurrentTimeBased ? 's' : ' r'}
                                 </span>
                             )}
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <div className="set-input-wrap">
-                                <input 
-                                    type="number" 
-                                    value={set.actualReps} 
-                                    onChange={e => handleUpdateSet(setIdx, 'actualReps', parseInt(e.target.value) || 0)}
-                                    disabled={set.completed}
-                                />
-                                <span>reps</span>
-                            </div>
-                            {lastLoadSeries && lastLoadSeries[setIdx] && (
-                                <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '2px' }}>
-                                    Ant: {lastLoadSeries[setIdx].actualReps} r
-                                </span>
-                            )}
-                        </div>
-
+                        {/* Status Checkmark */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <div 
                                 className={`checkbox-completed ${set.completed ? 'checked' : ''}`}
