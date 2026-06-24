@@ -70,6 +70,10 @@ export default function GymMode({ onFinish, onCancel }) {
     
     const exercises = activeWorkout?.exercises || [];
     const currentExerciseIndex = activeWorkout?.currentExerciseIndex ?? 0;
+    const currentExercise = exercises[currentExerciseIndex];
+    const series = currentExercise?.series || [];
+    const activeSetIdx = series.findIndex(s => !s.completed);
+    const displaySetIdx = activeSetIdx !== -1 ? activeSetIdx : (series.length > 0 ? series.length - 1 : 0);
     
     const [durationTimer, setDurationTimer] = useState(0); // cronômetro do treino inteiro
     const [isSwapping, setIsSwapping] = useState(false);
@@ -109,6 +113,20 @@ export default function GymMode({ onFinish, onCancel }) {
         }, 1000);
         return () => clearInterval(interval);
     }, [activeWorkout]);
+
+    // Auto-avançar para o próximo exercício quando o timer de descanso termina
+    // e todas as séries do exercício atual foram concluídas
+    useEffect(() => {
+        if (!timerActive && timeLeft === 0 && activeWorkout && series.length > 0) {
+            const allSeriesCompleted = series.every(s => s.completed);
+            if (allSeriesCompleted && currentExerciseIndex < exercises.length - 1) {
+                saveActiveWorkoutState({
+                    ...activeWorkout,
+                    currentExerciseIndex: currentExerciseIndex + 1
+                });
+            }
+        }
+    }, [timerActive]);
 
     // Efeito para contar o tempo da série ativa
     useEffect(() => {
@@ -267,8 +285,6 @@ export default function GymMode({ onFinish, onCancel }) {
         );
     }
 
-    const currentExercise = exercises[currentExerciseIndex];
-
     // Avançar / Voltar exercício
     const handleNextExercise = () => {
         if (currentExerciseIndex < exercises.length - 1) {
@@ -417,6 +433,19 @@ export default function GymMode({ onFinish, onCancel }) {
     // Ajustar tempo do cronômetro (+15s / -15s)
     const handleAdjustTimer = (amount) => {
         setTimeLeft(prev => Math.max(0, prev + amount));
+    };
+
+    // Pular cronômetro de descanso e auto-avançar exercício se concluído
+    const handleSkipRest = () => {
+        setTimerActive(false);
+        setTimeLeft(0);
+        const allSeriesCompleted = series.length > 0 && series.every(s => s.completed);
+        if (allSeriesCompleted && currentExerciseIndex < exercises.length - 1) {
+            saveActiveWorkoutState({
+                ...activeWorkout,
+                currentExerciseIndex: currentExerciseIndex + 1
+            });
+        }
     };
 
     // Finalizar o treino
@@ -663,9 +692,6 @@ export default function GymMode({ onFinish, onCancel }) {
     const lastLoadSeries = getLastSessionLoad(currentExercise.name);
 
     if (isFocusMode) {
-        const series = currentExercise?.series || [];
-        const activeSetIdx = series.findIndex(s => !s.completed);
-        const displaySetIdx = activeSetIdx !== -1 ? activeSetIdx : (series.length > 0 ? series.length - 1 : 0);
         const activeSet = series[displaySetIdx] || { reps: 10, weight: 0, completed: false, actualReps: 10, actualWeight: 0 };
         const prevSet = lastLoadSeries && lastLoadSeries[displaySetIdx];
 
@@ -1038,12 +1064,12 @@ export default function GymMode({ onFinish, onCancel }) {
 
                         <div className="timer-exercise-next" style={{ textAlign: 'center', marginBottom: '20px' }}>
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                {activeSetIdx === -1 || activeSetIdx >= currentExercise.series.length - 1 ? 'Próximo Exercício' : 'Próxima Série'}
+                                {activeSetIdx === -1 || activeSetIdx >= series.length - 1 ? 'Próximo Exercício' : 'Próxima Série'}
                             </p>
                             <h4 style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold' }}>
-                                {activeSetIdx === -1 || activeSetIdx >= currentExercise.series.length - 1
+                                {activeSetIdx === -1 || activeSetIdx >= series.length - 1
                                     ? (exercises[currentExerciseIndex + 1]?.name || 'Finalizar!') 
-                                    : `${currentExercise.name} (Série ${activeSetIdx + 2})`}
+                                    : `${currentExercise.name} (Série ${activeSetIdx + 1})`}
                             </h4>
                         </div>
 
@@ -1054,10 +1080,7 @@ export default function GymMode({ onFinish, onCancel }) {
 
                         <button 
                             className="btn-primary" 
-                            onClick={() => {
-                                setTimerActive(false);
-                                setTimeLeft(0);
-                            }}
+                            onClick={handleSkipRest}
                             style={{ maxWidth: '200px' }}
                         >
                             Pular Descanso
@@ -1656,8 +1679,12 @@ export default function GymMode({ onFinish, onCancel }) {
                     </div>
 
                     <div className="timer-exercise-next">
-                        <p>Próxima Série</p>
-                        <h4>{currentExercise.name}</h4>
+                        <p>{activeSetIdx === -1 || activeSetIdx >= series.length - 1 ? 'Próximo Exercício' : 'Próxima Série'}</p>
+                        <h4>
+                            {activeSetIdx === -1 || activeSetIdx >= series.length - 1
+                                ? (exercises[currentExerciseIndex + 1]?.name || 'Finalizar!') 
+                                : `${currentExercise.name} (Série ${activeSetIdx + 1})`}
+                        </h4>
                     </div>
 
                     <div className="timer-adjust-row">
@@ -1667,10 +1694,7 @@ export default function GymMode({ onFinish, onCancel }) {
 
                     <button 
                         className="btn-primary" 
-                        onClick={() => {
-                            setTimerActive(false);
-                            setTimeLeft(0);
-                        }}
+                        onClick={handleSkipRest}
                     >
                         Pular Descanso
                     </button>

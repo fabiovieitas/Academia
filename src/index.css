@@ -983,17 +983,19 @@ button {
 
 /* --- REST TIMER OVERLAY --- */
 .timer-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(10, 11, 14, 0.95);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  background: rgba(10, 11, 14, 0.96);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 200;
+  z-index: 1100;
   padding: 30px;
   animation: fadeIn 0.3s ease-out;
 }

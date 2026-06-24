@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useApp, PRESET_WORKOUTS, CALISTENIA_PROJECT } from '../context/AppContext';
+import { useApp } from '../context/AppContext';
+import { PRESET_WORKOUTS, CALISTENIA_PROJECT } from '../context/workoutData';
 
 const estimateWorkoutDuration = (workout) => {
     if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
