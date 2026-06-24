@@ -114,19 +114,7 @@ export default function GymMode({ onFinish, onCancel }) {
         return () => clearInterval(interval);
     }, [activeWorkout]);
 
-    // Auto-avançar para o próximo exercício quando o timer de descanso termina
-    // e todas as séries do exercício atual foram concluídas
-    useEffect(() => {
-        if (!timerActive && timeLeft === 0 && activeWorkout && series.length > 0) {
-            const allSeriesCompleted = series.every(s => s.completed);
-            if (allSeriesCompleted && currentExerciseIndex < exercises.length - 1) {
-                saveActiveWorkoutState({
-                    ...activeWorkout,
-                    currentExerciseIndex: currentExerciseIndex + 1
-                });
-            }
-        }
-    }, [timerActive]);
+
 
     // Efeito para contar o tempo da série ativa
     useEffect(() => {
@@ -176,7 +164,16 @@ export default function GymMode({ onFinish, onCancel }) {
     const handleAdjustSet = (setIdx, field, amount) => {
         const currentSet = currentExercise.series[setIdx];
         if (!currentSet) return;
-        const currentValue = parseFloat(currentSet[field]) || 0;
+        
+        let currentValue = parseFloat(currentSet[field]);
+        if (isNaN(currentValue)) {
+            // Se actual estiver vazio, tenta ler do planejado (reps ou weight)
+            currentValue = parseFloat(currentSet[field === 'actualReps' ? 'reps' : 'weight']);
+        }
+        if (isNaN(currentValue)) {
+            currentValue = 0;
+        }
+        
         let nextValue = currentValue + amount;
         if (field === 'actualReps') {
             nextValue = Math.round(nextValue);
@@ -189,14 +186,69 @@ export default function GymMode({ onFinish, onCancel }) {
         setIsSeriesTimerRunning(prev => !prev);
     };
 
-    const handleStopSeriesTimer = (setIdx) => {
+    const handleCompleteSeriesWithTime = (setIdx, timeValue) => {
         setIsSeriesTimerRunning(false);
-        // Registra o tempo atual no campo reps/tempo (actualReps) da série correspondente
-        handleUpdateSet(setIdx, 'actualReps', activeSeriesTimer);
-        // Marca a série como concluída
-        handleToggleSetComplete(setIdx);
-        // Zerar o cronômetro da série
         setActiveSeriesTimer(0);
+
+        let isPRChecked = false;
+        let prWeight = 0;
+        let prReps = 0;
+
+        const updatedExercises = exercises.map((ex, exIndex) => {
+            if (exIndex === currentExerciseIndex) {
+                const updatedSeries = ex.series.map((s, sIndex) => {
+                    if (sIndex === setIdx) {
+                        const nextCompleted = true; // Sempre marca como concluído
+                        
+                        // Inicia o timer de descanso!
+                        setTimeLeft(restTime);
+                        setTimerActive(true);
+                        isPRChecked = true;
+                        prWeight = parseFloat(s.actualWeight) || 0;
+                        prReps = parseInt(timeValue) || 0;
+                        
+                        return { 
+                            ...s, 
+                            actualReps: timeValue, 
+                            completed: nextCompleted 
+                        };
+                    }
+                    return s;
+                });
+                return { ...ex, series: updatedSeries };
+            }
+            return ex;
+        });
+
+        saveActiveWorkoutState({
+            ...activeWorkout,
+            exercises: updatedExercises
+        });
+
+        // Verifica se bateu PR
+        const exerciseName = currentExercise.name;
+        const prevPR = personalRecords[exerciseName];
+        const isNewPR = !prevPR || 
+                        prWeight > prevPR.weight || 
+                        (prWeight === prevPR.weight && prReps > prevPR.reps);
+
+        if (isNewPR) {
+            setSessionPRs(prev => ({
+                ...prev,
+                [exerciseName]: {
+                    weight: prWeight,
+                    reps: prReps,
+                    prevWeight: prevPR ? prevPR.weight : null,
+                    prevReps: prevPR ? prevPR.reps : null,
+                    isFirst: !prevPR
+                }
+            }));
+            savePR(exerciseName, prWeight, prReps);
+        }
+    };
+
+    const handleStopSeriesTimer = (setIdx) => {
+        handleCompleteSeriesWithTime(setIdx, activeSeriesTimer);
     };
 
     const handleResetSeriesTimer = () => {
@@ -435,17 +487,10 @@ export default function GymMode({ onFinish, onCancel }) {
         setTimeLeft(prev => Math.max(0, prev + amount));
     };
 
-    // Pular cronômetro de descanso e auto-avançar exercício se concluído
+    // Pular cronômetro de descanso (sem auto-avançar)
     const handleSkipRest = () => {
         setTimerActive(false);
         setTimeLeft(0);
-        const allSeriesCompleted = series.length > 0 && series.every(s => s.completed);
-        if (allSeriesCompleted && currentExerciseIndex < exercises.length - 1) {
-            saveActiveWorkoutState({
-                ...activeWorkout,
-                currentExerciseIndex: currentExerciseIndex + 1
-            });
-        }
     };
 
     // Finalizar o treino
@@ -697,7 +742,15 @@ export default function GymMode({ onFinish, onCancel }) {
 
         const handleAdjustActiveSet = (field, amount) => {
             if (!activeSet) return;
-            const currentValue = parseFloat(activeSet[field]) || 0;
+            
+            let currentValue = parseFloat(activeSet[field]);
+            if (isNaN(currentValue)) {
+                currentValue = parseFloat(activeSet[field === 'actualReps' ? 'reps' : 'weight']);
+            }
+            if (isNaN(currentValue)) {
+                currentValue = 0;
+            }
+            
             let nextValue = currentValue + amount;
             if (field === 'actualReps') {
                 nextValue = Math.round(nextValue);
@@ -896,7 +949,7 @@ export default function GymMode({ onFinish, onCancel }) {
                             {/* Botão de salvar e concluir */}
                             <button
                                 type="button"
-                                onClick={() => handleStopSeriesTimer(displaySetIdx)}
+                                onClick={() => handleCompleteSeriesWithTime(displaySetIdx, activeSeriesTimer)}
                                 style={{
                                     width: '100%',
                                     padding: '16px',
@@ -924,16 +977,9 @@ export default function GymMode({ onFinish, onCancel }) {
                                     <button 
                                         type="button"
                                         onClick={() => handleAdjustActiveSet('actualWeight', -5)}
-                                        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                        style={{ width: '55px', height: '55px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}
                                     >
                                         -5
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onClick={() => handleAdjustActiveSet('actualWeight', -1)}
-                                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
-                                    >
-                                        -1
                                     </button>
                                     <input 
                                         type="number" 
@@ -944,15 +990,8 @@ export default function GymMode({ onFinish, onCancel }) {
                                     />
                                     <button 
                                         type="button"
-                                        onClick={() => handleAdjustActiveSet('actualWeight', 1)}
-                                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
-                                    >
-                                        +1
-                                    </button>
-                                    <button 
-                                        type="button"
                                         onClick={() => handleAdjustActiveSet('actualWeight', 5)}
-                                        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
+                                        style={{ width: '55px', height: '55px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}
                                     >
                                         +5
                                     </button>
@@ -1062,16 +1101,36 @@ export default function GymMode({ onFinish, onCancel }) {
                             <div className="timer-number">{timeLeft}s</div>
                         </div>
 
-                        <div className="timer-exercise-next" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <div className="timer-exercise-next" style={{ textAlign: 'center', marginBottom: '15px' }}>
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                                 {activeSetIdx === -1 || activeSetIdx >= series.length - 1 ? 'Próximo Exercício' : 'Próxima Série'}
                             </p>
-                            <h4 style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold' }}>
+                            <h4 style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold', marginBottom: '10px' }}>
                                 {activeSetIdx === -1 || activeSetIdx >= series.length - 1
                                     ? (exercises[currentExerciseIndex + 1]?.name || 'Finalizar!') 
                                     : `${currentExercise.name} (Série ${activeSetIdx + 1})`}
                             </h4>
                         </div>
+
+                        {/* Exercícios restantes */}
+                        {exercises.slice(currentExerciseIndex + 1).length > 0 ? (
+                            <div className="remaining-exercises-list" style={{ marginBottom: '20px', textAlign: 'center', width: '100%', maxWidth: '280px' }}>
+                                <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+                                    Exercícios Restantes ({exercises.slice(currentExerciseIndex + 1).length}):
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '80px', overflowY: 'auto', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                    {exercises.slice(currentExerciseIndex + 1).map((ex, idx) => (
+                                        <div key={idx} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {idx + currentExerciseIndex + 2}. {ex.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ marginBottom: '20px', fontSize: '12px', color: 'var(--accent)', fontWeight: '600' }}>
+                                🎉 Este é o último exercício do treino!
+                            </div>
+                        )}
 
                         <div className="timer-adjust-row" style={{ display: 'flex', gap: '15px', marginBottom: '25px' }}>
                             <button className="timer-adjust-btn" onClick={() => handleAdjustTimer(-15)} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>-15s</button>
@@ -1347,7 +1406,7 @@ export default function GymMode({ onFinish, onCancel }) {
                         </button>
                         <button
                             type="button"
-                            onClick={() => handleStopSeriesTimer(timerSetIndex)}
+                            onClick={() => handleCompleteSeriesWithTime(timerSetIndex, activeSeriesTimer)}
                             style={{
                                 flex: 2,
                                 padding: '8px 12px',
@@ -1435,7 +1494,6 @@ export default function GymMode({ onFinish, onCancel }) {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}>
                                     <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -5)} disabled={set.completed}>-5</button>
-                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -1)} disabled={set.completed}>-</button>
                                     <div className="set-input-wrap" style={{ width: '52px', padding: '4px 6px' }}>
                                         <input 
                                             type="number" 
@@ -1446,7 +1504,6 @@ export default function GymMode({ onFinish, onCancel }) {
                                         />
                                         <span>kg</span>
                                     </div>
-                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', 1)} disabled={set.completed}>+</button>
                                     <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', 5)} disabled={set.completed}>+5</button>
                                 </div>
                                 {lastLoadSeries && lastLoadSeries[setIdx] && (
@@ -1678,14 +1735,34 @@ export default function GymMode({ onFinish, onCancel }) {
                         <div className="timer-number">{timeLeft}s</div>
                     </div>
 
-                    <div className="timer-exercise-next">
+                    <div className="timer-exercise-next" style={{ textAlign: 'center', marginBottom: '15px' }}>
                         <p>{activeSetIdx === -1 || activeSetIdx >= series.length - 1 ? 'Próximo Exercício' : 'Próxima Série'}</p>
-                        <h4>
+                        <h4 style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold', marginBottom: '10px' }}>
                             {activeSetIdx === -1 || activeSetIdx >= series.length - 1
                                 ? (exercises[currentExerciseIndex + 1]?.name || 'Finalizar!') 
                                 : `${currentExercise.name} (Série ${activeSetIdx + 1})`}
                         </h4>
                     </div>
+
+                    {/* Exercícios restantes */}
+                    {exercises.slice(currentExerciseIndex + 1).length > 0 ? (
+                        <div className="remaining-exercises-list" style={{ marginBottom: '20px', textAlign: 'center', width: '100%', maxWidth: '280px' }}>
+                            <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+                                Exercícios Restantes ({exercises.slice(currentExerciseIndex + 1).length}):
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '80px', overflowY: 'auto', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                {exercises.slice(currentExerciseIndex + 1).map((ex, idx) => (
+                                    <div key={idx} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {idx + currentExerciseIndex + 2}. {ex.name}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ marginBottom: '20px', fontSize: '12px', color: 'var(--accent)', fontWeight: '600' }}>
+                            🎉 Este é o último exercício do treino!
+                        </div>
+                    )}
 
                     <div className="timer-adjust-row">
                         <button className="timer-adjust-btn" onClick={() => handleAdjustTimer(-15)}>-15s</button>
