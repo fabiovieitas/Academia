@@ -707,12 +707,12 @@ const CalisthenicsSkillsTab = ({
                 </span>
                 <strong style={{ 
                     fontSize: '14px', 
-                    color: activeCount >= 2 ? '#f59e0b' : 'var(--accent)',
-                    background: activeCount >= 2 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(var(--accent-rgb), 0.1)',
+                    color: 'var(--accent)',
+                    background: 'rgba(var(--accent-rgb), 0.1)',
                     padding: '3px 8px',
                     borderRadius: '8px'
                 }}>
-                    {activeCount} / 2 Ativas
+                    {activeCount} Ativas (Foco recomendado: até 2)
                 </strong>
             </div>
 

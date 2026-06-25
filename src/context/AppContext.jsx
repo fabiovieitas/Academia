@@ -94,6 +94,7 @@ export const AppProvider = ({ children }) => {
     const [timeLeft, setTimeLeft] = useState(0);
     const [timerActive, setTimerActive] = useState(false);
     const audioContextRef = useRef(null);
+    const timerEndTimeRef = useRef(null);
 
     // --- FUNÇÕES AUXILIARES SUPABASE ---
     const loadDataFromSupabase = async (profileId) => {
@@ -329,37 +330,12 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-    // Síntese de voz do fim de descanso global
+    // Síntese de voz do fim de descanso global - simplificado curto e direto
     const speakRestEnd = (currentEx, exIdx, allExs) => {
         if (!('speechSynthesis' in window)) return;
         try {
             window.speechSynthesis.cancel();
-            let message = "Descanso encerrado. ";
-            const nextSetIndex = currentEx.series.findIndex(s => !s.completed);
-            if (nextSetIndex !== -1) {
-                const nextSet = currentEx.series[nextSetIndex];
-                const weight = nextSet.actualWeight || nextSet.weight || 0;
-                message += `Faça a próxima série de ${currentEx.name}. `;
-                if (weight > 0) {
-                    message += `Carga recomendada: ${weight} quilos.`;
-                } else {
-                    message += `Sem peso.`;
-                }
-            } else {
-                if (exIdx < allExs.length - 1) {
-                    const nextEx = allExs[exIdx + 1];
-                    const firstSet = nextEx.series[0] || {};
-                    const weight = firstSet.actualWeight || firstSet.weight || 0;
-                    message += `Mude para o próximo exercício: ${nextEx.name}. `;
-                    if (weight > 0) {
-                        message += `Carga inicial: ${weight} quilos.`;
-                    } else {
-                        message += `Sem peso.`;
-                    }
-                } else {
-                    message += "Parabéns! Todos os exercícios do seu treino foram concluídos. Finalize a planilha no topo da tela.";
-                }
-            }
+            const message = "Descanso finalizado. Comece o próximo treino.";
             const utterance = new SpeechSynthesisUtterance(message);
             utterance.lang = 'pt-BR';
             utterance.rate = 1.05;
@@ -370,26 +346,79 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-    // Countdown effect global
+    // Sincroniza a marca temporal final quando o temporizador é ativado ou ajustado manualmente
     useEffect(() => {
-        let interval = null;
-        if (timerActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
-            }, 1000);
-        } else if (timeLeft === 0 && timerActive) {
-            playBeepSound();
-            if (voiceNotifications && activeWorkout) {
-                const { exercises: allExs, currentExerciseIndex: exIdx } = activeWorkout;
-                const currentEx = allExs[exIdx];
-                if (currentEx) {
-                    speakRestEnd(currentEx, exIdx, allExs);
+        if (timerActive) {
+            const calculatedEndTime = Date.now() + timeLeft * 1000;
+            if (!timerEndTimeRef.current) {
+                // Temporizador foi iniciado
+                timerEndTimeRef.current = calculatedEndTime;
+            } else {
+                // Verifica se houve ajuste manual (botões de +15s, -15s, etc.)
+                const diff = Math.abs(timerEndTimeRef.current - calculatedEndTime);
+                if (diff > 1500) {
+                    timerEndTimeRef.current = calculatedEndTime;
                 }
             }
-            setTimerActive(false);
+        } else {
+            timerEndTimeRef.current = null;
         }
-        return () => clearInterval(interval);
-    }, [timerActive, timeLeft, voiceNotifications, activeWorkout]);
+    }, [timerActive, timeLeft]);
+
+    // Countdown effect com marca temporal absoluta para precisão em background
+    useEffect(() => {
+        let interval = null;
+        if (timerActive) {
+            interval = setInterval(() => {
+                if (timerEndTimeRef.current) {
+                    const remaining = Math.max(0, Math.ceil((timerEndTimeRef.current - Date.now()) / 1000));
+                    
+                    if (remaining > 0) {
+                        setTimeLeft(prev => prev !== remaining ? remaining : prev);
+                    } else {
+                        setTimeLeft(0);
+                        setTimerActive(false);
+                        timerEndTimeRef.current = null;
+                        playBeepSound();
+                        if (voiceNotifications && activeWorkout) {
+                            const { exercises: allExs, currentExerciseIndex: exIdx } = activeWorkout;
+                            const currentEx = allExs[exIdx];
+                            speakRestEnd(currentEx, exIdx, allExs);
+                        }
+                    }
+                }
+            }, 250);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [timerActive, voiceNotifications, activeWorkout]);
+
+    // Sincronização imediata ao retornar do segundo plano (background)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && timerActive && timerEndTimeRef.current) {
+                const remaining = Math.max(0, Math.ceil((timerEndTimeRef.current - Date.now()) / 1000));
+                if (remaining === 0) {
+                    setTimeLeft(0);
+                    setTimerActive(false);
+                    timerEndTimeRef.current = null;
+                    playBeepSound();
+                    if (voiceNotifications && activeWorkout) {
+                        const { exercises: allExs, currentExerciseIndex: exIdx } = activeWorkout;
+                        const currentEx = allExs[exIdx];
+                        speakRestEnd(currentEx, exIdx, allExs);
+                    }
+                } else {
+                    setTimeLeft(remaining);
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [timerActive, voiceNotifications, activeWorkout]);
 
     // Carrega treinos e histórico do localStorage ao alterar o perfil ativo
     useEffect(() => {
@@ -745,27 +774,8 @@ export const AppProvider = ({ children }) => {
         const maneuver = updatedSkills[maneuverId];
         if (!maneuver) return;
 
-        if (nextStatus === 'treinando') {
-            // Regra 1: Limite de Metas Ativas
-            const activeManeuvers = Object.keys(updatedSkills).filter(id => id !== maneuverId && updatedSkills[id].status === 'treinando');
-            if (activeManeuvers.length >= 2) {
-                throw new Error('Você já possui o limite máximo de 2 metas ativas em treinamento simultaneamente.');
-            }
-
-            // Regra 2: Bloqueio por Categoria
-            const sameCategoryManeuver = Object.keys(updatedSkills).find(id => {
-                return id !== maneuverId && 
-                       updatedSkills[id].status === 'treinando' && 
-                       updatedSkills[id].category === maneuver.category;
-            });
-            if (sameCategoryManeuver) {
-                const nameConflicting = updatedSkills[sameCategoryManeuver].name;
-                throw new Error(`Bloqueio por Categoria: Você já está treinando a manobra "${nameConflicting}", que possui a mesma categoria ("${maneuver.category}").`);
-            }
-        }
-
         if (nextStatus === 'dominado') {
-            // Regra 3: Liberação de tentativas apenas se Fase 2 finalizada
+            // Regra: Liberação de domínio apenas se Fase 2 finalizada
             if (!maneuver.maneuver_unlocked) {
                 throw new Error('A manobra final só é liberada para domínio após a conclusão de todos os exercícios da Fase 2.');
             }
@@ -1207,13 +1217,12 @@ export const AppProvider = ({ children }) => {
             exercises: formattedExercises
         };
         
-        // Se a manobra estiver bloqueada, tenta ativá-la automaticamente
+        // Se a manobra estiver bloqueada, ativa-a automaticamente
         if (maneuver.status === 'bloqueado') {
             try {
                 updateManeuverStatus(maneuver.id, 'treinando');
             } catch (e) {
                 console.warn("Não foi possível colocar a manobra em treinamento automaticamente:", e.message);
-                alert(`Nota: Não foi possível ativar esta manobra como objetivo de treino automático.\nMotivo: ${e.message}\nVocê pode treinar normalmente, mas para computar o progresso no painel de habilidades, limpe um de seus objetivos atuais.`);
             }
         }
         

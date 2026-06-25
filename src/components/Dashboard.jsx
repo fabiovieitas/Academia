@@ -40,13 +40,33 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         setActiveEvolutionSubTab,
         setExpandedCalisthenicsSkillId,
         updateManeuverStatus,
-        startCalisthenicsWorkout
+        startCalisthenicsWorkout,
+        updateManeuverProgress
     } = useApp();
 
     const [showPresetsModal, setShowPresetsModal] = useState(false);
     const [selectedPresetKey, setSelectedPresetKey] = useState(null);
     const [showCalisteniaModal, setShowCalisteniaModal] = useState(false);
     const [selectedUserWorkout, setSelectedUserWorkout] = useState(null);
+    const [dashboardView, setDashboardView] = useState('musculacao'); // 'musculacao' | 'calistenia'
+    const [expandedSkillId, setExpandedSkillId] = useState(null);
+    const [caliInputs, setCaliInputs] = useState({});
+
+    const handleRegisterProgress = (maneuverId, type, exerciseName) => {
+        const key = `${maneuverId}_${exerciseName}`;
+        const rawValue = caliInputs[key];
+        const val = parseFloat(rawValue);
+        if (isNaN(val) || val <= 0) {
+            alert("Por favor, insira um valor numérico válido maior que zero.");
+            return;
+        }
+        try {
+            updateManeuverProgress(maneuverId, type, exerciseName, val);
+            setCaliInputs(prev => ({ ...prev, [key]: '' }));
+        } catch (err) {
+            alert(err.message);
+        }
+    };
 
     // Estados do Gerador Inteligente de Treinos ABC
     const [showGeneratorModal, setShowGeneratorModal] = useState(false);
@@ -578,300 +598,478 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                 </div>
             </div>
 
-            {workouts.length === 0 ? (
-                <div style={{
-                    textAlign: 'center',
-                    padding: '40px 20px',
-                    color: 'var(--text-muted)',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid rgba(255,255,255,0.03)'
-                }}>
-                    📋 Nenhuma rotina criada ainda.<br/>
-                    Clique em "+ Novo Treino" para montar sua primeira série!
-                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
-                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Ou comece com um modelo pronto:</p>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button onClick={() => setSelectedPresetKey('TAF')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Preparação TAF</button>
-                            <button onClick={() => setShowCalisteniaModal(true)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Calistenia</button>
-                            <button onClick={() => setSelectedPresetKey('FB')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Corpo Inteiro</button>
+            {/* SEGMENTED CONTROL: MUSCULAÇÃO VS CALISTENIA */}
+            <div style={{ 
+                display: 'flex', 
+                background: 'rgba(255, 255, 255, 0.03)', 
+                padding: '4px', 
+                borderRadius: '10px', 
+                border: '1px solid rgba(255, 255, 255, 0.05)', 
+                marginBottom: '20px' 
+            }}>
+                <button 
+                    onClick={() => setDashboardView('musculacao')}
+                    style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: dashboardView === 'musculacao' ? 'var(--accent)' : 'transparent',
+                        color: dashboardView === 'musculacao' ? 'var(--text-dark)' : 'var(--text-muted)',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'var(--transition)'
+                    }}
+                >
+                    🏋️ Musculação
+                </button>
+                <button 
+                    onClick={() => setDashboardView('calistenia')}
+                    style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: dashboardView === 'calistenia' ? 'var(--accent)' : 'transparent',
+                        color: dashboardView === 'calistenia' ? 'var(--text-dark)' : 'var(--text-muted)',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'var(--transition)'
+                    }}
+                >
+                    🤸 Calistenia (Skill Tree)
+                </button>
+            </div>
+
+            {dashboardView === 'musculacao' ? (
+                workouts.length === 0 ? (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '40px 20px',
+                        color: 'var(--text-muted)',
+                        background: 'var(--bg-secondary)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid rgba(255,255,255,0.03)'
+                    }}>
+                        📋 Nenhuma rotina criada ainda.<br/>
+                        Clique em "+ Novo Treino" para montar sua primeira série!
+                        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Ou comece com um modelo pronto:</p>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <button onClick={() => setSelectedPresetKey('TAF')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Preparação TAF</button>
+                                <button onClick={() => setDashboardView('calistenia')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Calistenia</button>
+                                <button onClick={() => setSelectedPresetKey('FB')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Corpo Inteiro</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ) : (
-                <div className="workout-grid">
-                    {workouts.map(workout => (
-                        <div 
-                            key={workout.id} 
-                            className="workout-item-card"
-                            onClick={() => setSelectedUserWorkout(workout)}
-                            style={{ cursor: 'pointer' }}
-                        >
+                ) : (
+                    <div className="workout-grid">
+                        {workouts.map(workout => (
                             <div 
-                                className="workout-card-cover" 
-                                style={{ backgroundImage: `url(${COVER_IMAGES[workout.coverStyle || 'geral']})` }}
+                                key={workout.id} 
+                                className="workout-item-card"
+                                onClick={() => setSelectedUserWorkout(workout)}
+                                style={{ cursor: 'pointer' }}
                             >
-                                <div className="workout-card-cover-overlay"></div>
-                            </div>
-                            <div className="workout-card-body">
-                                <div className="workout-info" style={{ flex: 1 }}>
-                                    <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>{workout.name}</h3>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{workout.description || 'Sem descrição'}</p>
-                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                                        <span className="badge-gym">{workout.exercises.length} exercícios</span>
-                                        <span className="badge-gym">⏱️ {estimateWorkoutDuration(workout)} min</span>
-                                        {workout.coverStyle && (
-                                            <span className="badge-gym category-badge">{workout.coverStyle.toUpperCase()}</span>
-                                        )}
+                                <div 
+                                    className="workout-card-cover" 
+                                    style={{ backgroundImage: `url(${COVER_IMAGES[workout.coverStyle || 'geral']})` }}
+                                >
+                                    <div className="workout-card-cover-overlay"></div>
+                                </div>
+                                <div className="workout-card-body">
+                                    <div className="workout-info" style={{ flex: 1 }}>
+                                        <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>{workout.name}</h3>
+                                        <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{workout.description || 'Sem descrição'}</p>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                                            <span className="badge-gym">{workout.exercises.length} exercícios</span>
+                                            <span className="badge-gym">⏱️ {estimateWorkoutDuration(workout)} min</span>
+                                            {workout.coverStyle && (
+                                                <span className="badge-gym category-badge">{workout.coverStyle.toUpperCase()}</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="workout-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <button 
+                                            className="btn-icon" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onStartWorkout(workout);
+                                            }}
+                                            title="Iniciar Treino"
+                                            style={{ background: 'rgba(var(--accent-rgb), 0.1)', borderColor: 'rgba(var(--accent-rgb), 0.2)', color: 'var(--accent)' }}
+                                        >
+                                            ▶
+                                        </button>
+                                        <button 
+                                            className="btn-icon" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onEditWorkout(workout);
+                                            }}
+                                            title="Editar Treino"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button 
+                                            className="btn-icon" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm(`Tem certeza que deseja excluir o treino "${workout.name}"?`)) {
+                                                    deleteWorkout(workout.id);
+                                                }
+                                            }}
+                                            title="Excluir Treino"
+                                        >
+                                            🗑️
+                                        </button>
                                     </div>
                                 </div>
+                            </div>
+                        ))}
+                    </div>
+                )
+            ) : (
+                /* GRID DE CALISTENIA */
+                <div className="workout-grid">
+                    {Object.values(calisthenicsSkills || {}).map((maneuver) => {
+                        const covers = {
+                            frog_stand: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
+                            elbow_lever: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=600&auto=format&fit=crop",
+                            l_sit: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop",
+                            handstand: "https://images.unsplash.com/photo-1566241477600-ac026ad43874?q=80&w=600&auto=format&fit=crop",
+                            skin_the_cat: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=600&auto=format&fit=crop",
+                            human_flag: "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?q=80&w=600&auto=format&fit=crop",
+                            muscle_up: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=600&auto=format&fit=crop"
+                        };
+                        const coverUrl = covers[maneuver.id] || "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop";
+                        
+                        const isExpanded = expandedSkillId === maneuver.id;
+                        
+                        const getLevelBadgeColorLocal = (level) => {
+                            switch (level) {
+                                case 'Iniciante': return { bg: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' };
+                                case 'Intermediario': return { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.2)' };
+                                case 'Avançado': return { bg: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)' };
+                                default: return { bg: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' };
+                            }
+                        };
+                        const badge = getLevelBadgeColorLocal(maneuver.level);
 
-                                <div className="workout-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    <button 
-                                        className="btn-icon" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onStartWorkout(workout);
-                                        }}
-                                        title="Iniciar Treino"
-                                        style={{ background: 'rgba(var(--accent-rgb), 0.1)', borderColor: 'rgba(var(--accent-rgb), 0.2)', color: 'var(--accent)' }}
-                                    >
-                                        ▶
-                                    </button>
-                                    <button 
-                                        className="btn-icon" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEditWorkout(workout);
-                                        }}
-                                        title="Editar Treino"
-                                    >
-                                        ✏️
-                                    </button>
-                                    <button 
-                                        className="btn-icon" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (window.confirm(`Tem certeza que deseja excluir o treino "${workout.name}"?`)) {
-                                                deleteWorkout(workout.id);
-                                            }
-                                        }}
-                                        title="Excluir Treino"
-                                    >
-                                        🗑️
-                                    </button>
+                        let statusLabel = "Bloqueado";
+                        let statusBg = "rgba(255,255,255,0.05)";
+                        let statusColor = "var(--text-muted)";
+                        let statusBorder = "1px solid rgba(255,255,255,0.08)";
+                        
+                        if (maneuver.status === 'treinando') {
+                            statusLabel = "Treinando";
+                            statusBg = "rgba(var(--accent-rgb), 0.15)";
+                            statusColor = "var(--accent)";
+                            statusBorder = "1px solid var(--accent)";
+                        } else if (maneuver.status === 'dominado') {
+                            statusLabel = "Dominado 🏆";
+                            statusBg = "rgba(251, 191, 36, 0.15)";
+                            statusColor = "#fbbf24";
+                            statusBorder = "1px solid #fbbf24";
+                        }
+
+                        const activePhaseNum = maneuver.phase2_unlocked ? 2 : 1;
+                        const progressArray = maneuver.phase2_unlocked ? maneuver.phase2_progress : maneuver.phase1_progress;
+                        const total = progressArray.length;
+                        const completed = progressArray.filter(p => p.value >= p.target).length;
+                        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                        let ruleText = "";
+                        if (maneuver.status === 'dominado') {
+                            ruleText = "🏆 Habilidade dominada! Parabéns por atingir o nível máximo.";
+                        } else if (maneuver.maneuver_unlocked) {
+                            ruleText = "✨ Todos os requisitos cumpridos! Toque em 'Dominar!' nas opções para concluir a manobra.";
+                        } else if (maneuver.phase2_unlocked) {
+                            ruleText = `🔓 Fase 2 activa! Conclua: ${maneuver.phase2_progress.map(p => `${p.exercise} (${p.target}${p.unit === 'segundos' ? 's' : ''})`).join(', ')} para dominar.`;
+                        } else {
+                            ruleText = `🔒 Requisitos da Fase 1: Atinja ${maneuver.phase1_progress.map(p => `${p.exercise} (${p.target}${p.unit === 'segundos' ? 's' : ''})`).join(', ')} para desbloquear o fortalecimento específico.`;
+                        }
+
+                        return (
+                            <div 
+                                key={maneuver.id} 
+                                className="workout-item-card"
+                                onClick={() => setExpandedSkillId(isExpanded ? null : maneuver.id)}
+                                style={{ 
+                                    cursor: 'pointer',
+                                    border: isExpanded ? `1px solid ${statusColor}` : '1px solid rgba(255,255,255,0.04)',
+                                    transition: 'var(--transition)'
+                                }}
+                            >
+                                <div 
+                                    className="workout-card-cover" 
+                                    style={{ backgroundImage: `url(${coverUrl})` }}
+                                >
+                                    <div className="workout-card-cover-overlay"></div>
+                                </div>
+                                <div className="workout-card-body" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ flex: 1, textAlign: 'left' }}>
+                                            <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>{maneuver.name}</h3>
+                                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                                                <span style={{
+                                                    fontSize: '9px',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    background: badge.bg,
+                                                    color: badge.color,
+                                                    border: badge.border,
+                                                    fontWeight: '700'
+                                                }}>
+                                                    {maneuver.level}
+                                                </span>
+                                                <span className="badge-gym" style={{ 
+                                                    background: statusBg, 
+                                                    color: statusColor, 
+                                                    borderColor: statusColor,
+                                                    fontWeight: '700'
+                                                }}>
+                                                    {statusLabel}
+                                                </span>
+                                                <span className="badge-gym">
+                                                    Fase {activePhaseNum}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="workout-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <button 
+                                                className="btn-icon" 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    startCalisthenicsWorkout(maneuver, activePhaseNum);
+                                                }}
+                                                title={`Treinar Fase ${activePhaseNum}`}
+                                                style={{ background: 'rgba(var(--accent-rgb), 0.1)', borderColor: 'rgba(var(--accent-rgb), 0.2)', color: 'var(--accent)' }}
+                                            >
+                                                ▶
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: '4px 0 0 0', lineHeight: '1.4', textAlign: 'left' }}>
+                                        {ruleText}
+                                    </p>
+
+                                    <div style={{ marginTop: '5px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                                            <span>Progresso da Fase Ativa</span>
+                                            <span>{percent}% ({completed}/{total})</span>
+                                        </div>
+                                        <div style={{ height: '4px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${percent}%`, background: 'var(--accent)', transition: 'width 0.3s ease' }}></div>
+                                        </div>
+                                    </div>
+
+                                    {isExpanded && (
+                                        <div 
+                                            onClick={(e) => e.stopPropagation()} 
+                                            style={{ 
+                                                marginTop: '15px', 
+                                                paddingTop: '15px', 
+                                                borderTop: '1px solid rgba(255,255,255,0.06)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '12px',
+                                                cursor: 'default'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: 'rgba(255,255,255,0.01)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', flex: 1, textAlign: 'left' }}>Objetivo de Treino:</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        try {
+                                                            const nextStatus = maneuver.status === 'treinando' ? 'bloqueado' : 'treinando';
+                                                            updateManeuverStatus(maneuver.id, nextStatus);
+                                                        } catch (err) {
+                                                            alert(err.message);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '11px',
+                                                        background: maneuver.status === 'treinando' ? 'rgba(239, 68, 68, 0.15)' : 'var(--accent)',
+                                                        color: maneuver.status === 'treinando' ? '#f87171' : 'var(--text-dark)',
+                                                        border: maneuver.status === 'treinando' ? '1px solid rgba(239, 68, 68, 0.2)' : 'none',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {maneuver.status === 'treinando' ? '❌ Parar Treino' : '🎯 Definir Meta'}
+                                                </button>
+                                                {maneuver.maneuver_unlocked && maneuver.status !== 'dominado' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            try {
+                                                                updateManeuverStatus(maneuver.id, 'dominado');
+                                                            } catch (err) {
+                                                                alert(err.message);
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '11px',
+                                                            background: 'linear-gradient(90deg, #fbbf24 0%, #d97706 100%)',
+                                                            color: '#000',
+                                                            border: 'none',
+                                                            fontWeight: '800',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        🏆 Dominar!
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px', textAlign: 'left' }}>Fase 1: Pré-requisitos</div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {maneuver.phase1_progress.map((prog, idx) => {
+                                                            const isMet = prog.value >= prog.target;
+                                                            return (
+                                                                <div key={idx} style={{ 
+                                                                    display: 'flex', 
+                                                                    flexDirection: 'column', 
+                                                                    gap: '4px',
+                                                                    background: isMet ? 'rgba(52, 211, 153, 0.03)' : 'rgba(255,255,255,0.01)',
+                                                                    padding: '8px 10px',
+                                                                    borderRadius: '8px',
+                                                                    border: isMet ? '1px solid rgba(52, 211, 153, 0.15)' : '1px solid rgba(255, 255, 255, 0.03)'
+                                                                }}>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                                        <span style={{ color: isMet ? '#34d399' : 'rgba(255,255,255,0.85)', textAlign: 'left' }}>
+                                                                            {isMet ? '✅' : '•'} {prog.exercise}
+                                                                        </span>
+                                                                        <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                                                            {prog.value} / {prog.target} {prog.unit === 'segundos' ? 'seg' : 'reps'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                                                                        <input 
+                                                                            type="number"
+                                                                            placeholder={`Novo (${prog.unit === 'segundos' ? 'seg' : 'reps'})`}
+                                                                            value={caliInputs[`${maneuver.id}_${prog.exercise}`] || ''}
+                                                                            onChange={(e) => setCaliInputs(prev => ({ ...prev, [`${maneuver.id}_${prog.exercise}`]: e.target.value }))}
+                                                                            style={{ 
+                                                                                flex: 1, 
+                                                                                padding: '4px 8px', 
+                                                                                fontSize: '11px', 
+                                                                                background: 'rgba(255,255,255,0.03)', 
+                                                                                border: '1px solid rgba(255,255,255,0.08)', 
+                                                                                borderRadius: '6px',
+                                                                                color: '#fff' 
+                                                                            }}
+                                                                        />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleRegisterProgress(maneuver.id, 'phase1', prog.exercise)}
+                                                                            style={{ 
+                                                                                padding: '4px 8px', 
+                                                                                fontSize: '11px', 
+                                                                                background: 'var(--accent)', 
+                                                                                color: 'var(--text-dark)', 
+                                                                                border: 'none', 
+                                                                                borderRadius: '6px', 
+                                                                                fontWeight: '700',
+                                                                                cursor: 'pointer' 
+                                                                            }}
+                                                                        >
+                                                                            Registrar
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ marginTop: '4px' }}>
+                                                    <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px', textAlign: 'left' }}>Fase 2: Fortalecimento Específico</div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {maneuver.phase2_progress.map((prog, idx) => {
+                                                            const isMet = prog.value >= prog.target;
+                                                            return (
+                                                                <div key={idx} style={{ 
+                                                                    display: 'flex', 
+                                                                    flexDirection: 'column', 
+                                                                    gap: '4px',
+                                                                    background: isMet ? 'rgba(52, 211, 153, 0.03)' : 'rgba(255,255,255,0.01)',
+                                                                    padding: '8px 10px',
+                                                                    borderRadius: '8px',
+                                                                    border: isMet ? '1px solid rgba(52, 211, 153, 0.15)' : '1px solid rgba(255, 255, 255, 0.03)'
+                                                                }}>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                                        <span style={{ color: isMet ? '#34d399' : 'rgba(255,255,255,0.85)', textAlign: 'left' }}>
+                                                                            {isMet ? '✅' : '•'} {prog.exercise}
+                                                                        </span>
+                                                                        <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                                                            {prog.value} / {prog.target} {prog.unit === 'segundos' ? 'seg' : 'reps'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                                                                        <input 
+                                                                            type="number"
+                                                                            placeholder={`Novo (${prog.unit === 'segundos' ? 'seg' : 'reps'})`}
+                                                                            value={caliInputs[`${maneuver.id}_${prog.exercise}`] || ''}
+                                                                            onChange={(e) => setCaliInputs(prev => ({ ...prev, [`${maneuver.id}_${prog.exercise}`]: e.target.value }))}
+                                                                            disabled={!maneuver.phase2_unlocked}
+                                                                            style={{ 
+                                                                                flex: 1, 
+                                                                                padding: '4px 8px', 
+                                                                                fontSize: '11px', 
+                                                                                background: maneuver.phase2_unlocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)', 
+                                                                                border: '1px solid rgba(255,255,255,0.08)', 
+                                                                                borderRadius: '6px',
+                                                                                color: maneuver.phase2_unlocked ? '#fff' : 'var(--text-muted)'
+                                                                            }}
+                                                                        />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleRegisterProgress(maneuver.id, 'phase2', prog.exercise)}
+                                                                            disabled={!maneuver.phase2_unlocked}
+                                                                            style={{ 
+                                                                                padding: '4px 8px', 
+                                                                                fontSize: '11px', 
+                                                                                background: maneuver.phase2_unlocked ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                                                                                color: maneuver.phase2_unlocked ? 'var(--text-dark)' : 'var(--text-muted)', 
+                                                                                border: 'none', 
+                                                                                borderRadius: '6px', 
+                                                                                fontWeight: '700',
+                                                                                cursor: maneuver.phase2_unlocked ? 'pointer' : 'default' 
+                                                                            }}
+                                                                        >
+                                                                            Registrar
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
-            {/* CARD DESTACADO DA CALISTENIA (PESO CORPORAL) */}
-            {(() => {
-                const activeManeuvers = Object.values(calisthenicsSkills || {}).filter(m => m.status === 'treinando');
-                
-                const handleActiveManeuverClick = (maneuverId) => {
-                    if (setActiveEvolutionSubTab && setExpandedCalisthenicsSkillId && onChangeTab) {
-                        setActiveEvolutionSubTab('skills');
-                        setExpandedCalisthenicsSkillId(maneuverId);
-                        onChangeTab('evolution');
-                    }
-                };
 
-                return (
-                    <div className="card" style={{
-                        marginTop: '30px',
-                        marginBottom: '20px',
-                        background: 'linear-gradient(135deg, rgba(18, 20, 28, 0.9) 0%, rgba(var(--accent-rgb), 0.05) 100%)',
-                        border: '1px solid rgba(var(--accent-rgb), 0.15)',
-                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-                        position: 'relative',
-                        overflow: 'hidden'
-                    }}>
-                        {/* Efeito decorativo no fundo */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '-50px',
-                            right: '-50px',
-                            width: '150px',
-                            height: '150px',
-                            borderRadius: '50%',
-                            background: 'rgba(var(--accent-rgb), 0.03)',
-                            filter: 'blur(30px)',
-                            zIndex: 0
-                        }}></div>
-
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                                <h3 style={{ fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    🤸 Módulo Calistenia (Peso Corporal)
-                                </h3>
-                                <span style={{ fontSize: '11px', background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                                    FitLife 🤸
-                                </span>
-                            </div>
-
-                            {activeManeuvers.length === 0 ? (
-                                <>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>
-                                        Rotinas completas utilizando apenas o peso corporal, barras e paralelas. Dividido em 3 níveis progressivos para construir força real de adaptação ao avançado.
-                                    </p>
-                                    <button 
-                                        className="btn-primary" 
-                                        onClick={() => setShowCalisteniaModal(true)}
-                                        style={{
-                                            width: 'auto',
-                                            padding: '8px 16px',
-                                            fontSize: '13px',
-                                            background: 'rgba(var(--accent-rgb), 0.1)',
-                                            border: '1px solid rgba(var(--accent-rgb), 0.25)',
-                                            color: 'var(--accent)',
-                                            boxShadow: 'none',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px'
-                                        }}
-                                    >
-                                        ⚡ Acessar Projeto Calistenia
-                                    </button>
-                                </>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                                        Você está treinando as seguintes manobras. Clique nelas para gerenciar ou registrar progresso:
-                                    </p>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                        {activeManeuvers.map(maneuver => {
-                                            const progressArray = maneuver.phase2_unlocked ? maneuver.phase2_progress : maneuver.phase1_progress;
-                                            const total = progressArray.length;
-                                            const completed = progressArray.filter(p => p.value >= p.target).length;
-                                            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-                                            const phaseLabel = maneuver.phase2_unlocked ? "Fase 2: Específico" : "Fase 1: Pré-requisitos";
-                                            const activePhaseNum = maneuver.phase2_unlocked ? 2 : 1;
-                                            
-                                            return (
-                                                <div 
-                                                    key={maneuver.id}
-                                                    style={{
-                                                        background: 'rgba(255, 255, 255, 0.02)',
-                                                        border: '1px solid rgba(255, 255, 255, 0.06)',
-                                                        borderRadius: '12px',
-                                                        padding: '12px 15px',
-                                                        transition: 'all 0.2s ease',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        gap: '10px',
-                                                        position: 'relative'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                                                        e.currentTarget.style.transform = 'translateY(-2px)';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
-                                                        e.currentTarget.style.transform = 'none';
-                                                    }}
-                                                >
-                                                    <div 
-                                                        onClick={() => handleActiveManeuverClick(maneuver.id)}
-                                                        style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px' }}
-                                                    >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <strong style={{ color: '#fff', fontSize: '13.5px' }}>
-                                                                {maneuver.name}
-                                                            </strong>
-                                                            <span style={{ fontSize: '10px', background: 'rgba(var(--accent-rgb), 0.15)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                                                                {maneuver.level}
-                                                            </span>
-                                                        </div>
-                                                        
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                                                            <span>{phaseLabel}</span>
-                                                            <span>{percent}% Concluído ({completed}/{total})</span>
-                                                        </div>
-                                                        
-                                                        <div style={{ height: '6px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                            <div style={{ height: '100%', width: `${percent}%`, background: 'var(--accent)', transition: 'width 0.3s ease' }}></div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                startCalisthenicsWorkout(maneuver, activePhaseNum);
-                                                            }}
-                                                            style={{
-                                                                background: 'var(--accent)',
-                                                                color: 'var(--text-dark)',
-                                                                padding: '6px 12px',
-                                                                borderRadius: '8px',
-                                                                fontSize: '11px',
-                                                                fontWeight: '800',
-                                                                cursor: 'pointer',
-                                                                border: 'none',
-                                                                boxShadow: 'var(--shadow-glow)',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px',
-                                                                width: 'auto',
-                                                                transition: 'var(--transition)'
-                                                            }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
-                                                        >
-                                                            ▶ Treinar Fase {activePhaseNum}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    
-                                    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                        <button 
-                                            className="btn-secondary" 
-                                            onClick={() => onChangeTab && onChangeTab('evolution')}
-                                            style={{
-                                                flex: 1,
-                                                padding: '8px 12px',
-                                                fontSize: '12px',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                gap: '6px'
-                                            }}
-                                        >
-                                            🌳 Ver Habilidades
-                                        </button>
-                                        <button 
-                                            className="btn-primary" 
-                                            onClick={() => setShowCalisteniaModal(true)}
-                                            style={{
-                                                flex: 1,
-                                                padding: '8px 12px',
-                                                fontSize: '12px',
-                                                background: 'rgba(var(--accent-rgb), 0.1)',
-                                                border: '1px solid rgba(var(--accent-rgb), 0.25)',
-                                                color: 'var(--accent)',
-                                                boxShadow: 'none',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                gap: '6px'
-                                            }}
-                                        >
-                                            ⚡ Ver Planilhas
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            })()}
 
 
             {/* MODAL DE PRESETS */}
@@ -1451,188 +1649,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                 );
             })()}
 
-            {/* MODAL DO PROJETO CALISTENIA */}
-            {showCalisteniaModal && (
-                <div className="modal-overlay" onClick={() => setShowCalisteniaModal(false)} style={{ zIndex: 110 }}>
-                    <div className="modal-sheet" style={{ height: 'auto', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
-                        <div className="modal-header-sheet">
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 'bold', letterSpacing: '1px' }}>
-                                    Projeto Especial 🤸
-                                </span>
-                                <h3 style={{ margin: 0 }}>Módulo Calistenia</h3>
-                            </div>
-                            <button className="modal-close-btn" onClick={() => setShowCalisteniaModal(false)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
-                        </div>
-                        
-                        <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                                Selecione e pré-visualize os requisitos de todas as manobras estáticas do projeto. Você pode definir qualquer manobra como meta de treinamento ativa.
-                            </p>
-                            
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                {Object.values(calisthenicsSkills || {}).map((m, mIdx) => {
-                                    const covers = {
-                                        frog_stand: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
-                                        elbow_lever: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=600&auto=format&fit=crop",
-                                        l_sit: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop",
-                                        handstand: "https://images.unsplash.com/photo-1566241477600-ac026ad43874?q=80&w=600&auto=format&fit=crop",
-                                        skin_the_cat: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=600&auto=format&fit=crop",
-                                        human_flag: "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?q=80&w=600&auto=format&fit=crop",
-                                        muscle_up: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=600&auto=format&fit=crop"
-                                    };
-                                    const coverUrl = covers[m.id] || "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop";
-                                    
-                                    const isTraining = m.status === 'treinando';
-                                    const isDominated = m.status === 'dominado';
-                                    
-                                    return (
-                                        <div key={m.id} style={{ 
-                                            background: 'var(--bg-secondary)', 
-                                            borderRadius: '16px', 
-                                            border: isTraining ? '1px solid var(--accent)' : '1px solid rgba(255,255,255,0.05)',
-                                            overflow: 'hidden',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-                                        }}>
-                                            <div style={{
-                                                height: '120px',
-                                                backgroundImage: `url(${coverUrl})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                                position: 'relative'
-                                            }}>
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    inset: 0,
-                                                    background: 'linear-gradient(to bottom, rgba(10,11,14,0.15) 0%, rgba(10,11,14,0.9) 100%)'
-                                                }}></div>
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    bottom: '12px',
-                                                    left: '15px',
-                                                    right: '15px',
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'flex-end'
-                                                }}>
-                                                    <h4 style={{ fontSize: '14px', color: '#fff', fontWeight: '800', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-                                                        {m.name}
-                                                    </h4>
-                                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                        <span style={{ 
-                                                            fontSize: '9px', 
-                                                            background: m.level === 'Avançado' ? 'rgba(239, 68, 68, 0.25)' : m.level === 'Intermediario' ? 'rgba(245, 158, 11, 0.25)' : 'rgba(59, 130, 246, 0.25)', 
-                                                            border: m.level === 'Avançado' ? '1px solid rgba(239, 68, 68, 0.4)' : m.level === 'Intermediario' ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(59, 130, 246, 0.4)',
-                                                            color: m.level === 'Avançado' ? '#f87171' : m.level === 'Intermediario' ? '#fbbf24' : '#60a5fa', 
-                                                            padding: '2px 8px', 
-                                                            borderRadius: '12px', 
-                                                            fontWeight: 'bold' 
-                                                        }}>
-                                                            {m.level}
-                                                        </span>
-                                                        {isTraining && (
-                                                            <span style={{ fontSize: '9px', background: 'rgba(var(--accent-rgb), 0.25)', border: '1px solid var(--accent)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                                                                Treinando
-                                                            </span>
-                                                        )}
-                                                        {isDominated && (
-                                                            <span style={{ fontSize: '9px', background: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgb(52, 211, 153)', color: '#34d399', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
-                                                                Dominado 🏆
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                {/* Phase 1 Requirements */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px solid rgba(var(--accent-rgb), 0.3)', paddingLeft: '10px' }}>
-                                                    <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fase 1: Pré-requisitos</div>
-                                                    {m.phase1_progress.map((ex, exIdx) => (
-                                                        <div key={exIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>• {ex.exercise}</span>
-                                                            <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                                                                &ge; {ex.target} {ex.unit === 'segundos' ? 'seg' : 'reps'}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                
-                                                {/* Phase 2 Requirements */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px solid rgba(251, 191, 36, 0.3)', paddingLeft: '10px' }}>
-                                                    <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fase 2: Fortalecimento Específico</div>
-                                                    {m.phase2_progress.map((ex, exIdx) => (
-                                                        <div key={exIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>• {ex.exercise}</span>
-                                                            <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                                                                &ge; {ex.target} {ex.unit === 'segundos' ? 'seg' : 'reps'}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                
-                                                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                                                    <button 
-                                                        className="btn-secondary"
-                                                        onClick={async () => {
-                                                            try {
-                                                                const nextStatus = isTraining ? 'bloqueado' : 'treinando';
-                                                                await updateManeuverStatus(m.id, nextStatus);
-                                                            } catch (err) {
-                                                                alert(err.message);
-                                                            }
-                                                        }}
-                                                        style={{ 
-                                                            flex: 1.2, 
-                                                            padding: '8px 10px', 
-                                                            fontSize: '12px', 
-                                                            display: 'inline-flex', 
-                                                            justifyContent: 'center', 
-                                                            alignItems: 'center', 
-                                                            gap: '4px',
-                                                            background: isTraining ? 'rgba(239, 68, 68, 0.1)' : 'rgba(var(--accent-rgb), 0.05)',
-                                                            color: isTraining ? '#f87171' : 'var(--accent)',
-                                                            border: isTraining ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(var(--accent-rgb), 0.2)'
-                                                        }}
-                                                    >
-                                                        {isTraining ? '❌ Parar Treino' : '🏋️ Definir como Meta'}
-                                                    </button>
-                                                    <button 
-                                                        className="btn-primary"
-                                                        onClick={() => {
-                                                            if (setActiveEvolutionSubTab && setExpandedCalisthenicsSkillId && onChangeTab) {
-                                                                setActiveEvolutionSubTab('skills');
-                                                                setExpandedCalisthenicsSkillId(m.id);
-                                                                onChangeTab('evolution');
-                                                                setShowCalisteniaModal(false);
-                                                            }
-                                                        }}
-                                                        style={{ flex: 1, padding: '8px 10px', fontSize: '12px', background: 'var(--accent)', color: 'var(--text-dark)', fontWeight: 'bold', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}
-                                                    >
-                                                        🌳 Ver Evolução
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                        
-                        <div style={{ padding: '15px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                            <button 
-                                className="btn-secondary" 
-                                onClick={() => setShowCalisteniaModal(false)}
-                                style={{ width: '100%', padding: '12px' }}
-                            >
-                                Fechar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* MODAL DE GERADOR INTELIGENTE DE TREINOS ABC */}
             {showGeneratorModal && (

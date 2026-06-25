@@ -149,7 +149,7 @@ export default function GymMode({ onFinish, onCancel }) {
         );
     };
 
-    const isCurrentTimeBased = currentExercise ? isTimeBasedExercise(currentExercise.name, currentExercise.notes) : false;
+    const isCurrentTimeBased = false;
 
     // Sincronizar o índice da série que o cronômetro deve rodar por padrão
     useEffect(() => {

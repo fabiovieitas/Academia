@@ -215,24 +215,52 @@ export default function SettingsView({ isInstallable, onInstall }) {
             </div>
 
             {/* INSTALAR APP NO CELULAR */}
-            {isInstallable && (
-                <div className="card" style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        📱 Instalar no Celular (PWA)
-                    </h3>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>
-                        Adicione o <strong>FitLife</strong> à tela inicial do seu celular para treinar em tela cheia, sem barra de navegação e com acesso offline.
-                    </p>
-                    
-                    <button 
-                        onClick={onInstall}
-                        className="btn-primary"
-                        style={{ padding: '12px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%' }}
-                    >
-                        ⚡ Instalar Aplicativo Agora
-                    </button>
-                </div>
-            )}
+            {(() => {
+                const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+                if (isStandalone) return null;
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                return (
+                    <div className="card" style={{ marginBottom: '20px' }}>
+                        <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            📱 Instalar no Celular (Atalho)
+                        </h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.5' }}>
+                            Adicione o <strong>FitLife</strong> à tela inicial do seu celular para treinar em tela cheia, sem barra de navegação e com acesso offline.
+                        </p>
+                        
+                        {isInstallable ? (
+                            <button 
+                                onClick={onInstall}
+                                className="btn-primary"
+                                style={{ padding: '12px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', cursor: 'pointer' }}
+                            >
+                                ⚡ Instalar Aplicativo Agora
+                            </button>
+                        ) : (
+                            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '15px' }}>
+                                <span style={{ fontWeight: 'bold', color: 'var(--accent)', fontSize: '13px', display: 'block', marginBottom: '8px' }}>
+                                    {isIOS ? '🍎 Como Adicionar no iPhone (Safari):' : '🤖 Como Adicionar no Android (Chrome):'}
+                                </span>
+                                <ol style={{ fontSize: '12px', color: 'var(--text-main)', margin: 0, paddingLeft: '18px', lineHeight: '1.6' }}>
+                                    {isIOS ? (
+                                        <>
+                                            <li>Toque no botão de <strong>Compartilhar</strong> (ícone <span style={{ fontSize: '14px' }}>📤</span> na barra inferior).</li>
+                                            <li>Selecione <strong>Adicionar à Tela de Início</strong> (ícone <span style={{ fontSize: '14px' }}>➕</span>).</li>
+                                            <li>Toque em <strong>Adicionar</strong> no canto superior direito.</li>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <li>Toque nos <strong>três pontinhos ⋮</strong> no canto superior direito do Chrome.</li>
+                                            <li>Selecione <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela de início</strong>.</li>
+                                            <li>Confirme e pronto!</li>
+                                        </>
+                                    )}
+                                </ol>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* ÁUDIO & VOZ */}
             <div className="card" style={{ marginBottom: '20px' }}>
