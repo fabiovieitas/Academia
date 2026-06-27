@@ -1037,7 +1037,7 @@ const CalisthenicsSkillsTab = ({
                                                     const value = prog.value || 0;
                                                     const isMet = value >= target;
                                                     const progressPercentage = Math.min(100, (value / target) * 100);
-                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : (prog.unit === 'concluido' ? '' : 'rep');
 
                                                     return (
                                                         <div key={idx} style={{
@@ -1060,11 +1060,16 @@ const CalisthenicsSkillsTab = ({
                                                                 {prog.exercise}
                                                             </div>
                                                             <div style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 6px' }}>
-                                                                {value}{unitShort} / {target}{unitShort}
+                                                                {prog.unit === 'concluido' 
+                                                                    ? (isMet ? 'Aprovado ✓' : 'Pendente ⏳') 
+                                                                    : `${value}${unitShort} / ${target}${unitShort}`
+                                                                }
                                                             </div>
-                                                            <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
-                                                                <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
-                                                            </div>
+                                                            {prog.unit !== 'concluido' && (
+                                                                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                    <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}
@@ -1109,7 +1114,7 @@ const CalisthenicsSkillsTab = ({
                                                     const value = isLocked ? 0 : (prog.value || 0);
                                                     const isMet = value >= target && !isLocked;
                                                     const progressPercentage = Math.min(100, (value / target) * 100);
-                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : (prog.unit === 'concluido' ? '' : 'rep');
 
                                                     return (
                                                         <div key={idx} style={{
@@ -1133,9 +1138,14 @@ const CalisthenicsSkillsTab = ({
                                                                 {isLocked && '🔒 '}{prog.exercise}
                                                             </div>
                                                             <div style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 6px' }}>
-                                                                {isLocked ? `Meta: ${target}${unitShort}` : `${value}${unitShort} / ${target}${unitShort}`}
+                                                                {isLocked 
+                                                                    ? `Meta: ${target}${unitShort}` 
+                                                                    : (prog.unit === 'concluido' 
+                                                                        ? (isMet ? 'Aprovado ✓' : 'Pendente ⏳') 
+                                                                        : `${value}${unitShort} / ${target}${unitShort}`)
+                                                                }
                                                             </div>
-                                                            {!isLocked && (
+                                                            {!isLocked && prog.unit !== 'concluido' && (
                                                                 <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
                                                                     <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
                                                                 </div>
@@ -1191,7 +1201,7 @@ const CalisthenicsSkillsTab = ({
                                                     const inputKey = `${maneuver.id}_${prog.exercise}`;
                                                     const enteredVal = inputs[inputKey] || '';
                                                     const isMet = (prog.value || 0) >= prog.target;
-                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : (prog.unit === 'concluido' ? '' : 'rep');
 
                                                     return (
                                                         <div key={`p1_${idx}`} style={{
@@ -1209,33 +1219,58 @@ const CalisthenicsSkillsTab = ({
                                                                     {prog.exercise}
                                                                 </div>
                                                                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                                    Meta: {prog.target}{unitShort} | Atual: {prog.value || 0}{unitShort}
+                                                                    {prog.unit === 'concluido' 
+                                                                        ? (isMet ? 'Aquecido e compreendido ✓' : 'Aquecimento e técnica pendentes')
+                                                                        : `Meta: ${prog.target}${unitShort} | Atual: ${prog.value || 0}${unitShort}`
+                                                                    }
                                                                 </div>
                                                             </div>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <div className="set-input-wrap" style={{ width: '70px', padding: '4px 6px' }}>
-                                                                    <input 
-                                                                        type="number" 
-                                                                        style={{ width: '100%', fontSize: '12px', fontWeight: '700' }}
-                                                                        value={enteredVal}
-                                                                        onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
-                                                                        placeholder="0"
-                                                                    />
-                                                                    <span style={{ fontSize: '9px' }}>{unitShort}</span>
-                                                                </div>
-                                                                <div 
-                                                                    className={`checkbox-completed ${isMet ? 'checked' : ''}`}
-                                                                    style={{ width: '28px', height: '28px', borderRadius: '6px' }}
-                                                                    onClick={() => {
-                                                                        if (enteredVal) {
-                                                                            handleRegister(maneuver.id, 'phase1', prog.exercise);
-                                                                        } else {
-                                                                            updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, isMet ? 0 : prog.target);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {isMet ? '✓' : ''}
-                                                                </div>
+                                                                {prog.unit === 'concluido' ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, isMet ? 0 : 1)}
+                                                                        style={{
+                                                                            background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255,255,255,0.04)',
+                                                                            border: isMet ? '1px solid #34d399' : '1px solid rgba(255,255,255,0.1)',
+                                                                            color: isMet ? '#34d399' : '#fff',
+                                                                            padding: '6px 12px',
+                                                                            borderRadius: '8px',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: '700',
+                                                                            cursor: 'pointer',
+                                                                            transition: 'var(--transition)'
+                                                                        }}
+                                                                    >
+                                                                        {isMet ? 'Aprovado ✓' : 'Marcar Concluído'}
+                                                                    </button>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className="set-input-wrap" style={{ width: '70px', padding: '4px 6px' }}>
+                                                                            <input 
+                                                                                type="number" 
+                                                                                style={{ width: '100%', fontSize: '12px', fontWeight: '700' }}
+                                                                                value={enteredVal}
+                                                                                onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <span style={{ fontSize: '9px' }}>{unitShort}</span>
+                                                                        </div>
+                                                                        <div 
+                                                                            className={`checkbox-completed ${isMet ? 'checked' : ''}`}
+                                                                            style={{ width: '28px', height: '28px', borderRadius: '6px' }}
+                                                                            onClick={() => {
+                                                                                if (enteredVal) {
+                                                                                    handleRegister(maneuver.id, 'phase1', prog.exercise);
+                                                                                } else {
+                                                                                    updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, isMet ? 0 : prog.target);
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {isMet ? '✓' : ''}
+                                                                        </div>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     );
@@ -1246,7 +1281,7 @@ const CalisthenicsSkillsTab = ({
                                                     const inputKey = `${maneuver.id}_${prog.exercise}`;
                                                     const enteredVal = inputs[inputKey] || '';
                                                     const isMet = (prog.value || 0) >= prog.target;
-                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : (prog.unit === 'concluido' ? '' : 'rep');
 
                                                     return (
                                                         <div key={`p2_${idx}`} style={{
@@ -1264,33 +1299,58 @@ const CalisthenicsSkillsTab = ({
                                                                     {prog.exercise}
                                                                 </div>
                                                                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                                    Meta: {prog.target}{unitShort} | Atual: {prog.value || 0}{unitShort}
+                                                                    {prog.unit === 'concluido' 
+                                                                        ? (isMet ? 'Aprovado ✓' : 'Aprovado: Vai para o próximo nível.')
+                                                                        : `Meta: ${prog.target}${unitShort} | Atual: ${prog.value || 0}${unitShort}`
+                                                                    }
                                                                 </div>
                                                             </div>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <div className="set-input-wrap" style={{ width: '70px', padding: '4px 6px' }}>
-                                                                    <input 
-                                                                        type="number" 
-                                                                        style={{ width: '100%', fontSize: '12px', fontWeight: '700' }}
-                                                                        value={enteredVal}
-                                                                        onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
-                                                                        placeholder="0"
-                                                                    />
-                                                                    <span style={{ fontSize: '9px' }}>{unitShort}</span>
-                                                                </div>
-                                                                <div 
-                                                                    className={`checkbox-completed ${isMet ? 'checked' : ''}`}
-                                                                    style={{ width: '28px', height: '28px', borderRadius: '6px' }}
-                                                                    onClick={() => {
-                                                                        if (enteredVal) {
-                                                                            handleRegister(maneuver.id, 'phase2', prog.exercise);
-                                                                        } else {
-                                                                            updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, isMet ? 0 : prog.target);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {isMet ? '✓' : ''}
-                                                                </div>
+                                                                {prog.unit === 'concluido' ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, isMet ? 0 : 1)}
+                                                                        style={{
+                                                                            background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255,255,255,0.04)',
+                                                                            border: isMet ? '1px solid #34d399' : '1px solid rgba(255,255,255,0.1)',
+                                                                            color: isMet ? '#34d399' : '#fff',
+                                                                            padding: '6px 12px',
+                                                                            borderRadius: '8px',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: '700',
+                                                                            cursor: 'pointer',
+                                                                            transition: 'var(--transition)'
+                                                                        }}
+                                                                    >
+                                                                        {isMet ? 'Aprovado ✓' : 'Marcar Concluído'}
+                                                                    </button>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className="set-input-wrap" style={{ width: '70px', padding: '4px 6px' }}>
+                                                                            <input 
+                                                                                type="number" 
+                                                                                style={{ width: '100%', fontSize: '12px', fontWeight: '700' }}
+                                                                                value={enteredVal}
+                                                                                onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <span style={{ fontSize: '9px' }}>{unitShort}</span>
+                                                                        </div>
+                                                                        <div 
+                                                                            className={`checkbox-completed ${isMet ? 'checked' : ''}`}
+                                                                            style={{ width: '28px', height: '28px', borderRadius: '6px' }}
+                                                                            onClick={() => {
+                                                                                if (enteredVal) {
+                                                                                    handleRegister(maneuver.id, 'phase2', prog.exercise);
+                                                                                } else {
+                                                                                    updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, isMet ? 0 : prog.target);
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {isMet ? '✓' : ''}
+                                                                        </div>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     );

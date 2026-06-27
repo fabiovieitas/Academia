@@ -247,8 +247,8 @@
       'Frog Stand', 
       'Iniciante', 
       'Empurrar/Equilibrio',
-      '[{"exercise": "Prancha Tradicional", "target": 45, "unit": "segundos"}, {"exercise": "Prancha Alta", "target": 35, "unit": "segundos"}]'::jsonb,
-      '[{"exercise": "Lean Plank", "target": 15, "unit": "segundos"}, {"exercise": "Frog Stand Assistido", "target": 30, "unit": "segundos"}]'::jsonb
+      '[{"exercise": "Mobilidade: Aquecimento de Punhos", "target": 1, "unit": "concluido"}, {"exercise": "Técnica: Técnica da Garra", "target": 1, "unit": "concluido"}, {"exercise": "Nível 1: Prancha Alta", "target": 60, "unit": "segundos"}, {"exercise": "Nível 2: Planche Lean", "target": 30, "unit": "segundos"}]'::jsonb,
+      '[{"exercise": "Nível 3: Encaixe de Sapo (1 pé)", "target": 10, "unit": "segundos"}, {"exercise": "Nível 4: Sapo Assistido (Testa no travesseiro)", "target": 15, "unit": "segundos"}]'::jsonb
     ),
     (
       'elbow_lever', 

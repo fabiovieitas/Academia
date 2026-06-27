@@ -58,12 +58,14 @@ export const CALISTHENICS_MANEUVERS_INITIAL = {
         category: "Empurrar/Equilibrio",
         status: "bloqueado",
         phase1_progress: [
-            { exercise: "Prancha Tradicional", value: 0, target: 45, unit: "segundos" },
-            { exercise: "Prancha Alta", value: 0, target: 35, unit: "segundos" }
+            { exercise: "Mobilidade: Aquecimento de Punhos", value: 0, target: 1, unit: "concluido" },
+            { exercise: "Técnica: Técnica da Garra", value: 0, target: 1, unit: "concluido" },
+            { exercise: "Nível 1: Prancha Alta", value: 0, target: 60, unit: "segundos" },
+            { exercise: "Nível 2: Planche Lean", value: 0, target: 30, unit: "segundos" }
         ],
         phase2_progress: [
-            { exercise: "Lean Plank", value: 0, target: 15, unit: "segundos" },
-            { exercise: "Frog Stand Assistido", value: 0, target: 30, unit: "segundos" }
+            { exercise: "Nível 3: Encaixe de Sapo (1 pé)", value: 0, target: 10, unit: "segundos" },
+            { exercise: "Nível 4: Sapo Assistido (Testa no travesseiro)", value: 0, target: 15, unit: "segundos" }
         ],
         phase2_unlocked: false,
         maneuver_unlocked: false
