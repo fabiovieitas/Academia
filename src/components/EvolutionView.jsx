@@ -992,308 +992,312 @@ const CalisthenicsSkillsTab = ({
                                         </div>
                                     )}
 
-                                    {/* Phase 1: Pré-requisitos */}
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                            <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                                                <span>Fase 1</span> • Pré-requisitos Recomendados
-                                            </h4>
-                                            <button
-                                                type="button"
-                                                onClick={() => startCalisthenicsWorkout(maneuver, 1)}
-                                                style={{
-                                                    background: 'rgba(var(--accent-rgb), 0.15)',
-                                                    border: '1px solid var(--accent)',
-                                                    color: 'var(--accent)',
-                                                    padding: '4px 10px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '11px',
-                                                    fontWeight: '700',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px',
-                                                    width: 'auto',
-                                                    transition: 'var(--transition)'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
-                                            >
-                                                ▶ Treinar Fase 1
-                                            </button>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {maneuver.phase1_progress.map((prog, idx) => {
-                                                const target = prog.target;
-                                                const value = prog.value || 0;
-                                                const isMet = value >= target;
-                                                const progressPercentage = Math.min(100, (value / target) * 100);
-                                                const inputKey = `${maneuver.id}_${prog.exercise}`;
-                                                const enteredVal = inputs[inputKey] || '';
-                                                const isManeuverActive = maneuver.status === 'treinando';
+                                    {/* ÁRVORE DE HABILIDADES VISUAL */}
+                                    <div className="skill-tree-container" style={{
+                                        background: 'rgba(255, 255, 255, 0.01)',
+                                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                                        borderRadius: '16px',
+                                        padding: '18px 12px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '2px',
+                                        position: 'relative'
+                                    }}>
+                                        <h4 style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px' }}>
+                                            🌳 Árvore de Habilidades
+                                        </h4>
 
-                                                return (
-                                                    <div 
-                                                        key={idx} 
-                                                        style={{
-                                                            background: isMet ? 'rgba(52, 211, 153, 0.05)' : 'var(--bg-tertiary)',
-                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.25)' : '1px solid rgba(255, 255, 255, 0.04)',
-                                                            borderRadius: '12px',
-                                                            padding: '12px',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            gap: '8px',
-                                                            transition: 'var(--transition)'
-                                                        }}
-                                                    >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <div>
-                                                                <span style={{ fontSize: '12.5px', fontWeight: '700', color: isMet ? '#34d399' : '#fff' }}>
-                                                                    {prog.exercise}
-                                                                </span>
-                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                                                    Meta: {target} {prog.unit} | Registrado: {value} {prog.unit}
-                                                                </div>
-                                                            </div>
-                                                            <span style={{
-                                                                fontSize: '10px',
-                                                                padding: '2px 6px',
-                                                                borderRadius: '8px',
-                                                                background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.1)',
-                                                                color: isMet ? '#34d399' : '#f59e0b',
-                                                                fontWeight: '700'
-                                                            }}>
-                                                                {isMet ? 'Alcançado ✅' : 'Em andamento ⏳'}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Progress bar for not completed */}
-                                                        {!isMet && (
-                                                            <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                                <div style={{ width: `${progressPercentage}%`, height: '100%', background: '#f59e0b', borderRadius: '3px' }} />
-                                                            </div>
-                                                        )}
-
-                                                        {/* Log Input styled as standard series row */}
-                                                        {isManeuverActive && (
-                                                            <div style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'space-between',
-                                                                gap: '12px',
-                                                                marginTop: '4px',
-                                                                background: 'rgba(255,255,255,0.02)',
-                                                                padding: '6px 10px',
-                                                                borderRadius: '8px',
-                                                                border: '1px solid rgba(255,255,255,0.04)'
-                                                            }}>
-                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Registrar progresso:</span>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                    <div className="set-input-wrap" style={{ width: '80px', padding: '4px 8px' }}>
-                                                                        <input 
-                                                                            type="number" 
-                                                                            style={{ width: '100%', fontSize: '13px', fontWeight: '700' }}
-                                                                            value={enteredVal}
-                                                                            onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
-                                                                            placeholder="0"
-                                                                        />
-                                                                        <span style={{ fontSize: '10px' }}>{prog.unit === 'segundos' ? 's' : 'rep'}</span>
-                                                                    </div>
-                                                                    <div 
-                                                                        className={`checkbox-completed ${isMet ? 'checked' : ''}`}
-                                                                        style={{ width: '30px', height: '30px', borderRadius: '6px' }}
-                                                                        onClick={() => {
-                                                                            if (enteredVal) {
-                                                                                handleRegister(maneuver.id, 'phase1', prog.exercise);
-                                                                            } else {
-                                                                                // Toggle: Se já alcançou, zera. Se não, preenche com a meta.
-                                                                                if (isMet) {
-                                                                                    updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, 0);
-                                                                                } else {
-                                                                                    updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, target);
-                                                                                }
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        {isMet ? '✓' : ''}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {/* Phase 2: Fortalecimento Específico */}
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', opacity: maneuver.phase2_unlocked ? 1 : 0.5 }}>
-                                            <h4 style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                                                <span>Fase 2</span> • Fortalecimento Específico
-                                            </h4>
-                                            {maneuver.phase2_unlocked && (
+                                        {/* Fase 1: Pré-requisitos */}
+                                        <div style={{ width: '100%' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '0 5px' }}>
+                                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                                                    Fase 1: Pré-requisitos
+                                                </span>
                                                 <button
                                                     type="button"
-                                                    onClick={() => startCalisthenicsWorkout(maneuver, 2)}
+                                                    onClick={() => startCalisthenicsWorkout(maneuver, 1)}
                                                     style={{
-                                                        background: 'rgba(var(--accent-rgb), 0.15)',
+                                                        background: 'rgba(var(--accent-rgb), 0.12)',
                                                         border: '1px solid var(--accent)',
                                                         color: 'var(--accent)',
-                                                        padding: '4px 10px',
-                                                        borderRadius: '8px',
-                                                        fontSize: '11px',
+                                                        padding: '3px 8px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '10px',
                                                         fontWeight: '700',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '4px',
-                                                        width: 'auto',
-                                                        transition: 'var(--transition)'
+                                                        cursor: 'pointer'
                                                     }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
-                                                    onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
                                                 >
-                                                    ▶ Treinar Fase 2
+                                                    ▶ Treinar
                                                 </button>
-                                            )}
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {maneuver.phase2_progress.map((prog, idx) => {
-                                                const target = prog.target;
-                                                const value = prog.value || 0;
-                                                const isLocked = !maneuver.phase2_unlocked;
-                                                const isMet = value >= target && !isLocked;
-                                                const progressPercentage = Math.min(100, (value / target) * 100);
-                                                const inputKey = `${maneuver.id}_${prog.exercise}`;
-                                                const enteredVal = inputs[inputKey] || '';
-                                                const isManeuverActive = maneuver.status === 'treinando';
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+                                                {maneuver.phase1_progress.map((prog, idx) => {
+                                                    const target = prog.target;
+                                                    const value = prog.value || 0;
+                                                    const isMet = value >= target;
+                                                    const progressPercentage = Math.min(100, (value / target) * 100);
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
 
-                                                if (isLocked) {
                                                     return (
-                                                        <div 
-                                                            key={idx} 
-                                                            style={{
-                                                                opacity: 0.4,
-                                                                background: 'var(--bg-tertiary)',
-                                                                border: '1px dashed rgba(255,255,255,0.1)',
-                                                                borderRadius: '12px',
-                                                                padding: '12px',
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                gap: '4px',
-                                                                cursor: 'not-allowed',
-                                                                userSelect: 'none'
-                                                            }}
-                                                        >
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                    <span>🔒</span> {prog.exercise}
-                                                                </span>
-                                                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '700' }}>
-                                                                    Bloqueado
-                                                                </span>
+                                                        <div key={idx} style={{
+                                                            flex: 1,
+                                                            background: isMet ? 'rgba(52, 211, 153, 0.06)' : 'var(--bg-tertiary)',
+                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
+                                                            borderRadius: '12px',
+                                                            padding: '10px',
+                                                            textAlign: 'center',
+                                                            minWidth: 0
+                                                        }}>
+                                                            <div style={{
+                                                                fontSize: '11.5px',
+                                                                fontWeight: '700',
+                                                                color: isMet ? '#34d399' : '#fff',
+                                                                whiteSpace: 'nowrap',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis'
+                                                            }} title={prog.exercise}>
+                                                                {prog.exercise}
                                                             </div>
-                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                                Meta: {target} {prog.unit} | Conclua a Fase anterior para liberar
+                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 6px' }}>
+                                                                {value}{unitShort} / {target}{unitShort}
+                                                            </div>
+                                                            <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
                                                             </div>
                                                         </div>
                                                     );
-                                                }
+                                                })}
+                                            </div>
+                                        </div>
 
-                                                return (
-                                                    <div 
-                                                        key={idx} 
+                                        {/* Conexão Setas */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '5px 0' }}>
+                                            <div style={{ width: '2px', height: '15px', background: maneuver.phase2_unlocked ? 'var(--accent)' : 'rgba(255,255,255,0.08)', transition: 'var(--transition)' }} />
+                                            <span style={{ fontSize: '11px', color: maneuver.phase2_unlocked ? 'var(--accent)' : 'rgba(255,255,255,0.15)', marginTop: '-4px' }}>▼</span>
+                                        </div>
+
+                                        {/* Fase 2: Progressões */}
+                                        <div style={{ width: '100%', opacity: maneuver.phase2_unlocked ? 1 : 0.5 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '0 5px' }}>
+                                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    {!maneuver.phase2_unlocked && '🔒'} Fase 2: Progressões
+                                                </span>
+                                                {maneuver.phase2_unlocked && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => startCalisthenicsWorkout(maneuver, 2)}
                                                         style={{
-                                                            background: isMet ? 'rgba(52, 211, 153, 0.05)' : 'var(--bg-tertiary)',
-                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.25)' : '1px solid rgba(255, 255, 255, 0.04)',
-                                                            borderRadius: '12px',
-                                                            padding: '12px',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            gap: '8px',
-                                                            transition: 'var(--transition)'
+                                                            background: 'rgba(var(--accent-rgb), 0.12)',
+                                                            border: '1px solid var(--accent)',
+                                                            color: 'var(--accent)',
+                                                            padding: '3px 8px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '10px',
+                                                            fontWeight: '700',
+                                                            cursor: 'pointer'
                                                         }}
                                                     >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <div>
-                                                                <span style={{ fontSize: '12.5px', fontWeight: '700', color: isMet ? '#34d399' : '#fff' }}>
-                                                                    {prog.exercise}
-                                                                </span>
-                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                                                    Meta: {target} {prog.unit} | Registrado: {value} {prog.unit}
-                                                                </div>
-                                                            </div>
-                                                            <span style={{
-                                                                fontSize: '10px',
-                                                                padding: '2px 6px',
-                                                                borderRadius: '8px',
-                                                                background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.1)',
-                                                                color: isMet ? '#34d399' : '#f59e0b',
-                                                                fontWeight: '700'
-                                                            }}>
-                                                                {isMet ? 'Alcançado ✅' : 'Em andamento ⏳'}
-                                                            </span>
-                                                        </div>
+                                                        ▶ Treinar
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+                                                {maneuver.phase2_progress.map((prog, idx) => {
+                                                    const isLocked = !maneuver.phase2_unlocked;
+                                                    const target = prog.target;
+                                                    const value = isLocked ? 0 : (prog.value || 0);
+                                                    const isMet = value >= target && !isLocked;
+                                                    const progressPercentage = Math.min(100, (value / target) * 100);
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
 
-                                                        {/* Progress bar for not completed */}
-                                                        {!isMet && (
-                                                            <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                                <div style={{ width: `${progressPercentage}%`, height: '100%', background: '#f59e0b', borderRadius: '3px' }} />
-                                                            </div>
-                                                        )}
-
-                                                        {/* Log Input styled as standard series row */}
-                                                        {isManeuverActive && (
+                                                    return (
+                                                        <div key={idx} style={{
+                                                            flex: 1,
+                                                            background: isLocked ? 'rgba(0,0,0,0.15)' : (isMet ? 'rgba(52, 211, 153, 0.06)' : 'var(--bg-tertiary)'),
+                                                            border: isLocked ? '1px dashed rgba(255, 255, 255, 0.04)' : (isMet ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)'),
+                                                            borderRadius: '12px',
+                                                            padding: '10px',
+                                                            textAlign: 'center',
+                                                            minWidth: 0,
+                                                            cursor: isLocked ? 'not-allowed' : 'default'
+                                                        }}>
                                                             <div style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'space-between',
-                                                                gap: '12px',
-                                                                marginTop: '4px',
-                                                                background: 'rgba(255,255,255,0.02)',
-                                                                padding: '6px 10px',
-                                                                borderRadius: '8px',
-                                                                border: '1px solid rgba(255,255,255,0.04)'
-                                                            }}>
-                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Registrar progresso:</span>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                    <div className="set-input-wrap" style={{ width: '80px', padding: '4px 8px' }}>
-                                                                        <input 
-                                                                            type="number" 
-                                                                            style={{ width: '100%', fontSize: '13px', fontWeight: '700' }}
-                                                                            value={enteredVal}
-                                                                            onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
-                                                                            placeholder="0"
-                                                                        />
-                                                                        <span style={{ fontSize: '10px' }}>{prog.unit === 'segundos' ? 's' : 'rep'}</span>
-                                                                    </div>
-                                                                    <div 
-                                                                        className={`checkbox-completed ${isMet ? 'checked' : ''}`}
-                                                                        style={{ width: '30px', height: '30px', borderRadius: '6px' }}
-                                                                        onClick={() => {
-                                                                            if (enteredVal) {
-                                                                                handleRegister(maneuver.id, 'phase2', prog.exercise);
-                                                                            } else {
-                                                                                // Toggle: Se já alcançou, zera. Se não, preenche com a meta.
-                                                                                if (isMet) {
-                                                                                    updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, 0);
-                                                                                } else {
-                                                                                    updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, target);
-                                                                                }
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        {isMet ? '✓' : ''}
-                                                                    </div>
-                                                                </div>
+                                                                fontSize: '11.5px',
+                                                                fontWeight: '700',
+                                                                color: isLocked ? 'var(--text-muted)' : (isMet ? '#34d399' : '#fff'),
+                                                                whiteSpace: 'nowrap',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis'
+                                                            }} title={prog.exercise}>
+                                                                {isLocked && '🔒 '}{prog.exercise}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
+                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 6px' }}>
+                                                                {isLocked ? `Meta: ${target}${unitShort}` : `${value}${unitShort} / ${target}${unitShort}`}
+                                                            </div>
+                                                            {!isLocked && (
+                                                                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                    <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Conexão Setas */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '5px 0' }}>
+                                            <div style={{ width: '2px', height: '15px', background: maneuver.maneuver_unlocked ? '#fbbf24' : 'rgba(255,255,255,0.08)', transition: 'var(--transition)' }} />
+                                            <span style={{ fontSize: '11px', color: maneuver.maneuver_unlocked ? '#fbbf24' : 'rgba(255,255,255,0.15)', marginTop: '-4px' }}>▼</span>
+                                        </div>
+
+                                        {/* Objetivo Final */}
+                                        <div style={{
+                                            width: '65%',
+                                            background: maneuver.maneuver_unlocked ? 'rgba(251, 191, 36, 0.08)' : 'rgba(0,0,0,0.15)',
+                                            border: maneuver.maneuver_unlocked ? '1px solid rgba(251, 191, 36, 0.4)' : '1px dashed rgba(255,255,255,0.05)',
+                                            borderRadius: '14px',
+                                            padding: '10px 12px',
+                                            textAlign: 'center',
+                                            opacity: maneuver.maneuver_unlocked ? 1 : 0.6
+                                        }}>
+                                            <strong style={{ fontSize: '12px', color: maneuver.maneuver_unlocked ? '#fbbf24' : 'var(--text-muted)' }}>
+                                                🏆 {maneuver.name}
+                                            </strong>
+                                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                {maneuver.maneuver_unlocked ? 'Manobra Desbloqueada!' : 'Alcance as metas acima para liberar'}
+                                            </div>
                                         </div>
                                     </div>
+
+                                    {/* Lançar Treino / Registrar Progresso */}
+                                    {maneuver.status === 'treinando' && (
+                                        <div style={{
+                                            borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                                            paddingTop: '15px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '12px'
+                                        }}>
+                                            <h4 style={{ fontSize: '12px', color: '#fff', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                📝 Registrar Progresso no Treino
+                                            </h4>
+                                            
+                                            {/* Grid de Inputs */}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                {/* Phase 1 Inputs */}
+                                                {maneuver.phase1_progress.map((prog, idx) => {
+                                                    const inputKey = `${maneuver.id}_${prog.exercise}`;
+                                                    const enteredVal = inputs[inputKey] || '';
+                                                    const isMet = (prog.value || 0) >= prog.target;
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
+
+                                                    return (
+                                                        <div key={`p1_${idx}`} style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            background: 'var(--bg-tertiary)',
+                                                            border: '1px solid rgba(255,255,255,0.03)',
+                                                            padding: '8px 12px',
+                                                            borderRadius: '10px',
+                                                            gap: '12px'
+                                                        }}>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{ fontSize: '12px', fontWeight: '600', color: isMet ? '#34d399' : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                    {prog.exercise}
+                                                                </div>
+                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                                    Meta: {prog.target}{unitShort} | Atual: {prog.value || 0}{unitShort}
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <div className="set-input-wrap" style={{ width: '70px', padding: '4px 6px' }}>
+                                                                    <input 
+                                                                        type="number" 
+                                                                        style={{ width: '100%', fontSize: '12px', fontWeight: '700' }}
+                                                                        value={enteredVal}
+                                                                        onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                        placeholder="0"
+                                                                    />
+                                                                    <span style={{ fontSize: '9px' }}>{unitShort}</span>
+                                                                </div>
+                                                                <div 
+                                                                    className={`checkbox-completed ${isMet ? 'checked' : ''}`}
+                                                                    style={{ width: '28px', height: '28px', borderRadius: '6px' }}
+                                                                    onClick={() => {
+                                                                        if (enteredVal) {
+                                                                            handleRegister(maneuver.id, 'phase1', prog.exercise);
+                                                                        } else {
+                                                                            updateManeuverProgress(maneuver.id, 'phase1', prog.exercise, isMet ? 0 : prog.target);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {isMet ? '✓' : ''}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+
+                                                {/* Phase 2 Inputs (only when phase 2 is unlocked) */}
+                                                {maneuver.phase2_unlocked && maneuver.phase2_progress.map((prog, idx) => {
+                                                    const inputKey = `${maneuver.id}_${prog.exercise}`;
+                                                    const enteredVal = inputs[inputKey] || '';
+                                                    const isMet = (prog.value || 0) >= prog.target;
+                                                    const unitShort = prog.unit === 'segundos' ? 's' : 'rep';
+
+                                                    return (
+                                                        <div key={`p2_${idx}`} style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            background: 'var(--bg-tertiary)',
+                                                            border: '1px solid rgba(255,255,255,0.03)',
+                                                            padding: '8px 12px',
+                                                            borderRadius: '10px',
+                                                            gap: '12px'
+                                                        }}>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{ fontSize: '12px', fontWeight: '600', color: isMet ? '#34d399' : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                    {prog.exercise}
+                                                                </div>
+                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                                    Meta: {prog.target}{unitShort} | Atual: {prog.value || 0}{unitShort}
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <div className="set-input-wrap" style={{ width: '70px', padding: '4px 6px' }}>
+                                                                    <input 
+                                                                        type="number" 
+                                                                        style={{ width: '100%', fontSize: '12px', fontWeight: '700' }}
+                                                                        value={enteredVal}
+                                                                        onChange={e => setInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
+                                                                        placeholder="0"
+                                                                    />
+                                                                    <span style={{ fontSize: '9px' }}>{unitShort}</span>
+                                                                </div>
+                                                                <div 
+                                                                    className={`checkbox-completed ${isMet ? 'checked' : ''}`}
+                                                                    style={{ width: '28px', height: '28px', borderRadius: '6px' }}
+                                                                    onClick={() => {
+                                                                        if (enteredVal) {
+                                                                            handleRegister(maneuver.id, 'phase2', prog.exercise);
+                                                                        } else {
+                                                                            updateManeuverProgress(maneuver.id, 'phase2', prog.exercise, isMet ? 0 : prog.target);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {isMet ? '✓' : ''}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
