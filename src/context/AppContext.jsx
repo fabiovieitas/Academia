@@ -1230,7 +1230,7 @@ export const AppProvider = ({ children }) => {
     };
 
     // Finalizar Treino (salva no histórico)
-    const finishWorkout = (cardioStats) => {
+    const finishWorkout = (cardioStats, savePlanPermanently = false) => {
         if (!activeWorkout) return;
 
         const duration = Math.round((new Date() - new Date(activeWorkout.startTime)) / 60000); // minutos
@@ -1259,8 +1259,32 @@ export const AppProvider = ({ children }) => {
             const newHistory = [log, ...history];
             saveHistoryList(newHistory);
 
-            // Atualiza as cargas padrão nos treinos originais para a próxima vez
-            updateOriginalWorkoutWeights(activeWorkout.workoutId, activeWorkout.exercises);
+            if (savePlanPermanently) {
+                // Atualizar o plano de treino original permanentemente
+                const newWorkouts = workouts.map(workout => {
+                    if (workout.id === activeWorkout.workoutId) {
+                        const cleanedExercises = activeWorkout.exercises.map(ex => ({
+                            name: ex.name,
+                            path: ex.path || "",
+                            series: ex.series.length,
+                            reps: ex.reps || 10,
+                            weight: ex.weight || 0,
+                            targetWeight: ex.targetWeight || 0,
+                            notes: ex.notes || ""
+                        }));
+                        return {
+                            ...workout,
+                            exercises: cleanedExercises,
+                            updatedAt: new Date().toISOString()
+                        };
+                    }
+                    return workout;
+                });
+                saveWorkoutsList(newWorkouts);
+            } else {
+                // Atualiza apenas as cargas padrão nos treinos originais para a próxima vez
+                updateOriginalWorkoutWeights(activeWorkout.workoutId, activeWorkout.exercises);
+            }
         }
 
         saveActiveWorkoutState(null);

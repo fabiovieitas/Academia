@@ -555,6 +555,13 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                         >
                             🚴‍♂️ Logar Cardio (Zepp)
                         </button>
+                        <button 
+                            className="btn-secondary" 
+                            style={{ flex: 1, minWidth: '150px', background: 'rgba(var(--accent-rgb), 0.15)', border: '1px solid rgba(var(--accent-rgb), 0.3)', color: 'var(--accent)', fontWeight: 'bold' }} 
+                            onClick={() => onChangeTab('settings')}
+                        >
+                            📱 Instalar no Celular (PWA)
+                        </button>
                     </div>
                 </div>
             )}

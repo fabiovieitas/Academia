@@ -209,6 +209,8 @@ function MainAppContent() {
                                     setDeferredPrompt(null);
                                     setIsInstallable(false);
                                 });
+                            } else {
+                                setShowInstallModal(true);
                             }
                         }}
                     />

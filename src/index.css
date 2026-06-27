@@ -60,7 +60,7 @@ html, body, #root, .app-container {
   box-sizing: border-box;
 }
 
-html, body {
+html, body, .app-container, .app-content {
   touch-action: pan-y; /* Trava gestos horizontais de rolagem/swipe na viewport */
 }
 
@@ -121,6 +121,13 @@ table,
   padding: 20px;
   padding-bottom: 90px; /* Espaço para barra inferior */
   overflow-y: auto;
+  overflow-x: hidden !important; /* Congela rolagem lateral interna */
+}
+
+@media (max-width: 480px) {
+  .app-content {
+    padding: 15px; /* Ganha 10px de largura lateral no mobile */
+  }
 }
 
 /* Typography */
@@ -826,16 +833,29 @@ button {
 
 .step-bar {
   flex: 1;
-  height: 4px;
-  background: var(--bg-tertiary);
-  border-radius: 2px;
+  height: 24px; /* Aumenta consideravelmente a área de toque */
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.step-bar.completed {
+.step-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--bg-tertiary);
+  border-radius: 2.5px;
+  transition: var(--transition);
+}
+
+.step-bar.completed::after {
   background: var(--accent);
 }
 
-.step-bar.active {
+.step-bar.active::after {
   background: #fff;
   box-shadow: 0 0 10px #fff;
 }
@@ -887,11 +907,11 @@ button {
   display: grid;
   grid-template-columns: 40px 1fr 1fr 60px;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   background: var(--bg-secondary);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: var(--radius-md);
-  padding: 12px 15px;
+  padding: 10px 8px;
   margin-bottom: 10px;
   transition: var(--transition);
 }

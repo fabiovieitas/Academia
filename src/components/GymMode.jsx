@@ -94,6 +94,14 @@ export default function GymMode({ onFinish, onCancel }) {
     const [activeSeriesTimer, setActiveSeriesTimer] = useState(0);
     const [isSeriesTimerRunning, setIsSeriesTimerRunning] = useState(false);
     const [timerSetIndex, setTimerSetIndex] = useState(0);
+    const [showFullscreenTimer, setShowFullscreenTimer] = useState(false);
+
+    const handleStartOverlayTimer = (setIdx) => {
+        setTimerSetIndex(setIdx);
+        setActiveSeriesTimer(0);
+        setIsSeriesTimerRunning(true);
+        setShowFullscreenTimer(true);
+    };
 
     const toggleFocusMode = () => {
         setIsFocusMode(prev => {
@@ -149,17 +157,40 @@ export default function GymMode({ onFinish, onCancel }) {
         );
     };
 
-    const isCurrentTimeBased = false;
+    const isCurrentTimeBased = currentExercise 
+        ? isTimeBasedExercise(currentExercise.name, currentExercise.notes) 
+        : false;
+
+    // Resetar estados do timer ao mudar de exercício
+    useEffect(() => {
+        setActiveSeriesTimer(0);
+        setIsSeriesTimerRunning(false);
+    }, [currentExerciseIndex]);
+
+    // Efeito para auto-avançar exercício quando o timer de descanso terminar
+    useEffect(() => {
+        if (!timerActive && timeLeft === 0 && activeWorkout) {
+            const allDone = series.length > 0 && series.every(s => s.completed);
+            if (allDone && currentExerciseIndex < exercises.length - 1) {
+                // Pequeno delay para o som de descanso / narração terminar
+                const timer = setTimeout(() => {
+                    saveActiveWorkoutState({
+                        ...activeWorkout,
+                        currentExerciseIndex: currentExerciseIndex + 1
+                    });
+                }, 1000);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [timerActive, timeLeft, currentExerciseIndex, series, activeWorkout]);
 
     // Sincronizar o índice da série que o cronômetro deve rodar por padrão
     useEffect(() => {
-        if (currentExercise?.series) {
+        if (currentExercise?.series && !isSeriesTimerRunning) {
             const firstIncomplete = currentExercise.series.findIndex(s => !s.completed);
             setTimerSetIndex(firstIncomplete !== -1 ? firstIncomplete : 0);
-            setActiveSeriesTimer(0);
-            setIsSeriesTimerRunning(false);
         }
-    }, [currentExerciseIndex, currentExercise?.series?.length]);
+    }, [currentExerciseIndex, currentExercise?.series, isSeriesTimerRunning]);
 
     const handleAdjustSet = (setIdx, field, amount) => {
         const currentSet = currentExercise.series[setIdx];
@@ -487,10 +518,18 @@ export default function GymMode({ onFinish, onCancel }) {
         setTimeLeft(prev => Math.max(0, prev + amount));
     };
 
-    // Pular cronômetro de descanso (sem auto-avançar)
+    // Pular cronômetro de descanso e auto-avançar se o exercício atual estiver totalmente concluído
     const handleSkipRest = () => {
         setTimerActive(false);
         setTimeLeft(0);
+        
+        const allDone = series.length > 0 && series.every(s => s.completed);
+        if (allDone && currentExerciseIndex < exercises.length - 1) {
+            saveActiveWorkoutState({
+                ...activeWorkout,
+                currentExerciseIndex: currentExerciseIndex + 1
+            });
+        }
     };
 
     // Finalizar o treino
@@ -504,7 +543,15 @@ export default function GymMode({ onFinish, onCancel }) {
             avgHR: parseInt(avgHeartRate) || null,
             maxHR: parseInt(maxHeartRate) || null
         } : null;
-        finishWorkout(cardioStats);
+        
+        let savePlanPermanently = false;
+        if (activeWorkout?.isPlanModified) {
+            savePlanPermanently = window.confirm(
+                "Você fez alterações neste treino (adicionou ou removeu exercícios).\n\nDeseja salvar essa nova estrutura permanentemente neste plano para treinos futuros?"
+            );
+        }
+
+        finishWorkout(cardioStats, savePlanPermanently);
         onFinish();
     };
 
@@ -549,6 +596,52 @@ export default function GymMode({ onFinish, onCancel }) {
         );
         swapActiveWorkoutExercise(currentExerciseIndex, newEx, savePermanently);
         setIsSwapping(false);
+    };
+
+    const handleAddExerciseToWorkout = (exerciseTemplate) => {
+        // Crie o exercício com séries padrão (ex: 3 séries)
+        const newExercise = {
+            name: exerciseTemplate.name,
+            path: exerciseTemplate.thumbnail || exerciseTemplate.path || "",
+            series: Array.from({ length: 3 }, () => ({
+                reps: 10,
+                weight: 0,
+                completed: false,
+                actualReps: null,
+                actualWeight: null
+            }))
+        };
+
+        const updatedExercises = [...exercises, newExercise];
+        
+        saveActiveWorkoutState({
+            ...activeWorkout,
+            exercises: updatedExercises,
+            isPlanModified: true
+        });
+        alert(`Exercício "${exerciseTemplate.name}" adicionado com sucesso no final do treino!`);
+    };
+
+    const handleRemoveCurrentExercise = () => {
+        if (exercises.length <= 1) {
+            alert("Seu treino deve ter pelo menos um exercício!");
+            return;
+        }
+
+        if (window.confirm(`Tem certeza que deseja remover o exercício "${currentExercise.name}" do treino de hoje?`)) {
+            const updatedExercises = exercises.filter((_, idx) => idx !== currentExerciseIndex);
+            // Ajusta o índice do exercício ativo se necessário
+            const newIndex = currentExerciseIndex >= updatedExercises.length 
+                ? updatedExercises.length - 1 
+                : currentExerciseIndex;
+
+            saveActiveWorkoutState({
+                ...activeWorkout,
+                exercises: updatedExercises,
+                currentExerciseIndex: newIndex,
+                isPlanModified: true
+            });
+        }
     };
 
     if (showFinishSummary) {
@@ -884,12 +977,12 @@ export default function GymMode({ onFinish, onCancel }) {
                             <div style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '280px' }}>
                                 <button
                                     type="button"
-                                    onClick={handleToggleSeriesTimer}
+                                    onClick={() => handleStartOverlayTimer(displaySetIdx)}
                                     style={{
                                         flex: 2,
                                         padding: '12px',
                                         borderRadius: '12px',
-                                        background: isSeriesTimerRunning ? '#eab308' : '#34d399',
+                                        background: '#34d399',
                                         color: '#000',
                                         fontWeight: '700',
                                         border: 'none',
@@ -897,7 +990,7 @@ export default function GymMode({ onFinish, onCancel }) {
                                         fontSize: '14px'
                                     }}
                                 >
-                                    {isSeriesTimerRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+                                    ▶️ Iniciar Cronômetro
                                 </button>
                                 <button
                                     type="button"
@@ -1191,6 +1284,12 @@ export default function GymMode({ onFinish, onCancel }) {
                     <div 
                         key={idx} 
                         className={`step-bar ${idx < currentExerciseIndex ? 'completed' : ''} ${idx === currentExerciseIndex ? 'active' : ''}`}
+                        onClick={() => {
+                            saveActiveWorkoutState({
+                                ...activeWorkout,
+                                currentExerciseIndex: idx
+                            });
+                        }}
                     />
                 ))}
             </div>
@@ -1226,7 +1325,7 @@ export default function GymMode({ onFinish, onCancel }) {
                     <h2>{currentExercise.name}</h2>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                         <p>{category}</p>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px' }}>
                             <button 
                                 className="btn-warmup"
                                 onClick={handleAddWarmupSets}
@@ -1234,14 +1333,14 @@ export default function GymMode({ onFinish, onCancel }) {
                                     background: 'rgba(var(--accent-rgb), 0.2)',
                                     border: '1px solid rgba(var(--accent-rgb), 0.3)',
                                     color: 'var(--accent)',
-                                    padding: '4px 10px',
+                                    padding: '4px 8px',
                                     borderRadius: '6px',
-                                    fontSize: '11px',
+                                    fontSize: '10px',
                                     fontWeight: '600',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '4px',
+                                    gap: '2px',
                                     backdropFilter: 'blur(4px)',
                                     transition: 'var(--transition)'
                                 }}
@@ -1255,19 +1354,40 @@ export default function GymMode({ onFinish, onCancel }) {
                                     background: 'rgba(255, 255, 255, 0.15)',
                                     color: '#fff',
                                     border: 'none',
-                                    padding: '4px 10px',
+                                    padding: '4px 8px',
                                     borderRadius: '6px',
-                                    fontSize: '11px',
+                                    fontSize: '10px',
                                     fontWeight: '600',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '4px',
+                                    gap: '2px',
                                     backdropFilter: 'blur(4px)',
                                     transition: 'var(--transition)'
                                 }}
                             >
                                 🔄 Substituir
+                            </button>
+                            <button 
+                                className="btn-remove-exercise"
+                                onClick={handleRemoveCurrentExercise}
+                                style={{
+                                    background: 'rgba(239, 68, 68, 0.15)',
+                                    color: '#f87171',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '10px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    backdropFilter: 'blur(4px)',
+                                    transition: 'var(--transition)'
+                                }}
+                            >
+                                ❌ Remover
                             </button>
                         </div>
                     </div>
@@ -1372,12 +1492,12 @@ export default function GymMode({ onFinish, onCancel }) {
                     <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                         <button
                             type="button"
-                            onClick={handleToggleSeriesTimer}
+                            onClick={() => handleStartOverlayTimer(timerSetIndex)}
                             style={{
                                 flex: 2,
                                 padding: '8px 12px',
                                 borderRadius: '8px',
-                                background: isSeriesTimerRunning ? '#eab308' : '#34d399',
+                                background: '#34d399',
                                 color: '#000',
                                 fontWeight: '700',
                                 border: 'none',
@@ -1385,7 +1505,7 @@ export default function GymMode({ onFinish, onCancel }) {
                                 fontSize: '12px'
                             }}
                         >
-                            {isSeriesTimerRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+                            ▶️ Iniciar Cronômetro
                         </button>
                         <button
                             type="button"
@@ -1458,8 +1578,8 @@ export default function GymMode({ onFinish, onCancel }) {
                 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: isCurrentTimeBased ? '45px 1fr 60px' : '45px 1.4fr 1fr 60px',
-                    padding: '0 15px 5px',
+                    gridTemplateColumns: isCurrentTimeBased ? '30px 1fr 40px' : '30px 1fr 1fr 40px',
+                    padding: '0 8px 5px',
                     fontSize: '11px',
                     color: 'var(--text-muted)',
                     textTransform: 'uppercase',
@@ -1477,7 +1597,7 @@ export default function GymMode({ onFinish, onCancel }) {
                         className={`set-row-item ${set.completed ? 'done' : ''} ${set.isWarmup ? 'warmup-row' : ''}`}
                         style={{
                             display: 'grid',
-                            gridTemplateColumns: isCurrentTimeBased ? '45px 1fr 60px' : '45px 1.4fr 1fr 60px',
+                            gridTemplateColumns: isCurrentTimeBased ? '30px 1fr 40px' : '30px 1fr 1fr 40px',
                             alignItems: 'center'
                         }}
                     >
@@ -1492,15 +1612,15 @@ export default function GymMode({ onFinish, onCancel }) {
                         {/* Peso (Ocultado em exercícios de tempo) */}
                         {!isCurrentTimeBased && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', width: '100%', justifyContent: 'center' }}>
                                     <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -5)} disabled={set.completed}>-5</button>
-                                    <div className="set-input-wrap" style={{ width: '52px', padding: '4px 6px' }}>
+                                    <div className="set-input-wrap" style={{ width: '46px', padding: '4px 4px' }}>
                                         <input 
                                             type="number" 
                                             value={set.actualWeight ?? ''} 
                                             onChange={e => handleUpdateSet(setIdx, 'actualWeight', e.target.value)}
                                             disabled={set.completed}
-                                            style={{ fontSize: '13px' }}
+                                            style={{ fontSize: '12px' }}
                                         />
                                         <span>kg</span>
                                     </div>
@@ -1516,20 +1636,113 @@ export default function GymMode({ onFinish, onCancel }) {
 
                         {/* Repetições ou Tempo */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}>
-                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)} disabled={set.completed}>-</button>
-                                <div className="set-input-wrap" style={{ width: '60px', padding: '4px 6px' }}>
-                                    <input 
-                                        type="number" 
-                                        value={set.actualReps ?? ''} 
-                                        onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
-                                        disabled={set.completed}
-                                        style={{ fontSize: '13px' }}
-                                    />
-                                    <span>{isCurrentTimeBased ? 'seg' : 'reps'}</span>
+                            {isCurrentTimeBased ? (
+                                set.completed ? (
+                                    /* Série Concluída por Tempo */
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8 }}>
+                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)}>-</button>
+                                        <div className="set-input-wrap" style={{ width: '56px', padding: '2px 4px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.3)' }}>
+                                            <input 
+                                                type="number" 
+                                                value={set.actualReps ?? ''} 
+                                                onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
+                                                style={{ fontSize: '12px', textAlign: 'center', color: '#34d399', fontWeight: 'bold' }}
+                                            />
+                                            <span style={{ fontSize: '10px', color: '#34d399' }}>s</span>
+                                        </div>
+                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)}>+</button>
+                                    </div>
+                                ) : (
+                                    isSeriesTimerRunning && timerSetIndex === setIdx ? (
+                                        /* Timer Rodando Ativamente para esta série */
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ 
+                                                fontSize: '15px', 
+                                                fontFamily: 'monospace', 
+                                                fontWeight: '800', 
+                                                color: 'var(--accent)',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '3px'
+                                            }}>
+                                                ⏱️ {activeSeriesTimer}s
+                                            </span>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handleStopSeriesTimer(setIdx)}
+                                                style={{
+                                                    background: '#ef4444',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '10px',
+                                                    fontWeight: '700',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '2px'
+                                                }}
+                                            >
+                                                ⏹️ Parar
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        /* Timer parado, pronto para Iniciar ou digitar manual */
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handleStartOverlayTimer(setIdx)}
+                                                style={{
+                                                    background: '#10b981',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '10px',
+                                                    fontWeight: '700',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '2px'
+                                                }}
+                                            >
+                                                ▶️ Iniciar
+                                            </button>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)}>-</button>
+                                                <div className="set-input-wrap" style={{ width: '48px', padding: '2px 4px' }}>
+                                                    <input 
+                                                        type="number" 
+                                                        value={set.actualReps ?? ''} 
+                                                        onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
+                                                        placeholder={set.reps || '0'}
+                                                        style={{ fontSize: '12px', textAlign: 'center' }}
+                                                    />
+                                                    <span style={{ fontSize: '10px' }}>s</span>
+                                                </div>
+                                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)}>+</button>
+                                            </div>
+                                        </div>
+                                    )
+                                )
+                            ) : (
+                                /* Repetições tradicionais */
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', width: '100%', justifyContent: 'center' }}>
+                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)} disabled={set.completed}>-</button>
+                                    <div className="set-input-wrap" style={{ width: '48px', padding: '4px 4px' }}>
+                                        <input 
+                                            type="number" 
+                                            value={set.actualReps ?? ''} 
+                                            onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
+                                            disabled={set.completed}
+                                            style={{ fontSize: '12px' }}
+                                        />
+                                        <span>r</span>
+                                    </div>
+                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)} disabled={set.completed}>+</button>
                                 </div>
-                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)} disabled={set.completed}>+</button>
-                            </div>
+                            )}
                             {lastLoadSeries && lastLoadSeries[setIdx] && (
                                 <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
                                     Ant: {lastLoadSeries[setIdx].actualReps}{isCurrentTimeBased ? 's' : ' r'}
@@ -1559,9 +1772,32 @@ export default function GymMode({ onFinish, onCancel }) {
                 marginTop: '25px',
                 marginBottom: '15px'
             }}>
-                <h3 style={{ fontSize: '15px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    📋 Roteiro do Treino <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>- Toque para ir ao exercício</span>
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <h3 style={{ fontSize: '15px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        📋 Roteiro do Treino <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>- Toque para ir</span>
+                    </h3>
+                    <button 
+                        type="button"
+                        className="btn-primary"
+                        onClick={() => setIsFreeBrowserOpen(true)}
+                        style={{
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            borderRadius: '6px',
+                            width: 'auto',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: 'var(--accent)',
+                            color: 'var(--text-dark)',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontWeight: '700'
+                        }}
+                    >
+                        ➕ Adicionar
+                    </button>
+                </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {exercises.map((ex, idx) => {
@@ -1659,29 +1895,27 @@ export default function GymMode({ onFinish, onCancel }) {
 
             {/* Ações Inferiores */}
             {/* Ações Inferiores */}
-            {activeWorkout.workoutId === 'free' && (
-                <button 
-                    className="btn-secondary"
-                    onClick={() => setIsFreeBrowserOpen(true)}
-                    style={{
-                        width: '100%',
-                        padding: '12px',
-                        borderRadius: '12px',
-                        fontWeight: 'bold',
-                        border: '1px dashed rgba(var(--accent-rgb), 0.5)',
-                        background: 'rgba(var(--accent-rgb), 0.03)',
-                        color: 'var(--accent)',
-                        marginBottom: '15px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    ➕ Adicionar Exercício ao Treino
-                </button>
-            )}
+            <button 
+                className="btn-secondary"
+                onClick={() => setIsFreeBrowserOpen(true)}
+                style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    fontWeight: 'bold',
+                    border: '1px dashed rgba(var(--accent-rgb), 0.5)',
+                    background: 'rgba(var(--accent-rgb), 0.03)',
+                    color: 'var(--accent)',
+                    marginBottom: '15px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                }}
+            >
+                ➕ Adicionar Exercício ao Treino
+            </button>
 
             <div className="gym-footer-actions">
                 <button 
@@ -1788,15 +2022,155 @@ export default function GymMode({ onFinish, onCancel }) {
                 />
             )}
 
-            {/* MODAL DE ADIÇÃO DE EXERCÍCIO EM TREINO LIVRE */}
+            {/* MODAL DE ADIÇÃO DE EXERCÍCIO */}
             {isFreeBrowserOpen && (
                 <ExerciseBrowser 
                     onSelect={(newEx) => {
-                        addFreeWorkoutExercise(newEx);
+                        if (exercises.length === 0) {
+                            addFreeWorkoutExercise(newEx);
+                        } else {
+                            handleAddExerciseToWorkout(newEx);
+                        }
                         setIsFreeBrowserOpen(false);
                     }}
                     onClose={() => setIsFreeBrowserOpen(false)}
                 />
+            )}
+
+            {/* TIMER DE SÉRIE EM TELA CHEIA (OVERLAY TRANSLÚCIDO) */}
+            {showFullscreenTimer && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(10, 11, 14, 0.95)',
+                    backdropFilter: 'blur(15px)',
+                    WebkitBackdropFilter: 'blur(15px)',
+                    zIndex: 2000,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    color: '#fff',
+                    textAlign: 'center'
+                }}>
+                    {/* Botão de Fechar sem Salvar */}
+                    <button 
+                        onClick={() => {
+                            setIsSeriesTimerRunning(false);
+                            setShowFullscreenTimer(false);
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            background: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        ✕
+                    </button>
+
+                    {/* Nome do Exercício */}
+                    <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px' }}>
+                        {currentExercise?.name}
+                    </h2>
+                    <p style={{ color: 'var(--accent)', fontSize: '16px', fontWeight: '600', marginBottom: '40px' }}>
+                        Série {timerSetIndex + 1}
+                    </p>
+
+                    {/* Cronômetro Gigante */}
+                    <div style={{
+                        fontSize: '96px',
+                        fontFamily: 'monospace',
+                        fontWeight: '800',
+                        marginBottom: '40px',
+                        color: isSeriesTimerRunning ? 'var(--accent)' : '#fff',
+                        textShadow: isSeriesTimerRunning ? '0 0 30px rgba(var(--accent-rgb), 0.5)' : 'none',
+                        transition: 'color 0.3s ease'
+                    }}>
+                        {activeSeriesTimer}s
+                    </div>
+
+                    {/* Status */}
+                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '40px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {isSeriesTimerRunning ? '⚡ Executando...' : '⏸️ Pausado'}
+                    </div>
+
+                    {/* Botão Principal Gigante (Parar e Concluir) */}
+                    <button
+                        onClick={() => {
+                            handleCompleteSeriesWithTime(timerSetIndex, activeSeriesTimer);
+                            setShowFullscreenTimer(false);
+                        }}
+                        style={{
+                            width: '100%',
+                            maxWidth: '320px',
+                            padding: '24px',
+                            borderRadius: '24px',
+                            background: 'var(--accent)',
+                            color: 'var(--text-dark)',
+                            fontSize: '22px',
+                            fontWeight: '800',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 8px 30px rgba(var(--accent-rgb), 0.4)',
+                            marginBottom: '20px'
+                        }}
+                    >
+                        ⏹️ Concluir Série ({activeSeriesTimer}s)
+                    </button>
+
+                    {/* Controles Secundários */}
+                    <div style={{ display: 'flex', gap: '15px', width: '100%', maxWidth: '320px' }}>
+                        <button
+                            onClick={() => setIsSeriesTimerRunning(!isSeriesTimerRunning)}
+                            style={{
+                                flex: 1,
+                                padding: '15px',
+                                borderRadius: '16px',
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#fff',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                fontSize: '15px'
+                            }}
+                        >
+                            {isSeriesTimerRunning ? '⏸️ Pausar' : '▶️ Retomar'}
+                        </button>
+                        
+                        <button
+                            onClick={() => setActiveSeriesTimer(0)}
+                            style={{
+                                flex: 1,
+                                padding: '15px',
+                                borderRadius: '16px',
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#fff',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                fontSize: '15px'
+                            }}
+                        >
+                            🔄 Reiniciar
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
