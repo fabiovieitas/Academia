@@ -178,12 +178,32 @@ export const CALISTHENICS_MANEUVERS_INITIAL = {
 
 export const mergeDefaultSkills = (skills) => {
     if (!skills) return { merged: { ...CALISTHENICS_MANEUVERS_INITIAL }, hasChanges: true };
-    const merged = { ...skills };
+    const merged = JSON.parse(JSON.stringify(skills));
     let hasChanges = false;
     Object.keys(CALISTHENICS_MANEUVERS_INITIAL).forEach(key => {
         if (!merged[key]) {
             merged[key] = JSON.parse(JSON.stringify(CALISTHENICS_MANEUVERS_INITIAL[key]));
             hasChanges = true;
+        } else {
+            // Se a manobra já existe, valida se a lista de exercícios mudou!
+            const initialManeuver = CALISTHENICS_MANEUVERS_INITIAL[key];
+            const currentManeuver = merged[key];
+            
+            // Compara os nomes dos exercícios da Fase 1 e Fase 2
+            const initialP1Names = (initialManeuver.phase1_progress || []).map(p => p.exercise).join(',');
+            const currentP1Names = (currentManeuver.phase1_progress || []).map(p => p.exercise).join(',');
+            
+            const initialP2Names = (initialManeuver.phase2_progress || []).map(p => p.exercise).join(',');
+            const currentP2Names = (currentManeuver.phase2_progress || []).map(p => p.exercise).join(',');
+            
+            if (initialP1Names !== currentP1Names || initialP2Names !== currentP2Names) {
+                console.log(`[Calistenia migration] Atualizando estrutura da manobra ${key} devido a alterações.`);
+                // Preserva o status do usuário, mas atualiza a estrutura de progresso
+                const status = currentManeuver.status;
+                merged[key] = JSON.parse(JSON.stringify(initialManeuver));
+                merged[key].status = status;
+                hasChanges = true;
+            }
         }
     });
     return { merged, hasChanges };
