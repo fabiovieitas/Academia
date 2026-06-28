@@ -193,7 +193,7 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                             
                             <div style={{ width: '100%', background: 'var(--bg-tertiary)', borderRadius: '12px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '250px' }}>
                                 <img 
-                                    src={encodeURI(`https://www.gifdotreino.com/${previewExercise.path}`)} 
+                                    src={encodeURI(previewExercise.path.startsWith('http') ? previewExercise.path : `/${previewExercise.path}`)} 
                                     alt={previewExercise.name}
                                     style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
                                 />

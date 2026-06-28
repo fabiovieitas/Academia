@@ -261,7 +261,7 @@ function MainAppContent() {
                                     </div>
                                 ) : (
                                     <img 
-                                        src={encodeURI(`https://www.gifdotreino.com/${selectedDetailExercise.path}`)} 
+                                        src={encodeURI(selectedDetailExercise.path.startsWith('http') ? selectedDetailExercise.path : `/${selectedDetailExercise.path}`)} 
                                         alt={selectedDetailExercise.name} 
                                         onLoad={() => setDetailGifError(false)}
                                         onError={() => setDetailGifError(true)}

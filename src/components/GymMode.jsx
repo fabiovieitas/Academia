@@ -576,7 +576,7 @@ export default function GymMode({ onFinish, onCancel }) {
         return `${pad(mins)}:${pad(secs)}`;
     };
 
-    const gifUrl = currentExercise?.path ? encodeURI(`https://www.gifdotreino.com/${currentExercise.path}`) : '';
+    const gifUrl = currentExercise?.path ? encodeURI(currentExercise.path.startsWith('http') ? currentExercise.path : `/${currentExercise.path}`) : '';
     const category = currentExercise?.path && currentExercise.path.includes('/') ? currentExercise.path.split('/')[1] : 'Musculação';
 
     // Dados para desenhar o timer circular
