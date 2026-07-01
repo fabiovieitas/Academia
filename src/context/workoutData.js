@@ -1,3 +1,4 @@
+
 /**
  * Dados de treinos predefinidos e dados de calistenia.
  * Arquivo separado do AppContext para manter compatibilidade
@@ -188,14 +189,14 @@ export const mergeDefaultSkills = (skills) => {
             // Se a manobra já existe, valida se a lista de exercícios mudou!
             const initialManeuver = CALISTHENICS_MANEUVERS_INITIAL[key];
             const currentManeuver = merged[key];
-            
+
             // Compara os nomes dos exercícios da Fase 1 e Fase 2
             const initialP1Names = (initialManeuver.phase1_progress || []).map(p => p.exercise).join(',');
             const currentP1Names = (currentManeuver.phase1_progress || []).map(p => p.exercise).join(',');
-            
+
             const initialP2Names = (initialManeuver.phase2_progress || []).map(p => p.exercise).join(',');
             const currentP2Names = (currentManeuver.phase2_progress || []).map(p => p.exercise).join(',');
-            
+
             if (initialP1Names !== currentP1Names || initialP2Names !== currentP2Names) {
                 console.log(`[Calistenia migration] Atualizando estrutura da manobra ${key} devido a alterações.`);
                 // Preserva o status do usuário, mas atualiza a estrutura de progresso
@@ -218,7 +219,7 @@ export const buildSkillsFromDb = (dbRows) => {
             skills[mId].status = row.status;
             skills[mId].phase2_unlocked = row.phase2_unlocked;
             skills[mId].maneuver_unlocked = row.maneuver_unlocked;
-            
+
             if (Array.isArray(row.phase1_progress)) {
                 row.phase1_progress.forEach(p => {
                     const item = skills[mId].phase1_progress.find(req => req.exercise === p.exercise);

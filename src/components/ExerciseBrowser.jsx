@@ -1,6 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 
+const normalizeString = (str) => {
+    return str
+        ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        : "";
+};
+
 export default function ExerciseBrowser({ onSelect, onClose, initialCategory = 'all', lockCategory = false }) {
     const { exercises, favorites, toggleFavorite } = useApp();
     const [searchQuery, setSearchQuery] = useState('');
@@ -35,12 +41,12 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                 return false;
             }
 
-            // Filtro de busca textual (ignora maiúsculas/minúsculas)
+            // Filtro de busca textual (ignora maiúsculas/minúsculas e acentos)
             if (searchQuery.trim() !== '') {
-                const query = searchQuery.toLowerCase();
+                const query = normalizeString(searchQuery);
                 return (
-                    ex.name.toLowerCase().includes(query) ||
-                    (ex.description && ex.description.toLowerCase().includes(query))
+                    normalizeString(ex.name).includes(query) ||
+                    (ex.description && normalizeString(ex.description).includes(query))
                 );
             }
 
@@ -103,7 +109,10 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                         <>
                             {filteredExercises.slice(0, visibleCount).map((exercise, index) => {
                                 const isFav = favorites.includes(exercise.name);
-                                const thumbUrl = encodeURI(`https://www.gifdotreino.com/${exercise.thumbnail}`);
+                                const isLocalThumb = exercise.thumbnail && (exercise.thumbnail.startsWith('/') || exercise.thumbnail.startsWith('Exercicios/') || exercise.thumbnail.startsWith('http'));
+                                const thumbUrl = isLocalThumb 
+                                    ? encodeURI(exercise.thumbnail.startsWith('http') ? exercise.thumbnail : `/${exercise.thumbnail}`)
+                                    : encodeURI(`https://www.gifdotreino.com/${exercise.thumbnail}`);
                                 
                                 return (
                                     <div 

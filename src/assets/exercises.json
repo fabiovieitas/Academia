@@ -1,5 +1,23 @@
 [
   {
+    "name": "Mobilidade: Aquecimento de Punhos",
+    "path": "Exercicios/Calistenia/Aquecimento_de_Punhos.png",
+    "thumbnail": "Exercicios/Calistenia/Aquecimento_de_Punhos.png",
+    "description": "Aquecimento e preparação articular para os punhos antes de treinos de força e equilíbrio."
+  },
+  {
+    "name": "Técnica: Técnica da Garra",
+    "path": "Exercicios/Calistenia/Tecnica_da_Garra.png",
+    "thumbnail": "Exercicios/Calistenia/Tecnica_da_Garra.png",
+    "description": "Técnica de ativação dos dedos ('garra') para aumentar o equilíbrio e estabilidade em posições sobre as mãos."
+  },
+  {
+    "name": "Isometria de Frog Stand (Corvo)",
+    "path": "Exercicios/Calistenia/Isometria_de_Frog_Stand.png",
+    "thumbnail": "Exercicios/Calistenia/Isometria_de_Frog_Stand.png",
+    "description": "Exercício estático de equilíbrio de joelhos apoiados sobre os cotovelos."
+  },
+  {
     "name": "Abdução Lateral do Quadril com Alavanca",
     "path": "Exercicios/Glúteos/Abdução Lateral do Quadril com Alavanca.gif",
     "thumbnail": "thumbnails/Abdução Lateral do Quadril com Alavanca.png",

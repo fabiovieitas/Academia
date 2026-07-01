@@ -55,7 +55,7 @@ export default function SettingsView({ isInstallable, onInstall }) {
     const handleImportFile = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
@@ -99,10 +99,10 @@ export default function SettingsView({ isInstallable, onInstall }) {
                         <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Perfil Ativo</p>
                     </div>
                 </div>
-                
+
                 <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                    <button 
-                        className="btn-secondary" 
+                    <button
+                        className="btn-secondary"
                         onClick={() => selectProfile(null)}
                         style={{ padding: '8px 12px', fontSize: '13px', width: 'auto', flex: 1 }}
                     >
@@ -123,10 +123,10 @@ export default function SettingsView({ isInstallable, onInstall }) {
                     <div style={{ display: 'flex', gap: '15px' }}>
                         <div style={{ flex: 1 }}>
                             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '5px' }}>Idade</label>
-                            <input 
-                                type="number" 
-                                className="input-field" 
-                                placeholder="Ex: 30" 
+                            <input
+                                type="number"
+                                className="input-field"
+                                placeholder="Ex: 30"
                                 value={age}
                                 onChange={e => setAge(e.target.value)}
                                 style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff' }}
@@ -134,7 +134,7 @@ export default function SettingsView({ isInstallable, onInstall }) {
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '5px' }}>Gênero Biológico</label>
-                            <select 
+                            <select
                                 value={gender}
                                 onChange={e => setGender(e.target.value)}
                                 style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none' }}
@@ -147,7 +147,7 @@ export default function SettingsView({ isInstallable, onInstall }) {
 
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '5px' }}>Objetivo Geral</label>
-                        <select 
+                        <select
                             value={objective}
                             onChange={e => setObjective(e.target.value)}
                             style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none' }}
@@ -172,14 +172,14 @@ export default function SettingsView({ isInstallable, onInstall }) {
                             ].map(item => {
                                 const isChecked = focusMuscles.includes(item.id);
                                 return (
-                                    <label 
-                                        key={item.id} 
-                                        style={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: '8px', 
-                                            fontSize: '13px', 
-                                            color: isChecked ? 'var(--accent)' : 'var(--text-main)', 
+                                    <label
+                                        key={item.id}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            fontSize: '13px',
+                                            color: isChecked ? 'var(--accent)' : 'var(--text-main)',
                                             cursor: 'pointer',
                                             padding: '6px 8px',
                                             background: isChecked ? 'rgba(var(--accent-rgb), 0.04)' : 'transparent',
@@ -187,8 +187,8 @@ export default function SettingsView({ isInstallable, onInstall }) {
                                             borderRadius: '6px'
                                         }}
                                     >
-                                        <input 
-                                            type="checkbox" 
+                                        <input
+                                            type="checkbox"
                                             checked={isChecked}
                                             onChange={() => handleFocusMuscleChange(item.id)}
                                             style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
@@ -200,14 +200,14 @@ export default function SettingsView({ isInstallable, onInstall }) {
                         </div>
                     </div>
 
-                    <button 
-                        type="submit" 
-                        className="btn-primary" 
-                        style={{ 
-                            padding: '12px', 
-                            fontSize: '14px', 
-                            background: saveSuccess ? '#22c55e' : 'var(--accent)', 
-                            color: saveSuccess ? '#fff' : 'var(--text-dark)', 
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        style={{
+                            padding: '12px',
+                            fontSize: '14px',
+                            background: saveSuccess ? '#22c55e' : 'var(--accent)',
+                            color: saveSuccess ? '#fff' : 'var(--text-dark)',
                             fontWeight: 'bold',
                             transition: 'all 0.3s ease'
                         }}
@@ -221,11 +221,11 @@ export default function SettingsView({ isInstallable, onInstall }) {
             {(() => {
                 const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                
+
                 // Definir URL para o QR Code
                 const ipToUse = localIp || '192.168.1.15';
-                const targetUrl = window.location.hostname === 'localhost' 
-                    ? `http://${ipToUse}:5173` 
+                const targetUrl = window.location.hostname === 'localhost'
+                    ? `http://${ipToUse}:5173`
                     : window.location.origin;
                 const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(targetUrl)}`;
 
@@ -234,7 +234,7 @@ export default function SettingsView({ isInstallable, onInstall }) {
                         <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             📱 Instalar no Celular
                         </h3>
-                        
+
                         {/* Se não for standalone, oferece instalação neste aparelho */}
                         {!isStandalone && (
                             <div style={{ marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px' }}>
@@ -244,14 +244,14 @@ export default function SettingsView({ isInstallable, onInstall }) {
                                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>
                                     Adicione o FitLife à tela inicial para treinar em tela cheia com acesso offline.
                                 </p>
-                                <button 
+                                <button
                                     onClick={onInstall}
                                     className="btn-primary"
                                     style={{ padding: '12px 14px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', cursor: 'pointer', marginBottom: '15px' }}
                                 >
                                     ⚡ Instalar Aplicativo Agora
                                 </button>
-                                
+
                                 <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '12px' }}>
                                     <span style={{ fontWeight: 'bold', fontSize: '12px', display: 'block', marginBottom: '6px', color: 'var(--text-main)' }}>
                                         {isIOS ? '🍎 Como Adicionar no iPhone (Safari):' : '🤖 Como Adicionar no Android (Chrome):'}
@@ -266,6 +266,8 @@ export default function SettingsView({ isInstallable, onInstall }) {
                                         ) : (
                                             <>
                                                 <li>Toque nos <strong>três pontinhos ⋮</strong> no canto superior direito.</li>
+
+
                                                 <li>Selecione <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela de início</strong>.</li>
                                                 <li>Confirme a instalação.</li>
                                             </>
@@ -288,15 +290,15 @@ export default function SettingsView({ isInstallable, onInstall }) {
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>
                                 Conecte o outro celular na **mesma rede Wi-Fi** deste dispositivo para abrir e instalar o FitLife nela.
                             </p>
-                            
+
                             {window.location.hostname === 'localhost' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                                     <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
                                         Digite o IP de Rede do seu computador:
                                     </label>
                                     <div style={{ display: 'flex', gap: '8px' }}>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={localIp}
                                             onChange={(e) => {
                                                 const val = e.target.value;
@@ -321,38 +323,38 @@ export default function SettingsView({ isInstallable, onInstall }) {
                                 </div>
                             )}
 
-                            <div style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                alignItems: 'center', 
-                                gap: '10px', 
-                                background: 'rgba(0,0,0,0.2)', 
-                                padding: '15px', 
-                                borderRadius: '8px', 
-                                border: '1px solid rgba(255,255,255,0.05)' 
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '10px',
+                                background: 'rgba(0,0,0,0.2)',
+                                padding: '15px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255,255,255,0.05)'
                             }}>
                                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-main)', textAlign: 'center' }}>
                                     Escaneie o QR Code com a câmera do celular dela:
                                 </span>
-                                
-                                <img 
-                                    src={qrCodeUrl} 
-                                    alt="QR Code de Instalação" 
-                                    style={{ 
-                                        width: '140px', 
-                                        height: '140px', 
-                                        borderRadius: '6px', 
+
+                                <img
+                                    src={qrCodeUrl}
+                                    alt="QR Code de Instalação"
+                                    style={{
+                                        width: '140px',
+                                        height: '140px',
+                                        borderRadius: '6px',
                                         border: '4px solid #fff',
                                         background: '#fff'
-                                    }} 
+                                    }}
                                 />
 
                                 <span style={{ fontSize: '10px', color: 'var(--text-muted)', wordBreak: 'break-all', textAlign: 'center' }}>
-                                    Ou digite no navegador dela:<br/>
-                                    <a 
-                                        href={targetUrl} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
+                                    Ou digite no navegador dela:<br />
+                                    <a
+                                        href={targetUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 'bold' }}
                                     >
                                         {targetUrl}
@@ -373,27 +375,27 @@ export default function SettingsView({ isInstallable, onInstall }) {
                     Sintetizador de voz por fone de ouvido para narrar o término do descanso e indicar a próxima série/carga do exercício.
                 </p>
 
-                <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    background: 'rgba(255,255,255,0.02)', 
-                    padding: '12px 15px', 
-                    borderRadius: '8px', 
-                    border: '1px solid rgba(255,255,255,0.05)' 
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'rgba(255,255,255,0.02)',
+                    padding: '12px 15px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.05)'
                 }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>Narração por Voz (Text-to-Speech)</span>
                     <label className="switch-voice" style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
-                        <input 
-                            type="checkbox" 
-                            checked={voiceNotifications} 
+                        <input
+                            type="checkbox"
+                            checked={voiceNotifications}
                             onChange={toggleVoiceNotifications}
-                            style={{ 
+                            style={{
                                 cursor: 'pointer',
                                 width: '22px',
                                 height: '22px',
                                 accentColor: 'var(--accent)'
-                            }} 
+                            }}
                         />
                     </label>
                 </div>
@@ -409,23 +411,23 @@ export default function SettingsView({ isInstallable, onInstall }) {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <button 
-                        onClick={exportBackupData} 
-                        className="btn-secondary" 
+                    <button
+                        onClick={exportBackupData}
+                        className="btn-secondary"
                         style={{ padding: '12px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                     >
                         📤 Exportar Planilha (Baixar JSON)
                     </button>
-                    
-                    <label 
-                        className="btn-secondary" 
-                        style={{ 
-                            padding: '12px', 
-                            fontSize: '13px', 
-                            cursor: 'pointer', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
+
+                    <label
+                        className="btn-secondary"
+                        style={{
+                            padding: '12px',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             gap: '6px',
                             textAlign: 'center',
                             border: '1px solid rgba(255,255,255,0.05)',
@@ -434,11 +436,11 @@ export default function SettingsView({ isInstallable, onInstall }) {
                         }}
                     >
                         📥 Importar Planilha (Carregar JSON)
-                        <input 
-                            type="file" 
-                            accept=".json" 
-                            onChange={handleImportFile} 
-                            style={{ display: 'none' }} 
+                        <input
+                            type="file"
+                            accept=".json"
+                            onChange={handleImportFile}
+                            style={{ display: 'none' }}
                         />
                     </label>
                 </div>

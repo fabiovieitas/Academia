@@ -21,7 +21,10 @@ const EXERCISE_INSTRUCTIONS = {
     "Barra Fixa com Pegada Supinada": "1. Segure a barra com as palmas voltadas para você (largura dos ombros).\n2. Puxe o corpo para cima até o queixo ultrapassar a barra.\n3. Mantenha os ombros baixos e as escápulas retraídas.\n4. Desça estendendo os braços de forma controlada.",
     "Flexão": "1. Posicione as mãos na largura dos ombros, mantenha o corpo reto como uma prancha.\n2. Flexione os cotovelos descendo o peito até quase tocar o chão.\n3. Não deixe o quadril desabar.\n4. Empurre o chão estendendo os braços.",
     "Paralela": "1. Segure nas barras paralelas com os braços esticados.\n2. Incline levemente o tronco à frente e dobre os joelhos se necessário.\n3. Desça flexionando os braços até os cotovelos atingirem 90°.\n4. Empurre firmemente de volta ao topo.",
-    "Agachamento Pistol com TRX": "1. Segure as alças do TRX e mantenha uma perna elevada à frente.\n2. Desça empurrando o quadril para trás, usando o TRX para suporte de equilíbrio.\n3. Mantenha o joelho da perna de apoio alinhado com o pé.\n4. Suba empurrando pelo calcanhar."
+    "Agachamento Pistol com TRX": "1. Segure as alças do TRX e mantenha uma perna elevada à frente.\n2. Desça empurrando o quadril para trás, usando o TRX para suporte de equilíbrio.\n3. Mantenha o joelho da perna de apoio alinhado com o pé.\n4. Suba empurrando pelo calcanhar.",
+    "Mobilidade: Aquecimento de Punhos": "1. Posicione-se de joelhos no chão com as mãos apoiadas à sua frente.\n2. Gire levemente o tronco em círculos sobre os punhos para lubrificar a articulação (10 voltas para cada lado).\n3. Gire as mãos para trás, com os dedos apontando para seus joelhos, e balance suavemente o quadril para trás para alongar os antebraços (mantenha por 15-20s).\n4. Coloque o dorso das mãos no chão (palmas para cima) apontando os dedos um para o outro e faça leves pulsações distribuindo o peso com cuidado (10 a 12 repetições).",
+    "Técnica: Técnica da Garra": "1. Apoie as mãos no chão na largura dos ombros.\n2. Flexione levemente as articulações dos dedos, 'cavando' e agarrando o chão com a ponta dos dedos (como se fossem garras de felino).\n3. Perceba que as articulações dos dedos (nós) subirão ligeiramente, aliviando a compressão direta no centro do punho.\n4. Mantenha essa tensão ativa: quando seu corpo tender a cair para a frente, empurre ativamente as pontas dos dedos contra o chão para empurrar o peso de volta.",
+    "Isometria de Frog Stand (Corvo)": "1. Agache e apoie as mãos no chão na largura dos ombros, mantendo os dedos bem abertos e em 'garra'.\n2. Apoie a parte interna dos joelhos firmemente sobre a parte posterior dos braços (tríceps), o mais alto que puder (próximo às axilas).\n3. Incline o tronco para a frente de forma controlada, transferindo o peso do corpo dos pés para as mãos.\n4. Tire um pé de cada vez do chão até flutuar completamente. Mantenha o olhar ligeiramente à frente e o abdômen contraído."
 };
 
 const CATEGORY_INSTRUCTIONS = {
@@ -65,7 +68,8 @@ export default function GymMode({ onFinish, onCancel }) {
         setRestTime,
         addFreeWorkoutExercise,
         history,
-        speakExerciseStart
+        speakExerciseStart,
+        exercises: catalogExercises
     } = useApp();
     
     const exercises = activeWorkout?.exercises || [];
@@ -74,6 +78,29 @@ export default function GymMode({ onFinish, onCancel }) {
     const series = currentExercise?.series || [];
     const activeSetIdx = series.findIndex(s => !s.completed);
     const displaySetIdx = activeSetIdx !== -1 ? activeSetIdx : (series.length > 0 ? series.length - 1 : 0);
+    
+    // Função auxiliar para resolver o caminho e categoria de exercícios salvos sem esses dados (ex: sessões restauradas)
+    const getResolvedExerciseDetails = (ex) => {
+        if (!ex) return { path: '', category: 'Musculação' };
+        let path = ex.path || '';
+        if (!path && catalogExercises) {
+            const match = catalogExercises.find(c => c.name.toLowerCase() === ex.name.toLowerCase());
+            if (match) {
+                path = match.path;
+            } else {
+                const cleanName = ex.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").toLowerCase().trim();
+                const matchClean = catalogExercises.find(c => c.name.toLowerCase().trim() === cleanName);
+                if (matchClean) {
+                    path = matchClean.path;
+                }
+            }
+        }
+        const category = path && path.includes('/') ? path.split('/')[1] : 'Musculação';
+        return { path, category };
+    };
+
+    const { path: realPath, category } = getResolvedExerciseDetails(currentExercise);
+    const gifUrl = realPath ? encodeURI(realPath.startsWith('http') ? realPath : `/${realPath}`) : '';
     
     const [durationTimer, setDurationTimer] = useState(0); // cronômetro do treino inteiro
     const [isSwapping, setIsSwapping] = useState(false);
@@ -302,15 +329,32 @@ export default function GymMode({ onFinish, onCancel }) {
         return null;
     };
 
-    // Resetar expansão das instruções ao mudar de exercício
+    // Resetar expansão das instruções ao mudar de exercício (auto-expande para mobilidade/aquecimento/técnica)
     useEffect(() => {
-        setIsInstructionsExpanded(false);
-    }, [activeWorkout?.currentExerciseIndex]);
+        const exName = currentExercise?.name?.toLowerCase() || '';
+        const isWarmupOrMobility = 
+            exName.includes('mobilidade') || 
+            exName.includes('aquecimento') || 
+            exName.includes('técnica') || 
+            exName.includes('garra') ||
+            exName.includes('corvo') ||
+            category?.toLowerCase().includes('mobilidade') ||
+            !realPath;
+            
+        setIsInstructionsExpanded(isWarmupOrMobility);
+    }, [activeWorkout?.currentExerciseIndex, currentExercise, category, realPath]);
 
     // Resetar erro do gif ao mudar de exercício
     useEffect(() => {
         setGifLoadError(false);
     }, [activeWorkout?.currentExerciseIndex]);
+
+    // Expandir instruções caso o gif dê erro ao carregar
+    useEffect(() => {
+        if (gifLoadError) {
+            setIsInstructionsExpanded(true);
+        }
+    }, [gifLoadError]);
 
 
 
@@ -576,8 +620,7 @@ export default function GymMode({ onFinish, onCancel }) {
         return `${pad(mins)}:${pad(secs)}`;
     };
 
-    const gifUrl = currentExercise?.path ? encodeURI(currentExercise.path.startsWith('http') ? currentExercise.path : `/${currentExercise.path}`) : '';
-    const category = currentExercise?.path && currentExercise.path.includes('/') ? currentExercise.path.split('/')[1] : 'Musculação';
+
 
     // Dados para desenhar o timer circular
     const radius = 90;
@@ -1943,7 +1986,7 @@ export default function GymMode({ onFinish, onCancel }) {
                     onSelect={handleSwapExercise}
                     onClose={() => setIsSwapping(false)}
                     initialCategory={category}
-                    lockCategory={true}
+                    lockCategory={false}
                 />
             )}
 

@@ -1178,14 +1178,65 @@ export const AppProvider = ({ children }) => {
         saveActiveWorkoutState(activeState);
     };
 
+const CALISTHENICS_PATH_MAP = {
+    "mobilidade: aquecimento de punhos": "Exercicios/Calistenia/Aquecimento_de_Punhos.png",
+    "aquecimento de punhos": "Exercicios/Calistenia/Aquecimento_de_Punhos.png",
+    "técnica: técnica da garra": "Exercicios/Calistenia/Tecnica_da_Garra.png",
+    "técnica da garra": "Exercicios/Calistenia/Tecnica_da_Garra.png",
+    "isometria de frog stand (corvo)": "Exercicios/Calistenia/Isometria_de_Frog_Stand.png",
+    "nível 1: prancha alta": "Exercicios/Calistenia/Prancha_Alta.gif",
+    "prancha alta": "Exercicios/Calistenia/Prancha_Alta.gif",
+    "nível 2: planche lean": "Exercicios/Calistenia/Lean_Plank.gif",
+    "nível 3: encaixe de sapo (1 pé)": "Exercicios/Calistenia/Frog_Stand_Assistido.gif",
+    "nível 4: sapo assistido (testa no travesseiro)": "Exercicios/Calistenia/Frog_Stand_Assistido.gif",
+    "flexoes de braco tradicionais": "Exercicios/Calistenia/Flexão.gif",
+    "prancha lombar (superman)": "Exercicios/Eretor Lombar/Superman.gif",
+    "elbow lever com pes no chao": "Exercicios/Calistenia/Elbow_Lever_com_pes_no_chao.gif",
+    "elbow lever em straddle": "Exercicios/Calistenia/Elbow_Lever_em_Straddle.gif",
+    "abdominal canoa (hollow body)": "Exercicios/Calistenia/Abdominal_Canoa_Hollow_Body.gif",
+    "fundos nas paralelas (dips)": "Exercicios/Calistenia/Paralela.gif",
+    "support hold nas paralelas": "Exercicios/Calistenia/Support_Hold_nas_Paralelas.gif",
+    "tuck l-sit": "Exercicios/Calistenia/Tuck_L_Sit.gif",
+    "one-leg l-sit": "Exercicios/Calistenia/One_Leg_L_Sit.gif",
+    "flexao pike": "Exercicios/Calistenia/Flexões de apoio de mão na parede.gif",
+    "handstand na parede (costas)": "Exercicios/Calistenia/Handstand_na_Parede_Costas.gif",
+    "handstand na parede (frente)": "Exercicios/Calistenia/Handstand_na_Parede_Frente.gif",
+    "wall scissor": "Exercicios/Calistenia/Wall_Scissor.gif",
+    "barra fixa (pull-ups)": "Exercicios/Costas/Pull Up.gif",
+    "elevacao de joelhos na barra": "Exercicios/Calistenia/Elevacao_de_Joelhos_na_Barra.gif",
+    "toes to bar (pes na barra)": "Exercicios/Calistenia/Toes_to_Bar_Pes_na_Barra.gif",
+    "skin the cat assistido": "Exercicios/Calistenia/Skin_the_Cat_Assistido.gif",
+    "puxada escapular na barra fixa": "Exercicios/Costas/Pull Up.gif",
+    "paralela": "Exercicios/Calistenia/Paralela.gif",
+    "elevação lateral com toalha na parede": "Exercicios/Calistenia/Elevao lateral com toalha na parede.gif",
+    "bandeira humana": "Exercicios/Calistenia/Bandeira Humana.gif",
+    "barra fixa com pegada supinada": "Exercicios/Calistenia/Barra Fixa com Pegada Supinada.gif",
+    "muscle up": "Exercicios/Calistenia/Muscle up.gif"
+};
+
     // Iniciar uma sessão de calistenia baseada nos requisitos da manobra e fase
     const startCalisthenicsWorkout = (maneuver, phaseNum) => {
         const progressArray = phaseNum === 2 ? maneuver.phase2_progress : maneuver.phase1_progress;
         
         const formattedExercises = progressArray.map(prog => {
-            // Busca o exercício correspondente na base geral para pegar o caminho do GIF
-            const catalogMatch = exercises.find(ex => ex.name.toLowerCase() === prog.exercise.toLowerCase());
-            const path = catalogMatch ? catalogMatch.path : "";
+            const exerciseKey = prog.exercise.toLowerCase().trim();
+            let path = "";
+            
+            // 1. Tenta encontrar no mapa manual
+            if (CALISTHENICS_PATH_MAP[exerciseKey]) {
+                path = CALISTHENICS_PATH_MAP[exerciseKey];
+            } else {
+                // 2. Tenta fazer um match na base geral, limpando prefixos
+                const cleanName = prog.exercise.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").toLowerCase().trim();
+                const catalogMatch = exercises.find(ex => {
+                    const nameNorm = ex.name.toLowerCase().trim();
+                    return nameNorm === cleanName || nameNorm === prog.exercise.toLowerCase().trim();
+                });
+                
+                if (catalogMatch) {
+                    path = catalogMatch.path;
+                }
+            }
             
             // Cria 3 séries padrão com a meta especificada e peso zero
             const seriesCount = 3;
