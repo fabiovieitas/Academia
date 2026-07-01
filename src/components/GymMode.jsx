@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import ExerciseBrowser from './ExerciseBrowser';
+import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
 
 const EXERCISE_INSTRUCTIONS = {
     "Supino Reto": "1. Deite-se no banco reto com os olhos sob a barra.\n2. Segure a barra com pegada firme e retraia as escápulas.\n3. Desça a barra de forma controlada até tocar de leve o peito.\n4. Empurre verticalmente até estender os braços, concentrando a força no peitoral.",
@@ -83,15 +84,25 @@ export default function GymMode({ onFinish, onCancel }) {
     const getResolvedExerciseDetails = (ex) => {
         if (!ex) return { path: '', category: 'Musculação' };
         let path = ex.path || '';
-        if (!path && catalogExercises) {
-            const match = catalogExercises.find(c => c.name.toLowerCase() === ex.name.toLowerCase());
-            if (match) {
-                path = match.path;
-            } else {
-                const cleanName = ex.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").toLowerCase().trim();
-                const matchClean = catalogExercises.find(c => c.name.toLowerCase().trim() === cleanName);
-                if (matchClean) {
-                    path = matchClean.path;
+        if (!path) {
+            const cleanKey = ex.name.toLowerCase().trim();
+            const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+            
+            // 1. Tenta achar no mapa manual de calistenia usando o nome completo ou sem prefixo
+            if (CALISTHENICS_PATH_MAP[cleanKey]) {
+                path = CALISTHENICS_PATH_MAP[cleanKey];
+            } else if (CALISTHENICS_PATH_MAP[cleanKeyNoPrefix]) {
+                path = CALISTHENICS_PATH_MAP[cleanKeyNoPrefix];
+            } else if (catalogExercises) {
+                // 2. Se não achar, tenta buscar no catálogo geral
+                const match = catalogExercises.find(c => c.name.toLowerCase() === cleanKey);
+                if (match) {
+                    path = match.path;
+                } else {
+                    const matchClean = catalogExercises.find(c => c.name.toLowerCase().trim() === cleanKeyNoPrefix);
+                    if (matchClean) {
+                        path = matchClean.path;
+                    }
                 }
             }
         }
