@@ -131,15 +131,15 @@ export default function GymMode({ onFinish, onCancel }) {
     const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false);
     const [gifLoadError, setGifLoadError] = useState(false);
     const [gifSrc, setGifSrc] = useState('');
-    const [gifFallbackTried, setGifFallbackTried] = useState(false);
+    const [gifStage, setGifStage] = useState(0); // 0: local, 1: remote gif, 2: remote thumb, 3: error
 
     useEffect(() => {
         setGifLoadError(false);
-        setGifFallbackTried(false);
+        setGifStage(0);
         if (currentExercise) {
             const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
             const initialSrc = resolvedPath
-                ? (resolvedPath.startsWith('http') ? resolvedPath : (resolvedPath.startsWith('Exercicios/Calistenia/') || resolvedPath.endsWith('.png') ? `/${resolvedPath}` : `https://www.gifdotreino.com/${resolvedPath}`))
+                ? (resolvedPath.startsWith('http') ? resolvedPath : `/${resolvedPath}`)
                 : '';
             setGifSrc(initialSrc);
         } else {
@@ -148,13 +148,22 @@ export default function GymMode({ onFinish, onCancel }) {
     }, [activeWorkout?.currentExerciseIndex, currentExercise]);
 
     const handleGifError = () => {
-        if (!gifFallbackTried && currentExercise) {
-            setGifFallbackTried(true);
-            const cleanName = currentExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-            const fallbackSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
-            setGifSrc(fallbackSrc);
-        } else {
-            setGifLoadError(true);
+        if (currentExercise) {
+            const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
+            if (gifStage === 0) {
+                setGifStage(1);
+                const remoteSrc = resolvedPath
+                    ? (resolvedPath.startsWith('http') ? resolvedPath : `https://www.gifdotreino.com/${resolvedPath}`)
+                    : '';
+                setGifSrc(remoteSrc);
+            } else if (gifStage === 1) {
+                setGifStage(2);
+                const cleanName = currentExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+                setGifSrc(thumbnailSrc);
+            } else {
+                setGifLoadError(true);
+            }
         }
     };
 

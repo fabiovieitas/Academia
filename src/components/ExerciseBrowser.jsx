@@ -13,18 +13,18 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [visibleCount, setVisibleCount] = useState(50); // Paginação de 50 em 50 para performance
     const [previewExercise, setPreviewExercise] = useState(null); // Estado para o modal de pré-visualização
-    const [previewGifSrc, setPreviewGifSrc] = useState('');
-    const [previewGifFallbackTried, setPreviewGifFallbackTried] = useState(false);
     const [previewGifError, setPreviewGifError] = useState(false);
+    const [previewGifSrc, setPreviewGifSrc] = useState('');
+    const [previewGifStage, setPreviewGifStage] = useState(0); // 0: local, 1: remote gif, 2: remote thumb, 3: error
 
     useEffect(() => {
         setPreviewGifError(false);
-        setPreviewGifFallbackTried(false);
+        setPreviewGifStage(0);
         if (previewExercise) {
             const path = previewExercise.path;
             const initialSrc = path.startsWith('http')
                 ? path
-                : (path.startsWith('Exercicios/Calistenia/') || path.endsWith('.png') ? `/${path}` : `https://www.gifdotreino.com/${path}`);
+                : `/${path}`;
             setPreviewGifSrc(initialSrc);
         } else {
             setPreviewGifSrc('');
@@ -32,13 +32,20 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
     }, [previewExercise]);
 
     const handlePreviewGifError = () => {
-        if (!previewGifFallbackTried && previewExercise) {
-            setPreviewGifFallbackTried(true);
-            const cleanName = previewExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-            const fallbackSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
-            setPreviewGifSrc(fallbackSrc);
-        } else {
-            setPreviewGifError(true);
+        if (previewExercise) {
+            if (previewGifStage === 0) {
+                setPreviewGifStage(1);
+                const path = previewExercise.path;
+                const remoteSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
+                setPreviewGifSrc(remoteSrc);
+            } else if (previewGifStage === 1) {
+                setPreviewGifStage(2);
+                const cleanName = previewExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+                setPreviewGifSrc(thumbnailSrc);
+            } else {
+                setPreviewGifError(true);
+            }
         }
     };
 

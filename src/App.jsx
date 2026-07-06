@@ -29,16 +29,16 @@ function MainAppContent() {
     const [selectedDetailExercise, setSelectedDetailExercise] = useState(null); // Para ver detalhes do exercício
     const [detailGifError, setDetailGifError] = useState(false);
     const [detailGifSrc, setDetailGifSrc] = useState('');
-    const [detailGifFallbackTried, setDetailGifFallbackTried] = useState(false);
+    const [detailGifStage, setDetailGifStage] = useState(0); // 0: local, 1: remote gif, 2: remote thumb, 3: error
 
     useEffect(() => {
         setDetailGifError(false);
-        setDetailGifFallbackTried(false);
+        setDetailGifStage(0);
         if (selectedDetailExercise) {
             const path = selectedDetailExercise.path;
             const initialSrc = path.startsWith('http')
                 ? path
-                : (path.startsWith('Exercicios/Calistenia/') || path.endsWith('.png') ? `/${path}` : `https://www.gifdotreino.com/${path}`);
+                : `/${path}`;
             setDetailGifSrc(initialSrc);
         } else {
             setDetailGifSrc('');
@@ -46,13 +46,20 @@ function MainAppContent() {
     }, [selectedDetailExercise]);
 
     const handleDetailGifError = () => {
-        if (!detailGifFallbackTried && selectedDetailExercise) {
-            setDetailGifFallbackTried(true);
-            const cleanName = selectedDetailExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-            const fallbackSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
-            setDetailGifSrc(fallbackSrc);
-        } else {
-            setDetailGifError(true);
+        if (selectedDetailExercise) {
+            if (detailGifStage === 0) {
+                setDetailGifStage(1);
+                const path = selectedDetailExercise.path;
+                const remoteSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
+                setDetailGifSrc(remoteSrc);
+            } else if (detailGifStage === 1) {
+                setDetailGifStage(2);
+                const cleanName = selectedDetailExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+                setDetailGifSrc(thumbnailSrc);
+            } else {
+                setDetailGifError(true);
+            }
         }
     };
 

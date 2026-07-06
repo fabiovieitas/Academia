@@ -28,3 +28,23 @@ dist-ssr
 .env.local
 .env.*.local
 !.env.example
+
+# Local heavy exercise assets (keep calisthenics checked-in, ignore others)
+public/Exercicios/Bíceps/
+public/Exercicios/Antebraços/
+public/Exercicios/Costas/
+public/Exercicios/Trapézio/
+public/Exercicios/Ombros/
+public/Exercicios/Pernas/
+public/Exercicios/Panturrilhas/
+public/Exercicios/Peitoral/
+public/Exercicios/Tríceps/
+public/Exercicios/Glúteos/
+public/Exercicios/Eretor Lombar/
+public/Exercicios/Cardio/
+public/Exercicios/Mobilidade/
+public/Exercicios/Funcional e HIT/
+public/Exercicios/Crossfit/
+
+# Source GIFs folder
+GIFS/
