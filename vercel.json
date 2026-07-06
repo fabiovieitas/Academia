@@ -1,0 +1,7 @@
+{
+  "build": {
+    "env": {
+      "VITE_MEDIA_URL": "https://fabiovieitas.github.io/academia-assets"
+    }
+  }
+}
