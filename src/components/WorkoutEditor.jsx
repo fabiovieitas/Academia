@@ -138,7 +138,8 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
 
             <div className="exercise-list-editor">
                 {exercises.map((ex, index) => {
-                    const thumbUrl = encodeURI(`https://www.gifdotreino.com/thumbnails/${ex.name}.png`);
+                    const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
+                    const thumbUrl = encodeURI(`${baseMediaUrl}/thumbnails/${ex.name}.png`);
                     return (
                         <div key={index} className="exercise-editor-card">
                             <div className="drag-handle" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

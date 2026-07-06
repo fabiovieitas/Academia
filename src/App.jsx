@@ -50,12 +50,14 @@ function MainAppContent() {
             if (detailGifStage === 0) {
                 setDetailGifStage(1);
                 const path = selectedDetailExercise.path;
-                const remoteSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
+                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
+                const remoteSrc = path.startsWith('http') ? path : `${baseMediaUrl}/${path}`;
                 setDetailGifSrc(remoteSrc);
             } else if (detailGifStage === 1) {
                 setDetailGifStage(2);
                 const cleanName = selectedDetailExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
+                const thumbnailSrc = `${baseMediaUrl}/thumbnails/${cleanName}.png`;
                 setDetailGifSrc(thumbnailSrc);
             } else {
                 setDetailGifError(true);

@@ -36,12 +36,14 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
             if (previewGifStage === 0) {
                 setPreviewGifStage(1);
                 const path = previewExercise.path;
-                const remoteSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
+                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
+                const remoteSrc = path.startsWith('http') ? path : `${baseMediaUrl}/${path}`;
                 setPreviewGifSrc(remoteSrc);
             } else if (previewGifStage === 1) {
                 setPreviewGifStage(2);
                 const cleanName = previewExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
+                const thumbnailSrc = `${baseMediaUrl}/thumbnails/${cleanName}.png`;
                 setPreviewGifSrc(thumbnailSrc);
             } else {
                 setPreviewGifError(true);
@@ -145,9 +147,10 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                             {filteredExercises.slice(0, visibleCount).map((exercise, index) => {
                                 const isFav = favorites.includes(exercise.name);
                                 const isLocalThumb = exercise.thumbnail && (exercise.thumbnail.startsWith('/') || exercise.thumbnail.startsWith('Exercicios/') || exercise.thumbnail.startsWith('http'));
+                                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
                                 const thumbUrl = isLocalThumb 
                                     ? encodeURI(exercise.thumbnail.startsWith('http') ? exercise.thumbnail : `/${exercise.thumbnail}`)
-                                    : encodeURI(`https://www.gifdotreino.com/${exercise.thumbnail}`);
+                                    : encodeURI(`${baseMediaUrl}/${exercise.thumbnail}`);
                                 
                                 return (
                                     <div 
