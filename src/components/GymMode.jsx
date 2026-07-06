@@ -150,18 +150,32 @@ export default function GymMode({ onFinish, onCancel }) {
     const handleGifError = () => {
         if (currentExercise) {
             const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
+            const hasCustomMedia = !!import.meta.env.VITE_MEDIA_URL;
+
             if (gifStage === 0) {
-                setGifStage(1);
-                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-                const remoteSrc = resolvedPath
-                    ? (resolvedPath.startsWith('http') ? resolvedPath : `${baseMediaUrl}/${resolvedPath}`)
-                    : '';
-                setGifSrc(remoteSrc);
+                if (hasCustomMedia) {
+                    setGifStage(1);
+                    const customSrc = resolvedPath
+                        ? (resolvedPath.startsWith('http') ? resolvedPath : `${import.meta.env.VITE_MEDIA_URL}/${resolvedPath}`)
+                        : '';
+                    setGifSrc(customSrc);
+                } else {
+                    setGifStage(2);
+                    const publicSrc = resolvedPath
+                        ? (resolvedPath.startsWith('http') ? resolvedPath : `https://www.gifdotreino.com/${resolvedPath}`)
+                        : '';
+                    setGifSrc(publicSrc);
+                }
             } else if (gifStage === 1) {
                 setGifStage(2);
+                const publicSrc = resolvedPath
+                    ? (resolvedPath.startsWith('http') ? resolvedPath : `https://www.gifdotreino.com/${resolvedPath}`)
+                    : '';
+                setGifSrc(publicSrc);
+            } else if (gifStage === 2) {
+                setGifStage(3);
                 const cleanName = currentExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-                const thumbnailSrc = `${baseMediaUrl}/thumbnails/${cleanName}.png`;
+                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
                 setGifSrc(thumbnailSrc);
             } else {
                 setGifLoadError(true);

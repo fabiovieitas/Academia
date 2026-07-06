@@ -33,17 +33,27 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
 
     const handlePreviewGifError = () => {
         if (previewExercise) {
+            const path = previewExercise.path;
+            const hasCustomMedia = !!import.meta.env.VITE_MEDIA_URL;
+
             if (previewGifStage === 0) {
-                setPreviewGifStage(1);
-                const path = previewExercise.path;
-                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-                const remoteSrc = path.startsWith('http') ? path : `${baseMediaUrl}/${path}`;
-                setPreviewGifSrc(remoteSrc);
+                if (hasCustomMedia) {
+                    setPreviewGifStage(1);
+                    const customSrc = path.startsWith('http') ? path : `${import.meta.env.VITE_MEDIA_URL}/${path}`;
+                    setPreviewGifSrc(customSrc);
+                } else {
+                    setPreviewGifStage(2);
+                    const publicSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
+                    setPreviewGifSrc(publicSrc);
+                }
             } else if (previewGifStage === 1) {
                 setPreviewGifStage(2);
+                const publicSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
+                setPreviewGifSrc(publicSrc);
+            } else if (previewGifStage === 2) {
+                setPreviewGifStage(3);
                 const cleanName = previewExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-                const thumbnailSrc = `${baseMediaUrl}/thumbnails/${cleanName}.png`;
+                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
                 setPreviewGifSrc(thumbnailSrc);
             } else {
                 setPreviewGifError(true);
