@@ -245,43 +245,39 @@ export const PRESET_WORKOUTS = {
         description: "Divisão ABC biomecanicamente estruturada com foco 100% em máquinas e polias para isolamento máximo e segurança articular.",
         workouts: [
             {
-                name: "Treino A - Push (Peito, Ombro e Tríceps)",
-                description: "Máquinas para eliminar a instabilidade, blindar o manguito e isolar o peitoral.",
+                name: "Treino A - Peito, Ombro, Tríceps + Calistenia (Empurrar)",
+                description: "Foco no empurrar horizontal/inclinado e progressão inicial de calistenia para paralelas.",
                 coverStyle: "peito",
                 exercises: [
-                    { name: "Supino Vertical na Máquina (Chest Press Machine)", path: "Exercicios/Peitoral/Supino na máquina.gif", series: 4, reps: 10, weight: 30, targetWeight: 45, notes: "Faixa de 10 a 12 repetições. Vantagem: Trajetória fixa, permitindo empurrar com força sem precisar equilibrar a carga." },
-                    { name: "Crucifixo na Máquina (Pec Deck / Fly)", path: "Exercicios/Peitoral/Voador no pec deck.gif", series: 3, reps: 12, weight: 20, targetWeight: 30, notes: "Regule o banco de forma que as mãos fiquem na linha do meio do peito para poupar o ombro." },
-                    { name: "Desenvolvimento de Ombros na Máquina", path: "Exercicios/Ombros/Desenvolvimento de ombros na máquina.gif", series: 3, reps: 10, weight: 15, targetWeight: 25, notes: "Dica: Se a máquina permitir, use a pegada neutra (palmas voltadas uma para a outra), mais anatômica e segura." },
-                    { name: "Elevação Lateral na Polia Baixa (Cabo)", path: "Exercicios/Ombros/Elevação lateral unilateral com cabo.gif", series: 4, reps: 12, weight: 10, targetWeight: 15, notes: "Faixa de 12 a 15 repetições. O cabo mantém a tensão constante em todo o movimento, exigindo menos carga bruta." },
-                    { name: "Tríceps na Polia Alta (Barra Reta/V)", path: "Exercicios/Tríceps/Tríceps pulley barra.gif", series: 4, reps: 12, weight: 20, targetWeight: 30, notes: "Corpo levemente inclinado para a frente, cotovelos travados ao lado das costelas." },
-                    { name: "Tríceps na Polia Alta com Corda", path: "Exercicios/Tríceps/Tríceps pulley corda.gif", series: 3, reps: 10, weight: 15, targetWeight: 22, notes: "Faixa de 10 a 12 repetições. Abra a corda bem embaixo para contrair ao máximo." }
+                    { name: "Supino Inclinado na Máquina", path: "Exercicios/Peitoral/Supino inclinado na máquina.gif", series: 3, reps: 10, weight: 20, targetWeight: 35, notes: "Faixa de 8 a 10 repetições. Supino inclinado com bateria de pesos." },
+                    { name: "Crossover (Polia Média)", path: "Exercicios/Peitoral/Crossover Unilateral com Cabo.gif", series: 3, reps: 12, weight: 15, targetWeight: 25, notes: "Faixa de 10 a 12 repetições. Cruze os cabos na altura média do peitoral." },
+                    { name: "Elevação Lateral na Máquina", path: "Exercicios/Ombros/Elevação lateral na máquina.gif", series: 3, reps: 12, weight: 10, targetWeight: 15, notes: "Faixa de 10 a 12 repetições. Pode ser feito na polia baixa se preferir." },
+                    { name: "Tríceps Pulley (Corda)", path: "Exercicios/Tríceps/Tríceps pulley corda.gif", series: 3, reps: 12, weight: 15, targetWeight: 22, notes: "Faixa de 10 a 12 repetições. Braços travados ao lado do corpo." },
+                    { name: "Paralelas no Gráviton (Máquina Assistida)", path: "Exercicios/Tríceps/Mergulhos Assistidos para Tríceps.gif", series: 3, reps: 10, weight: 30, targetWeight: 15, notes: "Foco da Calistenia (Paralelas): O Gráviton usa o peso da máquina para facilitar o movimento. Ele prepara seus tríceps, ombros e peitoral para exercícios de calistenia mais avançados, como o Dips livre e futuras progressões de Muscle-up. Execute até a falha técnica." }
                 ]
             },
             {
-                name: "Treino B - Pull (Costas, Bíceps e Antebraço)",
-                description: "Uso de polias e máquinas com suporte de peito para aliviar completamente a carga na lombar.",
+                name: "Treino B - Costas, Posterior de Ombro, Bíceps + Calistenia (Puxar)",
+                description: "Foco na puxada vertical, remada estável para a lombar e pegada na barra fixa.",
                 coverStyle: "costas",
                 exercises: [
-                    { name: "Puxada Alta no Pulley (Pegada Pronada)", path: "Exercicios/Costas/Puxada Alta.gif", series: 4, reps: 10, weight: 45, targetWeight: 60, notes: "Faixa de 10 a 12 repetições. Dica: Puxe a barra em direção ao topo do peito, inclinando o tronco minimamente." },
-                    { name: "Remada Baixa Sentada na Polia (Pegada Triângulo)", path: "Exercicios/Costas/Remada Sentada com Cabo.gif", series: 4, reps: 10, weight: 35, targetWeight: 50, notes: "Mantenha a postura alinhada." },
-                    { name: "Remada Máquina Convergente", path: "Exercicios/Costas/Remada frontal com alavanca.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "Com suporte de peito. Vantagem: Apoio no peito zera a tensão na região lombar, focando 100% nas costas." },
-                    { name: "Crucifixo Invertido na Máquina (Pec Deck Invertido)", path: "Exercicios/Ombros/Voador invertido.gif", series: 3, reps: 15, weight: 20, targetWeight: 30, notes: "Excelente para a postura e fortalecimento do deltoide posterior." },
-                    { name: "Rosca Bíceps no Pulley Baixo", path: "Exercicios/Bíceps/Rosca Unilateral com Cabo.gif", series: 4, reps: 10, weight: 15, targetWeight: 22, notes: "Com barra W ou reta. Faixa de 10 a 12 repetições. Tense constante do cabo, ideal para bombear sangue." },
-                    { name: "Rosca Scott na Máquina", path: "Exercicios/Bíceps/Rosca Scott com Alavanca.gif", series: 3, reps: 10, weight: 15, targetWeight: 22, notes: "Braço totalmente apoiado, isolando o bíceps ao máximo e impedindo o uso do ombro para 'roubar'." },
-                    { name: "Rosca Inversa na Polia Baixa", path: "Exercicios/Antebraços/Rosca Inversa com Barra.gif", series: 3, reps: 12, weight: 10, targetWeight: 15, notes: "Para o antebraço. Nota: GIF ilustrativo usando barra livre devido à ausência de GIF específico para polia." }
+                    { name: "Puxada Frontal Aberta", path: "Exercicios/Costas/Puxada Alta.gif", series: 3, reps: 10, weight: 45, targetWeight: 60, notes: "Faixa de 8 a 10 repetições. Mantenha os cotovelos alinhados." },
+                    { name: "Remada Curvada Articulada (Apoio no Peito)", path: "Exercicios/Costas/Remada frontal com alavanca.gif", series: 3, reps: 10, weight: 25, targetWeight: 40, notes: "Faixa de 8 a 10 repetições. Apoio de peito zera a tensão na lombar." },
+                    { name: "Crucifixo Inverso na Máquina (Pec Deck Invertido)", path: "Exercicios/Ombros/Voador invertido.gif", series: 3, reps: 15, weight: 20, targetWeight: 30, notes: "Faixa de 12 a 15 repetições. Fortalecimento da parte de trás do ombro e postura." },
+                    { name: "Rosca Scott na Máquina", path: "Exercicios/Bíceps/Rosca Scott com Alavanca.gif", series: 3, reps: 10, weight: 15, targetWeight: 22, notes: "Faixa de 8 a 10 repetições. Apoie totalmente os braços no estofado." },
+                    { name: "Dead Hang (Sustentação na Barra)", path: "Exercicios/Calistenia/Barra Fixa (Pull-ups).gif", series: 3, reps: 0, weight: 0, targetWeight: 0, notes: "Foco da Calistenia (Dead Hang): Basicamente, segurar-se na barra fixa o máximo de tempo possível. Isso cria uma força de pegada colossal, descomprime a coluna (excelente para a postura) e fortalece os tendões dos braços e ombros, sendo o degrau número um para conseguir fazer barras fixas perfeitas na calistenia. Sustente pelo máximo de tempo possível." }
                 ]
             },
             {
-                name: "Treino C - Legs & Core (Pernas e Abdômen)",
-                description: "Controle total da amplitude em aparelhos para proteção articular e zero foco em glúteos.",
+                name: "Treino C - Pernas, Core + Calistenia (Sustentação)",
+                description: "Trabalho completo de pernas e fortalecimento de core focado em sustentação isométrica.",
                 coverStyle: "pernas",
                 exercises: [
-                    { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 4, reps: 12, weight: 25, targetWeight: 40, notes: "Faixa de 12 a 15 repetições. Aquecimento: Primeira série com metade da carga para lubrificar o joelho." },
-                    { name: "Leg Press Horizontal (ou Leg 45°)", path: "Exercicios/Pernas/Leg Press Horizontal.gif", series: 4, reps: 10, weight: 60, targetWeight: 90, notes: "Faixa de 10 a 12 repetições. Pés na metade superior. Mantenha os joelhos destravados no topo." },
-                    { name: "Cadeira Flexora (Sentado)", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 4, reps: 12, weight: 25, targetWeight: 40, notes: "A versão sentada isola muito bem os posteriores de coxa de forma segura." },
-                    { name: "Mesa Flexora (Deitado)", path: "Exercicios/Pernas/Mesa flexora.gif", series: 3, reps: 10, weight: 20, targetWeight: 30, notes: "Mantenha o quadril apoiado no banco." },
-                    { name: "Gêmeos Sentado na Máquina (Panturrilha)", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 20, targetWeight: 35, notes: "Movimento completo com alongamento máximo." },
-                    { name: "Abdominal na Máquina (Crunch Machine)", path: "Exercicios/Mobilidade/Contração abdominal.gif", series: 4, reps: 15, weight: 15, targetWeight: 25, notes: "Faixa de 15 a 20 repetições. Nota: GIF ilustrativo de contração abdominal livre devido à ausência de GIF de máquina." }
+                    { name: "Leg Press Horizontal", path: "Exercicios/Pernas/Leg Press Horizontal.gif", series: 3, reps: 10, weight: 60, targetWeight: 90, notes: "Faixa de 8 a 10 repetições. Mantenha a lombar bem apoiada." },
+                    { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "Faixa de 10 a 12 repetições. Pico de contração no topo." },
+                    { name: "Cadeira Flexora", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "Faixa de 10 a 12 repetições. Controle a subida." },
+                    { name: "Panturrilha na Máquina (Em Pé ou Sentado)", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 20, targetWeight: 35, notes: "Faixa de 12 a 15 repetições. Alongamento máximo no ponto mais baixo." },
+                    { name: "Tuck L-Sit (Progressão de L-Sit)", path: "Exercicios/Calistenia/Tuck L-Sit.gif", series: 3, reps: 0, weight: 0, targetWeight: 0, notes: "Progressão de L-Sit nas paralelas ou solo. Sustente o corpo com joelhos encolhidos pelo máximo de tempo possível." }
                 ]
             }
         ]

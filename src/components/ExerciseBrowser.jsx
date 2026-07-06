@@ -21,9 +21,10 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
         setPreviewGifError(false);
         setPreviewGifFallbackTried(false);
         if (previewExercise) {
-            const initialSrc = previewExercise.path.startsWith('http')
-                ? previewExercise.path
-                : (previewExercise.path.endsWith('.png') ? `/${previewExercise.path}` : `https://www.gifdotreino.com/${previewExercise.path}`);
+            const path = previewExercise.path;
+            const initialSrc = path.startsWith('http')
+                ? path
+                : (path.startsWith('Exercicios/Calistenia/') || path.endsWith('.png') ? `/${path}` : `https://www.gifdotreino.com/${path}`);
             setPreviewGifSrc(initialSrc);
         } else {
             setPreviewGifSrc('');

@@ -139,7 +139,7 @@ export default function GymMode({ onFinish, onCancel }) {
         if (currentExercise) {
             const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
             const initialSrc = resolvedPath
-                ? (resolvedPath.startsWith('http') ? resolvedPath : (resolvedPath.endsWith('.png') ? `/${resolvedPath}` : `https://www.gifdotreino.com/${resolvedPath}`))
+                ? (resolvedPath.startsWith('http') ? resolvedPath : (resolvedPath.startsWith('Exercicios/Calistenia/') || resolvedPath.endsWith('.png') ? `/${resolvedPath}` : `https://www.gifdotreino.com/${resolvedPath}`))
                 : '';
             setGifSrc(initialSrc);
         } else {

@@ -35,9 +35,10 @@ function MainAppContent() {
         setDetailGifError(false);
         setDetailGifFallbackTried(false);
         if (selectedDetailExercise) {
-            const initialSrc = selectedDetailExercise.path.startsWith('http')
-                ? selectedDetailExercise.path
-                : (selectedDetailExercise.path.endsWith('.png') ? `/${selectedDetailExercise.path}` : `https://www.gifdotreino.com/${selectedDetailExercise.path}`);
+            const path = selectedDetailExercise.path;
+            const initialSrc = path.startsWith('http')
+                ? path
+                : (path.startsWith('Exercicios/Calistenia/') || path.endsWith('.png') ? `/${path}` : `https://www.gifdotreino.com/${path}`);
             setDetailGifSrc(initialSrc);
         } else {
             setDetailGifSrc('');
