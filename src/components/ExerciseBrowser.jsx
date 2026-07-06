@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
 
 const normalizeString = (str) => {
     return str
@@ -21,7 +22,12 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
         setPreviewGifError(false);
         setPreviewGifStage(0);
         if (previewExercise) {
-            const path = previewExercise.path;
+            let path = previewExercise.path;
+            if (!path) {
+                const cleanKey = previewExercise.name.toLowerCase().trim();
+                const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                path = CALISTHENICS_PATH_MAP[cleanKey] || CALISTHENICS_PATH_MAP[cleanKeyNoPrefix] || '';
+            }
             const initialSrc = path.startsWith('http')
                 ? path
                 : `/${path}`;

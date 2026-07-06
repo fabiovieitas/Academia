@@ -8,6 +8,7 @@ import HistoryView from './components/HistoryView';
 import ExerciseBrowser from './components/ExerciseBrowser';
 import EvolutionView from './components/EvolutionView';
 import SettingsView from './components/SettingsView';
+import { CALISTHENICS_PATH_MAP } from './context/workoutData';
 
 function MainAppContent() {
     const { 
@@ -35,7 +36,12 @@ function MainAppContent() {
         setDetailGifError(false);
         setDetailGifStage(0);
         if (selectedDetailExercise) {
-            const path = selectedDetailExercise.path;
+            let path = selectedDetailExercise.path;
+            if (!path) {
+                const cleanKey = selectedDetailExercise.name.toLowerCase().trim();
+                const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                path = CALISTHENICS_PATH_MAP[cleanKey] || CALISTHENICS_PATH_MAP[cleanKeyNoPrefix] || '';
+            }
             const initialSrc = path.startsWith('http')
                 ? path
                 : `/${path}`;

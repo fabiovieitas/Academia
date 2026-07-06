@@ -606,5 +606,9 @@ export const CALISTHENICS_PATH_MAP = {
     "elevação lateral com toalha na parede": "Exercicios/Calistenia/Elevação lateral com toalha na parede.gif",
     "bandeira humana": "Exercicios/Calistenia/Bandeira Humana.gif",
     "barra fixa com pegada supinada": "Exercicios/Calistenia/Barra Fixa com Pegada Supinada.gif",
-    "muscle up": "Exercicios/Calistenia/Muscle up.gif"
+    "muscle up": "Exercicios/Calistenia/Muscle up.gif",
+    "supino vertical na máquina (chest press machine)": "Exercicios/Peitoral/Supino na máquina.gif",
+    "supino vertical na máquina": "Exercicios/Peitoral/Supino na máquina.gif",
+    "supino reto na máquina": "Exercicios/Peitoral/Supino na máquina.gif",
+    "supino inclinado máquina": "Exercicios/Peitoral/Supino inclinado na máquina.gif"
 };
