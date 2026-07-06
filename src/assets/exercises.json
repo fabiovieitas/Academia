@@ -1,20 +1,20 @@
 [
   {
     "name": "Mobilidade: Aquecimento de Punhos",
-    "path": "Exercicios/Calistenia/Aquecimento_de_Punhos.png",
-    "thumbnail": "Exercicios/Calistenia/Aquecimento_de_Punhos.png",
+    "path": "Exercicios/Calistenia/Aquecimento de Punhos.gif",
+    "thumbnail": "thumbnails/Aquecimento de Punhos.png",
     "description": "Aquecimento e preparação articular para os punhos antes de treinos de força e equilíbrio."
   },
   {
     "name": "Técnica: Técnica da Garra",
-    "path": "Exercicios/Calistenia/Tecnica_da_Garra.png",
-    "thumbnail": "Exercicios/Calistenia/Tecnica_da_Garra.png",
+    "path": "Exercicios/Calistenia/Tecnica da Garra.gif",
+    "thumbnail": "thumbnails/Técnica da Garra.png",
     "description": "Técnica de ativação dos dedos ('garra') para aumentar o equilíbrio e estabilidade em posições sobre as mãos."
   },
   {
     "name": "Isometria de Frog Stand (Corvo)",
-    "path": "Exercicios/Calistenia/Isometria_de_Frog_Stand.png",
-    "thumbnail": "Exercicios/Calistenia/Isometria_de_Frog_Stand.png",
+    "path": "Exercicios/Calistenia/Isometria de Frog Stand.gif",
+    "thumbnail": "thumbnails/Isometria de Frog Stand (Corvo).png",
     "description": "Exercício estático de equilíbrio de joelhos apoiados sobre os cotovelos."
   },
   {
@@ -5791,31 +5791,31 @@
   },
   {
     "name": "Prancha Tradicional",
-    "path": "Exercicios/Calistenia/Prancha_Tradicional.gif",
+    "path": "Exercicios/Calistenia/Prancha Tradicional.gif",
     "thumbnail": "thumbnails/Prancha Tradicional.png",
     "description": "Prancha abdominal tradicional para fortalecimento de core e estabilizadores."
   },
   {
     "name": "Prancha Alta",
-    "path": "Exercicios/Calistenia/Prancha_Alta.gif",
-    "thumbnail": "thumbnails/Prancha Alta.png",
+    "path": "Exercicios/Calistenia/Prancha Alta.png",
+    "thumbnail": "Exercicios/Calistenia/Prancha Alta.png",
     "description": "Prancha com braços estendidos para fortalecimento escapular e ombros."
   },
   {
     "name": "Lean Plank",
-    "path": "Exercicios/Calistenia/Lean_Plank.gif",
-    "thumbnail": "thumbnails/Lean Plank.png",
+    "path": "Exercicios/Calistenia/Lean Plank.png",
+    "thumbnail": "Exercicios/Calistenia/Lean Plank.png",
     "description": "Prancha com inclinação para frente para ativação intensa de ombros e serrátil."
   },
   {
     "name": "Frog Stand Assistido",
-    "path": "Exercicios/Calistenia/Frog_Stand_Assistido.gif",
+    "path": "Exercicios/Calistenia/Frog Stand Assistido.gif",
     "thumbnail": "thumbnails/Frog Stand Assistido.png",
     "description": "Exercício de transição e equilíbrio para o Frog Stand com apoio de pés."
   },
   {
     "name": "Flexoes de Braco Tradicionais",
-    "path": "Exercicios/Calistenia/Flexão.gif",
+    "path": "Exercicios/Calistenia/Flexoes de Braco Tradicionais.gif",
     "thumbnail": "thumbnails/Flexoes de Braco Tradicionais.png",
     "description": "Flexão de braço clássica no chão."
   },
@@ -5833,13 +5833,13 @@
   },
   {
     "name": "Elbow Lever em Straddle",
-    "path": "Exercicios/Calistenia/Elbow_Lever_em_Straddle.gif",
+    "path": "Exercicios/Calistenia/Elbow Lever em Straddle.gif",
     "thumbnail": "thumbnails/Elbow Lever em Straddle.png",
     "description": "Elbow Lever com pernas afastadas para equilíbrio."
   },
   {
     "name": "Abdominal Canoa (Hollow Body)",
-    "path": "Exercicios/Calistenia/Abdominal_Canoa_Hollow_Body.gif",
+    "path": "Exercicios/Calistenia/Abdominal Canoa (Hollow Body).gif",
     "thumbnail": "thumbnails/Abdominal Canoa (Hollow Body).png",
     "description": "Posição estática de canoa no chão para ativação e força do core."
   },
@@ -5851,19 +5851,19 @@
   },
   {
     "name": "Support Hold nas Paralelas",
-    "path": "Exercicios/Calistenia/Paralela.gif",
+    "path": "Exercicios/Calistenia/Support Hold nas Paralelas.gif",
     "thumbnail": "thumbnails/Support Hold nas Paralelas.png",
     "description": "Sustentação isométrica de braços estendidos nas paralelas."
   },
   {
     "name": "Tuck L-Sit",
-    "path": "Exercicios/Calistenia/Tuck_L_Sit.gif",
+    "path": "Exercicios/Calistenia/Tuck L-Sit.gif",
     "thumbnail": "thumbnails/Tuck L-Sit.png",
     "description": "L-Sit com os joelhos encolhidos."
   },
   {
     "name": "One-Leg L-Sit",
-    "path": "Exercicios/Calistenia/One_Leg_L_Sit.gif",
+    "path": "Exercicios/Calistenia/One-Leg L-Sit.gif",
     "thumbnail": "thumbnails/One-Leg L-Sit.png",
     "description": "L-Sit estendendo uma perna de cada vez."
   },
@@ -5875,25 +5875,25 @@
   },
   {
     "name": "Handstand na Parede (Costas)",
-    "path": "Exercicios/Calistenia/Handstand_na_Parede_Costas.gif",
+    "path": "Exercicios/Calistenia/Handstand na Parede (Costas).gif",
     "thumbnail": "thumbnails/Handstand na Parede (Costas).png",
     "description": "Parada de mão de costas para a parede."
   },
   {
     "name": "Handstand na Parede (Frente)",
-    "path": "Exercicios/Calistenia/Handstand_na_Parede_Frente.gif",
+    "path": "Exercicios/Calistenia/Handstand na Parede (Frente).gif",
     "thumbnail": "thumbnails/Handstand na Parede (Frente).png",
     "description": "Parada de mão de frente para a parede."
   },
   {
     "name": "Wall Scissor",
-    "path": "Exercicios/Crossfit/Caminhada na Parede.gif",
+    "path": "Exercicios/Calistenia/Wall Scissor.gif",
     "thumbnail": "thumbnails/Wall Scissor.png",
     "description": "Movimento de tesoura com as pernas na parede para controle de parada de mão."
   },
   {
     "name": "Barra Fixa (Pull-ups)",
-    "path": "Exercicios/Costas/Pull Up.gif",
+    "path": "Exercicios/Calistenia/Barra Fixa (Pull-ups).gif",
     "thumbnail": "thumbnails/Barra Fixa (Pull-ups).png",
     "description": "Puxada clássica na barra fixa com pegada pronada."
   },
@@ -5911,25 +5911,25 @@
   },
   {
     "name": "Skin the Cat Assistido",
-    "path": "Exercicios/Calistenia/Skin_the_Cat_Assistido.gif",
+    "path": "Exercicios/Calistenia/Skin the Cat.gif",
     "thumbnail": "thumbnails/Skin the Cat.png",
     "description": "Exercício de mobilidade de ombros e core pendurado na barra com assistência."
   },
   {
     "name": "Elbow Lever com pés no chão",
-    "path": "Exercicios/Calistenia/Elbow_Lever_com_pes_no_chao.gif",
+    "path": "Exercicios/Calistenia/Elbow Lever com pes no chao.gif",
     "muscle": "Calistenia",
     "equipment": "Peso Corporal"
   },
   {
     "name": "Elevação de Joelhos na Barra",
-    "path": "Exercicios/Calistenia/Elevacao_de_Joelhos_na_Barra.gif",
+    "path": "Exercicios/Calistenia/Elevacao de Joelhos na Barra.gif",
     "muscle": "Calistenia",
     "equipment": "Peso Corporal"
   },
   {
     "name": "Toes to Bar (Pés na Barra)",
-    "path": "Exercicios/Calistenia/Toes_to_Bar_Pes_na_Barra.gif",
+    "path": "Exercicios/Calistenia/Toes to Bar.gif",
     "muscle": "Calistenia",
     "equipment": "Peso Corporal"
   }

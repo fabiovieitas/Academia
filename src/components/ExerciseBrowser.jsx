@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 
 const normalizeString = (str) => {
@@ -13,6 +13,33 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [visibleCount, setVisibleCount] = useState(50); // Paginação de 50 em 50 para performance
     const [previewExercise, setPreviewExercise] = useState(null); // Estado para o modal de pré-visualização
+    const [previewGifSrc, setPreviewGifSrc] = useState('');
+    const [previewGifFallbackTried, setPreviewGifFallbackTried] = useState(false);
+    const [previewGifError, setPreviewGifError] = useState(false);
+
+    useEffect(() => {
+        setPreviewGifError(false);
+        setPreviewGifFallbackTried(false);
+        if (previewExercise) {
+            const initialSrc = previewExercise.path.startsWith('http')
+                ? previewExercise.path
+                : (previewExercise.path.endsWith('.png') ? `/${previewExercise.path}` : `https://www.gifdotreino.com/${previewExercise.path}`);
+            setPreviewGifSrc(initialSrc);
+        } else {
+            setPreviewGifSrc('');
+        }
+    }, [previewExercise]);
+
+    const handlePreviewGifError = () => {
+        if (!previewGifFallbackTried && previewExercise) {
+            setPreviewGifFallbackTried(true);
+            const cleanName = previewExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+            const fallbackSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+            setPreviewGifSrc(fallbackSrc);
+        } else {
+            setPreviewGifError(true);
+        }
+    };
 
     // 1. Extrai categorias dinâmicas da base de dados de exercícios
     const categories = useMemo(() => {
@@ -201,11 +228,18 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                             </div>
                             
                             <div style={{ width: '100%', background: 'var(--bg-tertiary)', borderRadius: '12px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '250px' }}>
-                                <img 
-                                    src={encodeURI(previewExercise.path.startsWith('http') ? previewExercise.path : `/${previewExercise.path}`)} 
-                                    alt={previewExercise.name}
-                                    style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
-                                />
+                                {previewGifError ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                        💪 Guia técnico indisponível em imagem
+                                    </div>
+                                ) : (
+                                    <img 
+                                        src={encodeURI(previewGifSrc)} 
+                                        alt={previewExercise.name}
+                                        style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+                                        onError={handlePreviewGifError}
+                                    />
+                                )}
                             </div>
                             
                             <button 

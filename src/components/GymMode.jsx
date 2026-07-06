@@ -83,35 +83,38 @@ export default function GymMode({ onFinish, onCancel }) {
     // Função auxiliar para resolver o caminho e categoria de exercícios salvos sem esses dados (ex: sessões restauradas)
     const getResolvedExerciseDetails = (ex) => {
         if (!ex) return { path: '', category: 'Musculação' };
-        let path = ex.path || '';
-        if (!path) {
-            const cleanKey = ex.name.toLowerCase().trim();
-            const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-            
-            // 1. Tenta achar no mapa manual de calistenia usando o nome completo ou sem prefixo
-            if (CALISTHENICS_PATH_MAP[cleanKey]) {
-                path = CALISTHENICS_PATH_MAP[cleanKey];
-            } else if (CALISTHENICS_PATH_MAP[cleanKeyNoPrefix]) {
-                path = CALISTHENICS_PATH_MAP[cleanKeyNoPrefix];
-            } else if (catalogExercises) {
-                // 2. Se não achar, tenta buscar no catálogo geral
-                const match = catalogExercises.find(c => c.name.toLowerCase() === cleanKey);
-                if (match) {
-                    path = match.path;
-                } else {
-                    const matchClean = catalogExercises.find(c => c.name.toLowerCase().trim() === cleanKeyNoPrefix);
-                    if (matchClean) {
-                        path = matchClean.path;
-                    }
+        let path = '';
+        
+        const cleanKey = ex.name.toLowerCase().trim();
+        const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+        
+        // 1. Tenta achar no mapa manual de calistenia usando o nome completo ou sem prefixo
+        if (CALISTHENICS_PATH_MAP[cleanKey]) {
+            path = CALISTHENICS_PATH_MAP[cleanKey];
+        } else if (CALISTHENICS_PATH_MAP[cleanKeyNoPrefix]) {
+            path = CALISTHENICS_PATH_MAP[cleanKeyNoPrefix];
+        } else if (catalogExercises) {
+            // 2. Se não achar, tenta buscar no catálogo geral
+            const match = catalogExercises.find(c => c.name.toLowerCase() === cleanKey);
+            if (match) {
+                path = match.path;
+            } else {
+                const matchClean = catalogExercises.find(c => c.name.toLowerCase().trim() === cleanKeyNoPrefix);
+                if (matchClean) {
+                    path = matchClean.path;
                 }
             }
         }
+        
+        if (!path) {
+            path = ex.path || '';
+        }
+        
         const category = path && path.includes('/') ? path.split('/')[1] : 'Musculação';
         return { path, category };
     };
 
     const { path: realPath, category } = getResolvedExerciseDetails(currentExercise);
-    const gifUrl = realPath ? encodeURI(realPath.startsWith('http') ? realPath : `/${realPath}`) : '';
     
     const [durationTimer, setDurationTimer] = useState(0); // cronômetro do treino inteiro
     const [isSwapping, setIsSwapping] = useState(false);
@@ -127,6 +130,33 @@ export default function GymMode({ onFinish, onCancel }) {
     const [isFreeBrowserOpen, setIsFreeBrowserOpen] = useState(false);
     const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false);
     const [gifLoadError, setGifLoadError] = useState(false);
+    const [gifSrc, setGifSrc] = useState('');
+    const [gifFallbackTried, setGifFallbackTried] = useState(false);
+
+    useEffect(() => {
+        setGifLoadError(false);
+        setGifFallbackTried(false);
+        if (currentExercise) {
+            const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
+            const initialSrc = resolvedPath
+                ? (resolvedPath.startsWith('http') ? resolvedPath : (resolvedPath.endsWith('.png') ? `/${resolvedPath}` : `https://www.gifdotreino.com/${resolvedPath}`))
+                : '';
+            setGifSrc(initialSrc);
+        } else {
+            setGifSrc('');
+        }
+    }, [activeWorkout?.currentExerciseIndex, currentExercise]);
+
+    const handleGifError = () => {
+        if (!gifFallbackTried && currentExercise) {
+            setGifFallbackTried(true);
+            const cleanName = currentExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+            const fallbackSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+            setGifSrc(fallbackSrc);
+        } else {
+            setGifLoadError(true);
+        }
+    };
 
     // Estados do cronômetro específico da série
     const [activeSeriesTimer, setActiveSeriesTimer] = useState(0);
@@ -943,12 +973,12 @@ export default function GymMode({ onFinish, onCancel }) {
 
                 {/* GIF Limpo e Compacto */}
                 <div style={{ display: 'flex', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '15px', position: 'relative', height: '160px' }}>
-                    {(!gifUrl || gifLoadError) ? (
+                    {(!gifSrc || gifLoadError) ? (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '13px' }}>
                             💪 Guia técnico nas instruções comuns
                         </div>
                     ) : (
-                        <img src={gifUrl} alt={currentExercise.name} style={{ height: '100%', width: 'auto', objectFit: 'contain' }} onError={() => setGifLoadError(true)} />
+                        <img src={encodeURI(gifSrc)} alt={currentExercise.name} style={{ height: '100%', width: 'auto', objectFit: 'contain' }} onError={handleGifError} />
                     )}
                 </div>
 
@@ -1350,7 +1380,7 @@ export default function GymMode({ onFinish, onCancel }) {
 
             {/* Visualizador de GIF */}
             <div className="gif-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', background: 'var(--bg-tertiary)', position: 'relative' }}>
-                {(!gifUrl || gifLoadError) ? (
+                {(!gifSrc || gifLoadError) ? (
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -1369,10 +1399,10 @@ export default function GymMode({ onFinish, onCancel }) {
                     </div>
                 ) : (
                     <img 
-                        src={gifUrl} 
+                        src={encodeURI(gifSrc)} 
                         alt={currentExercise.name} 
                         onLoad={() => setGifLoadError(false)}
-                        onError={() => setGifLoadError(true)}
+                        onError={handleGifError}
                     />
                 )}
                 <div className="exercise-name-overlay">

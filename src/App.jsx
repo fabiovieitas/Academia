@@ -28,10 +28,32 @@ function MainAppContent() {
     const [isCreating, setIsCreating] = useState(false);
     const [selectedDetailExercise, setSelectedDetailExercise] = useState(null); // Para ver detalhes do exercício
     const [detailGifError, setDetailGifError] = useState(false);
+    const [detailGifSrc, setDetailGifSrc] = useState('');
+    const [detailGifFallbackTried, setDetailGifFallbackTried] = useState(false);
 
     useEffect(() => {
         setDetailGifError(false);
+        setDetailGifFallbackTried(false);
+        if (selectedDetailExercise) {
+            const initialSrc = selectedDetailExercise.path.startsWith('http')
+                ? selectedDetailExercise.path
+                : (selectedDetailExercise.path.endsWith('.png') ? `/${selectedDetailExercise.path}` : `https://www.gifdotreino.com/${selectedDetailExercise.path}`);
+            setDetailGifSrc(initialSrc);
+        } else {
+            setDetailGifSrc('');
+        }
     }, [selectedDetailExercise]);
+
+    const handleDetailGifError = () => {
+        if (!detailGifFallbackTried && selectedDetailExercise) {
+            setDetailGifFallbackTried(true);
+            const cleanName = selectedDetailExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+            const fallbackSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
+            setDetailGifSrc(fallbackSrc);
+        } else {
+            setDetailGifError(true);
+        }
+    };
 
     // PWA Install prompt state
     const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -261,10 +283,10 @@ function MainAppContent() {
                                     </div>
                                 ) : (
                                     <img 
-                                        src={encodeURI(selectedDetailExercise.path.startsWith('http') ? selectedDetailExercise.path : `/${selectedDetailExercise.path}`)} 
+                                        src={encodeURI(detailGifSrc)} 
                                         alt={selectedDetailExercise.name} 
                                         onLoad={() => setDetailGifError(false)}
-                                        onError={() => setDetailGifError(true)}
+                                        onError={handleDetailGifError}
                                     />
                                 )}
                             </div>
