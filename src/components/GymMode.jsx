@@ -188,6 +188,30 @@ export default function GymMode({ onFinish, onCancel }) {
     const [isSeriesTimerRunning, setIsSeriesTimerRunning] = useState(false);
     const [timerSetIndex, setTimerSetIndex] = useState(0);
     const [showFullscreenTimer, setShowFullscreenTimer] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [historyModalExercise, setHistoryModalExercise] = useState('');
+
+    const getExerciseHistoryLogs = (exerciseName) => {
+        if (!exerciseName || !history) return [];
+        const cleanName = exerciseName.toLowerCase().trim();
+        const logs = [];
+        
+        history.forEach(item => {
+            if (!item.exercises) return;
+            const exMatch = item.exercises.find(e => e.name.toLowerCase().trim() === cleanName);
+            if (exMatch) {
+                logs.push({
+                    date: item.date,
+                    workoutName: item.workoutName,
+                    series: exMatch.series || []
+                });
+            }
+        });
+        
+        return logs
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+    };
 
     const handleStartOverlayTimer = (setIdx) => {
         setTimerSetIndex(setIdx);
@@ -992,7 +1016,18 @@ export default function GymMode({ onFinish, onCancel }) {
 
                 {/* Nome do Exercício */}
                 <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px 0', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{currentExercise.name}</h2>
+                    <h2 
+                        onClick={() => { setHistoryModalExercise(currentExercise.name); setShowHistoryModal(true); }}
+                        style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px 0', textShadow: '0 2px 10px rgba(0,0,0,0.5)', cursor: 'pointer', textDecoration: 'underline dotted rgba(255,255,255,0.3)' }}
+                    >
+                        {currentExercise.name}
+                    </h2>
+                    <div 
+                        onClick={() => { setHistoryModalExercise(currentExercise.name); setShowHistoryModal(true); }}
+                        style={{ fontSize: '11px', color: 'var(--accent)', marginBottom: '6px', cursor: 'pointer', fontWeight: '500' }}
+                    >
+                        📊 Ver histórico de cargas
+                    </div>
                     <span style={{ fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>{category}</span>
                 </div>
 
@@ -1431,8 +1466,19 @@ export default function GymMode({ onFinish, onCancel }) {
                     />
                 )}
                 <div className="exercise-name-overlay">
-                    <h2>{currentExercise.name}</h2>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <h2 
+                        onClick={() => { setHistoryModalExercise(currentExercise.name); setShowHistoryModal(true); }}
+                        style={{ cursor: 'pointer', textDecoration: 'underline dotted rgba(255,255,255,0.3)' }}
+                    >
+                        {currentExercise.name}
+                    </h2>
+                    <div 
+                        onClick={() => { setHistoryModalExercise(currentExercise.name); setShowHistoryModal(true); }}
+                        style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', marginTop: '2px', display: 'inline-block', fontWeight: '600' }}
+                    >
+                        📊 Ver histórico de cargas
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
                         <p>{category}</p>
                         <div style={{ display: 'flex', gap: '6px' }}>
                             <button 
@@ -2203,6 +2249,101 @@ export default function GymMode({ onFinish, onCancel }) {
                         >
                             🔄 Reiniciar
                         </button>
+                    </div>
+                </div>
+            )}
+            {showHistoryModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.85)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        width: '100%',
+                        maxWidth: '420px',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+                        position: 'relative'
+                    }}>
+                        <button 
+                            onClick={() => setShowHistoryModal(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '16px',
+                                right: '16px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: 'none',
+                                color: '#fff',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                fontSize: '16px'
+                            }}
+                        >
+                            ✕
+                        </button>
+                        
+                        <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#fff', margin: '0 0 4px 0', paddingRight: '30px' }}>
+                            📈 Histórico de Cargas
+                        </h3>
+                        <p style={{ fontSize: '14px', color: 'var(--accent)', margin: '0 0 20px 0', fontWeight: '600' }}>
+                            {historyModalExercise}
+                        </p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+                            {getExerciseHistoryLogs(historyModalExercise).length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                    Nenhum registro anterior encontrado para este exercício.
+                                </div>
+                            ) : (
+                                getExerciseHistoryLogs(historyModalExercise).map((log, logIdx) => (
+                                    <div key={logIdx} style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.04)',
+                                        borderRadius: '12px',
+                                        padding: '12px'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
+                                                {new Date(log.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                            </span>
+                                            <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600', background: 'rgba(var(--accent-rgb), 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                {log.workoutName}
+                                            </span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {log.series.map((s, sIdx) => (
+                                                <span key={sIdx} style={{
+                                                    fontSize: '11px',
+                                                    background: 'rgba(255,255,255,0.05)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    color: '#fff'
+                                                }}>
+                                                    S{sIdx + 1}: <strong>{s.reps}x @ {s.weight}kg</strong>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

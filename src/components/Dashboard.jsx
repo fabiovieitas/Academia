@@ -52,6 +52,158 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
     const [expandedSkillId, setExpandedSkillId] = useState(null);
     const [caliInputs, setCaliInputs] = useState({});
 
+    const handlePrintWorkout = (workout) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Por favor, permita pop-ups para exportar o PDF.');
+            return;
+        }
+
+        const exercisesHtml = workout.exercises.map((ex, idx) => {
+            const numSeries = Array.isArray(ex.series) ? ex.series.length : (ex.series || 3);
+            const repsVal = Array.isArray(ex.series) ? (ex.series[0]?.reps || ex.reps || 10) : (ex.reps || 10);
+            const weightVal = Array.isArray(ex.series) ? (ex.series[0]?.weight || ex.weight || 0) : (ex.weight || 0);
+            
+            return `
+                <tr>
+                    <td style="text-align: center; font-weight: bold; border: 1px solid #ddd; padding: 10px;">${idx + 1}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px; text-align: left;">
+                        <strong style="font-size: 14px;">${ex.name}</strong>
+                        ${ex.notes ? `<div style="font-size: 11px; color: #555; margin-top: 4px;">Obs: ${ex.notes}</div>` : ''}
+                    </td>
+                    <td style="text-align: center; border: 1px solid #ddd; padding: 10px; font-weight: 600;">${numSeries}</td>
+                    <td style="text-align: center; border: 1px solid #ddd; padding: 10px;">${repsVal}</td>
+                    <td style="text-align: center; border: 1px solid #ddd; padding: 10px; font-weight: bold;">
+                        ${weightVal ? `${weightVal} kg` : '--'}
+                    </td>
+                    <td style="border: 1px solid #ddd; padding: 10px; color: #ccc;">[ &nbsp; ] [ &nbsp; ] [ &nbsp; ]</td>
+                </tr>
+            `;
+        }).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Ficha de Treino - ${workout.name}</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        color: #111;
+                        line-height: 1.5;
+                        padding: 30px;
+                        background: #fff;
+                    }
+                    .header {
+                        border-bottom: 3px solid #111;
+                        padding-bottom: 15px;
+                        margin-bottom: 25px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                    }
+                    .header h1 {
+                        margin: 0;
+                        font-size: 24px;
+                        font-weight: 800;
+                    }
+                    .header p {
+                        margin: 5px 0 0 0;
+                        color: #555;
+                        font-size: 13px;
+                    }
+                    .info-box {
+                        display: flex;
+                        gap: 20px;
+                        margin-bottom: 25px;
+                        background: #f7f7f7;
+                        padding: 12px 20px;
+                        border-radius: 8px;
+                        font-size: 13px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 15px;
+                    }
+                    th {
+                        background: #111;
+                        color: #fff;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        font-size: 11px;
+                        letter-spacing: 0.5px;
+                        padding: 12px 10px;
+                        border: 1px solid #111;
+                    }
+                    tr:nth-child(even) {
+                        background: #fdfdfd;
+                    }
+                    .footer {
+                        margin-top: 40px;
+                        font-size: 11px;
+                        color: #777;
+                        text-align: center;
+                        border-top: 1px solid #eee;
+                        padding-top: 15px;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                        .print-btn-container { display: none !important; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-btn-container" style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <button onclick="window.print();" style="background: #111; color: #fff; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                        🖨️ Imprimir / Salvar PDF
+                    </button>
+                </div>
+                
+                <div class="header">
+                    <div>
+                        <h1>💪 ${workout.name}</h1>
+                        <p>${workout.description || 'Ficha de Treino Personalizada'}</p>
+                    </div>
+                    <div style="text-align: right; font-size: 12px; color: #555;">
+                        Gerado em ${new Date().toLocaleDateString('pt-BR')}
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div><strong>Estilo:</strong> ${workout.coverStyle ? workout.coverStyle.toUpperCase() : 'GERAL'}</div>
+                    <div><strong>Exercícios:</strong> ${workout.exercises.length}</div>
+                    <div><strong>Assinatura/Meta:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%; text-align: center;">Nº</th>
+                            <th style="width: 45%; text-align: left;">Exercício</th>
+                            <th style="width: 10%; text-align: center;">Séries</th>
+                            <th style="width: 10%; text-align: center;">Reps</th>
+                            <th style="width: 15%; text-align: center;">Carga Inicial</th>
+                            <th style="width: 15%; text-align: left;">Carga Hoje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${exercisesHtml}
+                    </tbody>
+                </table>
+
+                <div class="footer">
+                    FitLife Club — Treino gerado com sucesso. Bons treinos!
+                </div>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+    };
+
     const handleRegisterProgress = (maneuverId, type, exerciseName) => {
         const key = `${maneuverId}_${exerciseName}`;
         const rawValue = caliInputs[key];
@@ -699,7 +851,18 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                         </div>
                                     </div>
 
-                                    <div className="workout-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <div className="workout-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                        <button 
+                                            className="btn-icon" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePrintWorkout(workout);
+                                            }}
+                                            title="Imprimir / Salvar PDF"
+                                            style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                                        >
+                                            🖨️
+                                        </button>
                                         <button 
                                             className="btn-icon" 
                                             onClick={(e) => {

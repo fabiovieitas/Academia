@@ -8,6 +8,7 @@ import HistoryView from './components/HistoryView';
 import ExerciseBrowser from './components/ExerciseBrowser';
 import EvolutionView from './components/EvolutionView';
 import SettingsView from './components/SettingsView';
+import FeedView from './components/FeedView';
 import { CALISTHENICS_PATH_MAP } from './context/workoutData';
 
 function MainAppContent() {
@@ -244,6 +245,8 @@ function MainAppContent() {
 
                 {currentTab === 'evolution' && <EvolutionView />}
 
+                {currentTab === 'feed' && <FeedView />}
+
                 {currentTab === 'settings' && (
                     <SettingsView 
                         isInstallable={isInstallable}
@@ -412,6 +415,18 @@ function MainAppContent() {
                 >
                     <span className="icon">🏠</span>
                     <span>Início</span>
+                </div>
+
+                <div 
+                    className={`nav-item ${currentTab === 'feed' ? 'active' : ''}`}
+                    onClick={() => {
+                        setEditingWorkout(null);
+                        setIsCreating(false);
+                        setCurrentTab('feed');
+                    }}
+                >
+                    <span className="icon">💬</span>
+                    <span>Feed</span>
                 </div>
 
                 {activeWorkout && (

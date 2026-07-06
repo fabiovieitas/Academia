@@ -303,6 +303,9 @@ export const AppProvider = ({ children }) => {
     // Sintetizador de som nativo para descanso global
     const playBeepSound = () => {
         try {
+            if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 400]);
+            }
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
             }

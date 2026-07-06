@@ -1031,7 +1031,7 @@ const CalisthenicsSkillsTab = ({
                                                     ▶ Treinar
                                                 </button>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                                                 {maneuver.phase1_progress.map((prog, idx) => {
                                                     const target = prog.target;
                                                     const value = prog.value || 0;
@@ -1041,35 +1041,58 @@ const CalisthenicsSkillsTab = ({
 
                                                     return (
                                                         <div key={idx} style={{
-                                                            flex: 1,
-                                                            background: isMet ? 'rgba(52, 211, 153, 0.06)' : 'var(--bg-tertiary)',
-                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '12px',
+                                                            background: isMet ? 'rgba(52, 211, 153, 0.05)' : 'var(--bg-tertiary)',
+                                                            border: isMet ? '1px solid rgba(52, 211, 153, 0.2)' : '1px solid rgba(255, 255, 255, 0.04)',
                                                             borderRadius: '12px',
-                                                            padding: '10px',
-                                                            textAlign: 'center',
-                                                            minWidth: 0
+                                                            padding: '10px 14px',
+                                                            width: '100%',
+                                                            textAlign: 'left'
                                                         }}>
                                                             <div style={{
-                                                                fontSize: '11.5px',
-                                                                fontWeight: '700',
-                                                                color: isMet ? '#34d399' : '#fff',
-                                                                whiteSpace: 'nowrap',
-                                                                overflow: 'hidden',
-                                                                textOverflow: 'ellipsis'
-                                                            }} title={prog.exercise}>
-                                                                {prog.exercise}
+                                                                width: '24px',
+                                                                height: '24px',
+                                                                borderRadius: '50%',
+                                                                background: isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255,255,255,0.05)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: isMet ? '#34d399' : 'var(--text-muted)',
+                                                                fontSize: '11px',
+                                                                fontWeight: 'bold',
+                                                                border: isMet ? '1px solid #34d399' : '1px solid rgba(255,255,255,0.1)',
+                                                                flexShrink: 0
+                                                            }}>
+                                                                {isMet ? '✓' : '⏳'}
                                                             </div>
-                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 6px' }}>
-                                                                {prog.unit === 'concluido' 
-                                                                    ? (isMet ? 'Aprovado ✓' : 'Pendente ⏳') 
-                                                                    : `${value}${unitShort} / ${target}${unitShort}`
-                                                                }
-                                                            </div>
-                                                            {prog.unit !== 'concluido' && (
-                                                                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
-                                                                    <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
+
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '700',
+                                                                    color: isMet ? '#34d399' : '#fff',
+                                                                    marginBottom: '4px'
+                                                                }}>
+                                                                    {prog.exercise}
                                                                 </div>
-                                                            )}
+                                                                {prog.unit !== 'concluido' && (
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+                                                                        <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                            <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
+                                                                        </div>
+                                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', minWidth: '45px', textAlign: 'right' }}>
+                                                                            {value}{unitShort} / {target}{unitShort}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                {prog.unit === 'concluido' && (
+                                                                    <div style={{ fontSize: '10px', color: isMet ? '#34d399' : 'var(--text-muted)' }}>
+                                                                        {isMet ? 'Aprovado' : 'Pendente'}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
@@ -1107,7 +1130,7 @@ const CalisthenicsSkillsTab = ({
                                                     </button>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                                                 {maneuver.phase2_progress.map((prog, idx) => {
                                                     const isLocked = !maneuver.phase2_unlocked;
                                                     const target = prog.target;
@@ -1118,38 +1141,59 @@ const CalisthenicsSkillsTab = ({
 
                                                     return (
                                                         <div key={idx} style={{
-                                                            flex: 1,
-                                                            background: isLocked ? 'rgba(0,0,0,0.15)' : (isMet ? 'rgba(52, 211, 153, 0.06)' : 'var(--bg-tertiary)'),
-                                                            border: isLocked ? '1px dashed rgba(255, 255, 255, 0.04)' : (isMet ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)'),
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '12px',
+                                                            background: isLocked ? 'rgba(0,0,0,0.15)' : (isMet ? 'rgba(52, 211, 153, 0.05)' : 'var(--bg-tertiary)'),
+                                                            border: isLocked ? '1px dashed rgba(255, 255, 255, 0.04)' : (isMet ? '1px solid rgba(52, 211, 153, 0.2)' : '1px solid rgba(255, 255, 255, 0.04)'),
                                                             borderRadius: '12px',
-                                                            padding: '10px',
-                                                            textAlign: 'center',
-                                                            minWidth: 0,
-                                                            cursor: isLocked ? 'not-allowed' : 'default'
+                                                            padding: '10px 14px',
+                                                            width: '100%',
+                                                            opacity: isLocked ? 0.6 : 1,
+                                                            textAlign: 'left'
                                                         }}>
                                                             <div style={{
-                                                                fontSize: '11.5px',
-                                                                fontWeight: '700',
-                                                                color: isLocked ? 'var(--text-muted)' : (isMet ? '#34d399' : '#fff'),
-                                                                whiteSpace: 'nowrap',
-                                                                overflow: 'hidden',
-                                                                textOverflow: 'ellipsis'
-                                                            }} title={prog.exercise}>
-                                                                {isLocked && '🔒 '}{prog.exercise}
+                                                                width: '24px',
+                                                                height: '24px',
+                                                                borderRadius: '50%',
+                                                                background: isLocked ? 'rgba(0,0,0,0.2)' : (isMet ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255,255,255,0.05)'),
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: isLocked ? 'var(--text-muted)' : (isMet ? '#34d399' : 'var(--text-muted)'),
+                                                                fontSize: '11px',
+                                                                fontWeight: 'bold',
+                                                                border: isLocked ? '1px dashed rgba(255,255,255,0.1)' : (isMet ? '1px solid #34d399' : '1px solid rgba(255,255,255,0.1)'),
+                                                                flexShrink: 0
+                                                            }}>
+                                                                {isLocked ? '🔒' : (isMet ? '✓' : '⏳')}
                                                             </div>
-                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 6px' }}>
-                                                                {isLocked 
-                                                                    ? `Meta: ${target}${unitShort}` 
-                                                                    : (prog.unit === 'concluido' 
-                                                                        ? (isMet ? 'Aprovado ✓' : 'Pendente ⏳') 
-                                                                        : `${value}${unitShort} / ${target}${unitShort}`)
-                                                                }
-                                                            </div>
-                                                            {!isLocked && prog.unit !== 'concluido' && (
-                                                                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
-                                                                    <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
+
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '700',
+                                                                    color: isLocked ? 'var(--text-muted)' : (isMet ? '#34d399' : '#fff'),
+                                                                    marginBottom: '4px'
+                                                                }}>
+                                                                    {prog.exercise}
                                                                 </div>
-                                                            )}
+                                                                {!isLocked && prog.unit !== 'concluido' && (
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+                                                                        <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                            <div style={{ width: `${progressPercentage}%`, height: '100%', background: isMet ? '#34d399' : '#f59e0b', borderRadius: '2px' }} />
+                                                                        </div>
+                                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', minWidth: '45px', textAlign: 'right' }}>
+                                                                            {value}{unitShort} / {target}{unitShort}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                {isLocked && (
+                                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                                        Bloqueado (Fase 1 pendente)
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
@@ -1164,7 +1208,7 @@ const CalisthenicsSkillsTab = ({
 
                                         {/* Objetivo Final */}
                                         <div style={{
-                                            width: '65%',
+                                            width: '80%',
                                             background: maneuver.maneuver_unlocked ? 'rgba(251, 191, 36, 0.08)' : 'rgba(0,0,0,0.15)',
                                             border: maneuver.maneuver_unlocked ? '1px solid rgba(251, 191, 36, 0.4)' : '1px dashed rgba(255,255,255,0.05)',
                                             borderRadius: '14px',
@@ -1172,7 +1216,7 @@ const CalisthenicsSkillsTab = ({
                                             textAlign: 'center',
                                             opacity: maneuver.maneuver_unlocked ? 1 : 0.6
                                         }}>
-                                            <strong style={{ fontSize: '12px', color: maneuver.maneuver_unlocked ? '#fbbf24' : 'var(--text-muted)' }}>
+                                            <strong style={{ fontSize: '13px', color: maneuver.maneuver_unlocked ? '#fbbf24' : 'var(--text-muted)' }}>
                                                 🏆 {maneuver.name}
                                             </strong>
                                             <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>
