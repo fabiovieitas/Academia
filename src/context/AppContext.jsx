@@ -613,26 +613,42 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-    // Auxiliares para cálculo de Ofensiva (Streak)
+    // Auxiliares para cálculo de Ofensiva (Streak) em fuso horário local e sem dependência de ISOString
     const getMonday = (d) => {
+        if (!d) return '';
         const date = new Date(d);
+        if (isNaN(date.getTime())) return '';
         const day = date.getDay();
         const diff = date.getDate() - day + (day === 0 ? -6 : 1);
         const monday = new Date(date.setDate(diff));
-        monday.setHours(0, 0, 0, 0);
-        return monday.toISOString().split('T')[0];
+        
+        const y = monday.getFullYear();
+        const m = String(monday.getMonth() + 1).padStart(2, '0');
+        const rDay = String(monday.getDate()).padStart(2, '0');
+        return `${y}-${m}-${rDay}`;
     };
 
     const calculateStreak = (historyList) => {
         if (!historyList || historyList.length === 0) return 0;
         
-        const mondays = new Set(historyList.map(item => getMonday(item.date)));
+        const mondays = new Set(
+            historyList
+                .map(item => getMonday(item.date))
+                .filter(Boolean)
+        );
         const today = new Date();
         const currentMonday = getMonday(today);
         
-        const prevMondayDate = new Date(currentMonday);
-        prevMondayDate.setDate(prevMondayDate.getDate() - 7);
-        const prevMonday = prevMondayDate.toISOString().split('T')[0];
+        const todayParts = currentMonday.split('-');
+        const prevMondayDate = new Date(
+            parseInt(todayParts[0], 10),
+            parseInt(todayParts[1], 10) - 1,
+            parseInt(todayParts[2], 10) - 7
+        );
+        const yPrev = prevMondayDate.getFullYear();
+        const mPrev = String(prevMondayDate.getMonth() + 1).padStart(2, '0');
+        const dPrev = String(prevMondayDate.getDate()).padStart(2, '0');
+        const prevMonday = `${yPrev}-${mPrev}-${dPrev}`;
         
         if (!mondays.has(currentMonday) && !mondays.has(prevMonday)) {
             return 0;
@@ -643,9 +659,16 @@ export const AppProvider = ({ children }) => {
         
         while (mondays.has(checkMondayStr)) {
             streak++;
-            const nextCheckDate = new Date(checkMondayStr);
-            nextCheckDate.setDate(nextCheckDate.getDate() - 7);
-            checkMondayStr = nextCheckDate.toISOString().split('T')[0];
+            const dateParts = checkMondayStr.split('-');
+            const nextCheckDate = new Date(
+                parseInt(dateParts[0], 10),
+                parseInt(dateParts[1], 10) - 1,
+                parseInt(dateParts[2], 10) - 7
+            );
+            const y = nextCheckDate.getFullYear();
+            const m = String(nextCheckDate.getMonth() + 1).padStart(2, '0');
+            const d = String(nextCheckDate.getDate()).padStart(2, '0');
+            checkMondayStr = `${y}-${m}-${d}`;
         }
         
         return streak;
