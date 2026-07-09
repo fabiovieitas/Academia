@@ -59,7 +59,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
             return;
         }
 
-        const exercisesHtml = workout.exercises.map((ex, idx) => {
+        const exercisesHtml = (workout.exercises || []).map((ex, idx) => {
             const numSeries = Array.isArray(ex.series) ? ex.series.length : (ex.series || 3);
             const repsVal = Array.isArray(ex.series) ? (ex.series[0]?.reps || ex.reps || 10) : (ex.reps || 10);
             const weightVal = Array.isArray(ex.series) ? (ex.series[0]?.weight || ex.weight || 0) : (ex.weight || 0);
@@ -173,7 +173,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
 
                 <div class="info-box">
                     <div><strong>Estilo:</strong> ${workout.coverStyle ? workout.coverStyle.toUpperCase() : 'GERAL'}</div>
-                    <div><strong>Exercícios:</strong> ${workout.exercises.length}</div>
+                    <div><strong>Exercícios:</strong> ${(workout.exercises || []).length}</div>
                     <div><strong>Assinatura/Meta:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
                 </div>
 
@@ -843,7 +843,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                         <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>{workout.name}</h3>
                                         <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{workout.description || 'Sem descrição'}</p>
                                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                                            <span className="badge-gym">{workout.exercises.length} exercícios</span>
+                                            <span className="badge-gym">{(workout.exercises || []).length} exercícios</span>
                                             <span className="badge-gym">⏱️ {estimateWorkoutDuration(workout)} min</span>
                                             {workout.coverStyle && (
                                                 <span className="badge-gym category-badge">{workout.coverStyle.toUpperCase()}</span>

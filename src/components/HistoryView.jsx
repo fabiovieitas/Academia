@@ -317,11 +317,11 @@ export default function HistoryView() {
                                 )}
 
                                 <div style={{ marginTop: '10px' }}>
-                                    {item.exercises.map((ex, exIdx) => (
+                                    {(item.exercises || []).map((ex, exIdx) => (
                                         <div key={exIdx} className="history-exercise-row">
                                             <h5>{ex.name}</h5>
                                             <div className="history-set-tags">
-                                                {ex.series.map((set, setIdx) => (
+                                                {(ex.series || []).map((set, setIdx) => (
                                                     <span key={setIdx} className="history-set-tag">
                                                         S{setIdx + 1}: {set.reps}x @ {set.weight}kg
                                                     </span>

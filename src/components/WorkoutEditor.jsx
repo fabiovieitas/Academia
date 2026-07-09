@@ -6,7 +6,7 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
     const [name, setName] = useState(workout ? workout.name : '');
     const [description, setDescription] = useState(workout ? workout.description : '');
     const [coverStyle, setCoverStyle] = useState(workout && workout.coverStyle ? workout.coverStyle : 'geral');
-    const [exercises, setExercises] = useState(workout ? workout.exercises : []);
+    const [exercises, setExercises] = useState(workout && workout.exercises ? workout.exercises : []);
     const [isBrowserOpen, setIsBrowserOpen] = useState(false);
     const [error, setError] = useState('');
 

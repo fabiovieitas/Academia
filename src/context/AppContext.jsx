@@ -114,7 +114,7 @@ export const AppProvider = ({ children }) => {
                         name: w.name,
                         description: w.description,
                         coverStyle: w.cover_style,
-                        exercises: w.exercises,
+                        exercises: w.exercises || [],
                         createdAt: w.created_at,
                         updatedAt: w.updated_at
                     }));
@@ -142,7 +142,7 @@ export const AppProvider = ({ children }) => {
                     distance: h.distance,
                     heartRate: h.heart_rate,
                     calories: h.calories,
-                    exercises: h.exercises,
+                    exercises: h.exercises || [],
                     notes: h.notes
                 }));
                 setHistory(parsedHistory);
@@ -197,8 +197,12 @@ export const AppProvider = ({ children }) => {
                     localStorage.setItem(`fitlife_v3_profile_details_${profileId}`, JSON.stringify(pdData.profile_details));
                 }
                 if (pdData.active_workout !== null) {
-                    setActiveWorkout(pdData.active_workout);
-                    localStorage.setItem(`fitlife_v3_active_workout_${profileId}`, JSON.stringify(pdData.active_workout));
+                    const activeW = {
+                        ...pdData.active_workout,
+                        exercises: pdData.active_workout.exercises || []
+                    };
+                    setActiveWorkout(activeW);
+                    localStorage.setItem(`fitlife_v3_active_workout_${profileId}`, JSON.stringify(activeW));
                 } else {
                     setActiveWorkout(null);
                     localStorage.removeItem(`fitlife_v3_active_workout_${profileId}`);
@@ -591,7 +595,7 @@ export const AppProvider = ({ children }) => {
         if (savePermanently) {
             const updatedWorkouts = workouts.map(workout => {
                 if (workout.id === activeWorkout.workoutId) {
-                    const updatedExercises = workout.exercises.map(ex => {
+                    const updatedExercises = (workout.exercises || []).map(ex => {
                         if (ex.name === originalExerciseName) {
                             return {
                                 ...ex,
@@ -1151,7 +1155,7 @@ export const AppProvider = ({ children }) => {
 
     // Iniciar um Treino (entra no Modo Academia)
     const startWorkout = (workout) => {
-        const formattedExercises = workout.exercises.map(exercise => {
+        const formattedExercises = (workout.exercises || []).map(exercise => {
             const seriesCount = parseInt(exercise.series) || 3;
             const series = [];
             for (let i = 0; i < seriesCount; i++) {
@@ -1284,7 +1288,7 @@ export const AppProvider = ({ children }) => {
                 // Atualizar o plano de treino original permanentemente
                 const newWorkouts = workouts.map(workout => {
                     if (workout.id === activeWorkout.workoutId) {
-                        const cleanedExercises = activeWorkout.exercises.map(ex => ({
+                        const cleanedExercises = (activeWorkout.exercises || []).map(ex => ({
                             name: ex.name,
                             path: ex.path || "",
                             series: ex.series.length,
@@ -1320,7 +1324,7 @@ export const AppProvider = ({ children }) => {
     const updateOriginalWorkoutWeights = (workoutId, finishedExercises) => {
         const newWorkouts = workouts.map(workout => {
             if (workout.id === workoutId) {
-                const updatedExercises = workout.exercises.map(origEx => {
+                const updatedExercises = (workout.exercises || []).map(origEx => {
                     const finishedEx = finishedExercises.find(fe => fe.name === origEx.name);
                     if (finishedEx) {
                         // Pega o peso do último set completado como referência
