@@ -164,8 +164,12 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
                                     src={thumbUrl} 
                                     alt={ex.name} 
                                     onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
+                                         if (!e.target.src.includes('gifdotreino.com')) {
+                                             e.target.src = encodeURI(`https://www.gifdotreino.com/thumbnails/${ex.name}.png`);
+                                         } else {
+                                             e.target.onerror = null;
+                                             e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
+                                         }
                                     }}
                                 />
                             </div>

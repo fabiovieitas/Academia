@@ -204,8 +204,12 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                                                 alt={exercise.name} 
                                                 loading="lazy"
                                                 onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
+                                                    if (!e.target.src.includes('gifdotreino.com') && exercise.thumbnail) {
+                                                        e.target.src = encodeURI(`https://www.gifdotreino.com/${exercise.thumbnail}`);
+                                                    } else {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
+                                                    }
                                                 }}
                                             />
                                             <div style={{ position: 'absolute', bottom: '2px', right: '2px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', padding: '2px', fontSize: '10px' }}>🔍</div>

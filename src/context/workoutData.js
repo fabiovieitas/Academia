@@ -277,7 +277,7 @@ export const PRESET_WORKOUTS = {
                     { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "Faixa de 10 a 12 repetições. Pico de contração no topo." },
                     { name: "Cadeira Flexora", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "Faixa de 10 a 12 repetições. Controle a subida." },
                     { name: "Panturrilha na Máquina (Em Pé ou Sentado)", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 20, targetWeight: 35, notes: "Faixa de 12 a 15 repetições. Alongamento máximo no ponto mais baixo." },
-                    { name: "Tuck L-Sit (Progressão de L-Sit)", path: "Exercicios/Calistenia/Tuck L-Sit.gif", series: 3, reps: 0, weight: 0, targetWeight: 0, notes: "Progressão de L-Sit nas paralelas ou solo. Sustente o corpo com joelhos encolhidos pelo máximo de tempo possível." }
+                    { name: "Tuck L-Sit (Progressão de L-Sit)", path: "Exercicios/Calistenia/Tuck_L_Sit.gif", series: 3, reps: 0, weight: 0, targetWeight: 0, notes: "Progressão de L-Sit nas paralelas ou solo. Sustente o corpo com joelhos encolhidos pelo máximo de tempo possível." }
                 ]
             }
         ]
@@ -592,6 +592,7 @@ export const CALISTHENICS_PATH_MAP = {
     "fundos nas paralelas (dips)": "Exercicios/Calistenia/Paralela.gif",
     "support hold nas paralelas": "Exercicios/Calistenia/Support_Hold_nas_Paralelas.gif",
     "tuck l-sit": "Exercicios/Calistenia/Tuck_L_Sit.gif",
+    "tuck l-sit (progressão de l-sit)": "Exercicios/Calistenia/Tuck_L_Sit.gif",
     "one-leg l-sit": "Exercicios/Calistenia/One_Leg_L_Sit.gif",
     "flexao pike": "Exercicios/Calistenia/Flexões de apoio de mão na parede.gif",
     "handstand na parede (costas)": "Exercicios/Calistenia/Handstand_na_Parede_Costas.gif",

@@ -145,8 +145,30 @@ export const AppProvider = ({ children }) => {
                     exercises: h.exercises || [],
                     notes: h.notes
                 }));
-                setHistory(parsedHistory);
-                localStorage.setItem(`fitlife_v3_history_${profileId}`, JSON.stringify(parsedHistory));
+                
+                // Mesclagem local-first para evitar perda de dados se o banco estiver inacessível ou com erros de RLS
+                const localHistoryRaw = localStorage.getItem(`fitlife_v3_history_${profileId}`);
+                let localHistory = [];
+                try {
+                    localHistory = localHistoryRaw ? JSON.parse(localHistoryRaw) : [];
+                } catch (e) {
+                    console.error('Erro ao fazer parse do histórico local:', e);
+                }
+
+                const mergedMap = new Map();
+                localHistory.forEach(item => mergedMap.set(String(item.id), item));
+                parsedHistory.forEach(item => mergedMap.set(String(item.id), item));
+                
+                const mergedHistory = Array.from(mergedMap.values())
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                setHistory(mergedHistory);
+                localStorage.setItem(`fitlife_v3_history_${profileId}`, JSON.stringify(mergedHistory));
+
+                // Se houver registros locais novos, sincroniza de volta ao Supabase
+                if (mergedHistory.length > parsedHistory.length) {
+                    syncHistoryToSupabase(profileId, mergedHistory);
+                }
             }
 
             // 3. Carregar dados consolidados
@@ -158,16 +180,43 @@ export const AppProvider = ({ children }) => {
 
             if (!pdError && pdData) {
                 if (pdData.favorites !== null) {
-                    setFavorites(pdData.favorites);
-                    localStorage.setItem(`fitlife_v3_favorites_${profileId}`, JSON.stringify(pdData.favorites));
+                    const localFavs = JSON.parse(localStorage.getItem(`fitlife_v3_favorites_${profileId}`) || '[]');
+                    const mergedFavs = Array.from(new Set([...localFavs, ...pdData.favorites]));
+                    setFavorites(mergedFavs);
+                    localStorage.setItem(`fitlife_v3_favorites_${profileId}`, JSON.stringify(mergedFavs));
+                    if (mergedFavs.length > pdData.favorites.length) {
+                        updateProfileDataField(profileId, 'favorites', mergedFavs);
+                    }
                 }
                 if (pdData.personal_records !== null) {
-                    setPersonalRecords(pdData.personal_records);
-                    localStorage.setItem(`fitlife_v3_pr_${profileId}`, JSON.stringify(pdData.personal_records));
+                    const localPRs = JSON.parse(localStorage.getItem(`fitlife_v3_pr_${profileId}`) || '{}');
+                    const mergedPRs = { ...localPRs };
+                    Object.keys(pdData.personal_records).forEach(key => {
+                        const remotePR = pdData.personal_records[key];
+                        const localPR = localPRs[key];
+                        if (!localPR || new Date(remotePR.date) > new Date(localPR.date)) {
+                            mergedPRs[key] = remotePR;
+                        }
+                    });
+                    setPersonalRecords(mergedPRs);
+                    localStorage.setItem(`fitlife_v3_pr_${profileId}`, JSON.stringify(mergedPRs));
+                    if (JSON.stringify(mergedPRs) !== JSON.stringify(pdData.personal_records)) {
+                        updateProfileDataField(profileId, 'personal_records', mergedPRs);
+                    }
                 }
                 if (pdData.measurements !== null) {
-                    setMeasurements(pdData.measurements);
-                    localStorage.setItem(`fitlife_v3_measurements_${profileId}`, JSON.stringify(pdData.measurements));
+                    const localMeasurements = JSON.parse(localStorage.getItem(`fitlife_v3_measurements_${profileId}`) || '[]');
+                    const mergedMap = new Map();
+                    localMeasurements.forEach(m => mergedMap.set(m.date, m));
+                    pdData.measurements.forEach(m => mergedMap.set(m.date, m));
+                    const mergedMeasurements = Array.from(mergedMap.values())
+                        .sort((a, b) => new Date(a.date) - new Date(b.date));
+                    
+                    setMeasurements(mergedMeasurements);
+                    localStorage.setItem(`fitlife_v3_measurements_${profileId}`, JSON.stringify(mergedMeasurements));
+                    if (mergedMeasurements.length > pdData.measurements.length) {
+                        updateProfileDataField(profileId, 'measurements', mergedMeasurements);
+                    }
                 }
                 // 3.5 Carregar progresso de calistenia dedicado
                 const { data: calisthenicsData, error: calisthenicsError } = await supabase
@@ -178,8 +227,21 @@ export const AppProvider = ({ children }) => {
                 if (!calisthenicsError && calisthenicsData && calisthenicsData.length > 0) {
                     const skillsMerged = buildSkillsFromDb(calisthenicsData);
                     const { merged } = mergeDefaultSkills(skillsMerged);
-                    setCalisthenicsSkills(merged);
-                    localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(merged));
+                    
+                    const localSkills = JSON.parse(localStorage.getItem(`fitlife_v3_skills_${profileId}`) || 'null');
+                    if (localSkills) {
+                        const mergedSkills = { ...merged };
+                        Object.keys(localSkills).forEach(key => {
+                            if (!mergedSkills[key] || localSkills[key].level > mergedSkills[key].level) {
+                                mergedSkills[key] = localSkills[key];
+                            }
+                        });
+                        setCalisthenicsSkills(mergedSkills);
+                        localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(mergedSkills));
+                    } else {
+                        setCalisthenicsSkills(merged);
+                        localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(merged));
+                    }
                 } else if (pdData.skills !== null) {
                     // Fallback para o JSON legado caso não haja registros na nova tabela
                     const legacySkills = pdData.skills;
@@ -193,8 +255,13 @@ export const AppProvider = ({ children }) => {
                     }
                 }
                 if (pdData.profile_details !== null) {
-                    setProfileDetails(pdData.profile_details);
-                    localStorage.setItem(`fitlife_v3_profile_details_${profileId}`, JSON.stringify(pdData.profile_details));
+                    const localDetails = JSON.parse(localStorage.getItem(`fitlife_v3_profile_details_${profileId}`) || 'null') || {};
+                    const mergedDetails = { ...localDetails, ...pdData.profile_details };
+                    setProfileDetails(mergedDetails);
+                    localStorage.setItem(`fitlife_v3_profile_details_${profileId}`, JSON.stringify(mergedDetails));
+                    if (JSON.stringify(mergedDetails) !== JSON.stringify(pdData.profile_details)) {
+                        updateProfileDataField(profileId, 'profile_details', mergedDetails);
+                    }
                 }
                 if (pdData.active_workout !== null) {
                     const activeW = {
@@ -204,12 +271,25 @@ export const AppProvider = ({ children }) => {
                     setActiveWorkout(activeW);
                     localStorage.setItem(`fitlife_v3_active_workout_${profileId}`, JSON.stringify(activeW));
                 } else {
-                    setActiveWorkout(null);
-                    localStorage.removeItem(`fitlife_v3_active_workout_${profileId}`);
+                    const localActive = JSON.parse(localStorage.getItem(`fitlife_v3_active_workout_${profileId}`) || 'null');
+                    if (localActive) {
+                        setActiveWorkout(localActive);
+                    } else {
+                        setActiveWorkout(null);
+                    }
                 }
                 if (pdData.evolution_photos !== null) {
-                    setEvolutionPhotos(pdData.evolution_photos);
-                    localStorage.setItem(`fitlife_v3_evolution_photos_${profileId}`, JSON.stringify(pdData.evolution_photos));
+                    const localPhotos = JSON.parse(localStorage.getItem(`fitlife_v3_evolution_photos_${profileId}`) || '[]');
+                    const mergedMap = new Map();
+                    localPhotos.forEach(p => mergedMap.set(String(p.id), p));
+                    pdData.evolution_photos.forEach(p => mergedMap.set(String(p.id), p));
+                    const mergedPhotos = Array.from(mergedMap.values());
+                    
+                    setEvolutionPhotos(mergedPhotos);
+                    localStorage.setItem(`fitlife_v3_evolution_photos_${profileId}`, JSON.stringify(mergedPhotos));
+                    if (mergedPhotos.length > pdData.evolution_photos.length) {
+                        updateProfileDataField(profileId, 'evolution_photos', mergedPhotos);
+                    }
                 }
             }
         } catch (err) {
