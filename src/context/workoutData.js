@@ -265,7 +265,7 @@ export const PRESET_WORKOUTS = {
                     { name: "Remada Curvada Articulada (Apoio no Peito)", path: "Exercicios/Costas/Remada frontal com alavanca.gif", series: 3, reps: 10, weight: 25, targetWeight: 40, notes: "Faixa de 8 a 10 repetições. Apoio de peito zera a tensão na lombar." },
                     { name: "Crucifixo Inverso na Máquina (Pec Deck Invertido)", path: "Exercicios/Ombros/Voador invertido.gif", series: 3, reps: 15, weight: 20, targetWeight: 30, notes: "Faixa de 12 a 15 repetições. Fortalecimento da parte de trás do ombro e postura." },
                     { name: "Rosca Scott na Máquina", path: "Exercicios/Bíceps/Rosca Scott com Alavanca.gif", series: 3, reps: 10, weight: 15, targetWeight: 22, notes: "Faixa de 8 a 10 repetições. Apoie totalmente os braços no estofado." },
-                    { name: "Dead Hang (Sustentação na Barra)", path: "Exercicios/Calistenia/Barra Fixa (Pull-ups).gif", series: 3, reps: 0, weight: 0, targetWeight: 0, notes: "Foco da Calistenia (Dead Hang): Basicamente, segurar-se na barra fixa o máximo de tempo possível. Isso cria uma força de pegada colossal, descomprime a coluna (excelente para a postura) e fortalece os tendões dos braços e ombros, sendo o degrau número um para conseguir fazer barras fixas perfeitas na calistenia. Sustente pelo máximo de tempo possível." }
+                    { name: "Dead Hang (Sustentação na Barra)", path: "Exercicios/Calistenia/Suspensão Passiva.gif", series: 3, reps: 0, weight: 0, targetWeight: 0, notes: "Foco da Calistenia (Dead Hang): Basicamente, segurar-se na barra fixa o máximo de tempo possível. Isso cria uma força de pegada colossal, descomprime a coluna (excelente para a postura) e fortalece os tendões dos braços e ombros, sendo o degrau número um para conseguir fazer barras fixas perfeitas na calistenia. Sustente pelo máximo de tempo possível." }
                 ]
             },
             {
@@ -593,6 +593,8 @@ export const CALISTHENICS_PATH_MAP = {
     "support hold nas paralelas": "Exercicios/Calistenia/Support_Hold_nas_Paralelas.gif",
     "tuck l-sit": "Exercicios/Calistenia/Tuck_L_Sit.gif",
     "tuck l-sit (progressão de l-sit)": "Exercicios/Calistenia/Tuck_L_Sit.gif",
+    "dead hang (sustentação na barra)": "Exercicios/Calistenia/Suspensão Passiva.gif",
+    "dead hang": "Exercicios/Calistenia/Suspensão Passiva.gif",
     "one-leg l-sit": "Exercicios/Calistenia/One_Leg_L_Sit.gif",
     "flexao pike": "Exercicios/Calistenia/Flexões de apoio de mão na parede.gif",
     "handstand na parede (costas)": "Exercicios/Calistenia/Handstand_na_Parede_Costas.gif",
