@@ -285,43 +285,72 @@ export const PRESET_WORKOUTS = {
     ESPOSA_VIDA: {
         name: "Treino escolhido pelo vida!",
         difficulty: "Médio",
-        duration: "45 min/dia",
-        description: "Treino personalizado criado pelo Fábio para a sua esposa, focado em membros inferiores e postura.",
+        duration: "45-60 min/dia",
+        description: "Treino personalizado atualizado de segunda a sexta para membros inferiores, superiores e core.",
         workouts: [
             {
-                name: "Treino A - Membros Inferiores (Foco em Quadríceps e Glúteos)",
-                description: "Treino direto nas máquinas, permitindo intensidade com total segurança e transições rápidas.",
-                coverStyle: "pernas",
-                exercises: [
-                    { name: "Leg Press Horizontal", path: "Exercicios/Pernas/Leg Press Horizontal.gif", series: 3, reps: "10 a 12", weight: 40, targetWeight: 60, notes: "Mantenha a lombar bem apoiada." },
-                    { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 3, reps: "10 a 12", weight: 15, targetWeight: 25, notes: "Faixa de 10 a 12 repetições." },
-                    { name: "Elevação Pélvica", path: "Exercicios/Glúteos/Elevação Pélvica Na Máquina.gif", series: 3, reps: "10 a 12", weight: 20, targetWeight: 40, notes: "Pico de contração de 2s no topo." },
-                    { name: "Cadeira Abdutora", path: "Exercicios/Glúteos/Máquina de Abdução de Quadril.gif", series: 3, reps: "12 a 15", weight: 20, targetWeight: 35, notes: "Tronco levemente inclinado para a frente." },
-                    { name: "Panturrilha em Pé ou Sentada", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 3, reps: "12 a 15", weight: 10, targetWeight: 20, notes: "Movimento completo com alongamento." }
-                ]
-            },
-            {
-                name: "Treino B - Membros Superiores (Foco em Postura e Tônus)",
-                description: "Uma rotina completa de membros superiores em máquinas para garantir sustentação, postura reta e braços tonificados, sem exagerar no volume.",
-                coverStyle: "costas",
-                exercises: [
-                    { name: "Puxada Frontal Aberta", path: "Exercicios/Costas/Puxada Alta.gif", series: 3, reps: "10 a 12", weight: 15, targetWeight: 25, notes: "Mantenha os cotovelos alinhados." },
-                    { name: "Remada Baixa (Polia / Triângulo)", path: "Exercicios/Costas/Remada Sentada com Cabo.gif", series: 3, reps: "10 a 12", weight: 15, targetWeight: 25, notes: "Foco em contrair as costas no final." },
-                    { name: "Supino Sentado", path: "Exercicios/Peitoral/Supino na máquina.gif", series: 3, reps: "10 a 12", weight: 10, targetWeight: 15, notes: "Mantenha os ombros para trás." },
-                    { name: "Elevação Lateral", path: "Exercicios/Ombros/Elevação lateral na máquina.gif", series: 3, reps: "10 a 12", weight: 5, targetWeight: 10, notes: "Movimento controlado." },
-                    { name: "Tríceps Pulley (Corda)", path: "Exercicios/Tríceps/Tríceps pulley corda.gif", series: 3, reps: "12 a 15", weight: 10, targetWeight: 15, notes: "Cotovelos fixos ao lado do corpo." }
-                ]
-            },
-            {
-                name: "Treino C - Membros Inferiores (Foco em Posteriores) e Core",
-                description: "Foco na parte de trás das coxas e na estabilização do abdômen, completando o trabalho de pernas da semana.",
+                name: "Segunda-Feira - Glúteos",
+                description: "Foco absoluto em glúteos e força no quadríceps.",
                 coverStyle: "gluteos",
                 exercises: [
-                    { name: "Cadeira Flexora", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 3, reps: "10 a 12", weight: 15, targetWeight: 25, notes: "Controle a subida." },
-                    { name: "Mesa Flexora", path: "Exercicios/Pernas/Mesa flexora.gif", series: 3, reps: "10 a 12", weight: 10, targetWeight: 20, notes: "Não levante o quadril durante a execução." },
-                    { name: "Cadeira Adutora", path: "Exercicios/Pernas/Máquina de Adução de Quadril.gif", series: 3, reps: "12 a 15", weight: 15, targetWeight: 30, notes: "Faixa de 12 a 15 repetições." },
-                    { name: "Glúteo Máquina (Coice)", path: "Exercicios/Glúteos/Glúteo Coice Na Máquina.gif", series: 3, reps: "10 a 12", weight: 15, targetWeight: 25, notes: "Estenda o quadril controladamente." },
-                    { name: "Abdominal Crunch (Máquina ou Polia Alta)", path: "Exercicios/Mobilidade/Contração abdominal.gif", series: 3, reps: "12 a 15", weight: 15, targetWeight: 30, notes: "Concentre a força no core." }
+                    { name: "Agachamento Sumô com Halteres", path: "Exercicios/Pernas/Agachamento Sumô com Halteres.gif", series: 4, reps: 15, weight: 10, targetWeight: 20, notes: "Foco em glúteos." },
+                    { name: "Elevação Pélvica Na Máquina", path: "Exercicios/Glúteos/Elevação Pélvica Na Máquina.gif", series: 4, reps: 20, weight: 20, targetWeight: 40, notes: "Pico de contração no topo." },
+                    { name: "Afundo com Halteres", path: "Exercicios/Pernas/Afundo com Halteres.gif", series: 3, reps: 12, weight: 5, targetWeight: 10, notes: "Mantenha o tronco firme." },
+                    { name: "Máquina de Abdução de Quadril", path: "Exercicios/Glúteos/Máquina de Abdução de Quadril.gif", series: 3, reps: 15, weight: 15, targetWeight: 25, notes: "Tronco inclinado para a frente." },
+                    { name: "Glúteo Coice Na Máquina", path: "Exercicios/Glúteos/Glúteo Coice Na Máquina.gif", series: 3, reps: 15, weight: 10, targetWeight: 20, notes: "Estenda controladamente." },
+                    { name: "Agachamento", path: "Exercicios/Calistenia/Agachamento.gif", series: 3, reps: 15, weight: 0, targetWeight: 0, notes: "Agachamento livre peso corporal." }
+                ]
+            },
+            {
+                name: "Terça-Feira - Ombro, Peito & Tríceps",
+                description: "Membros superiores com foco em tônus e postura.",
+                coverStyle: "peito",
+                exercises: [
+                    { name: "Supino Reto", path: "Exercicios/Peitoral/Supino Reto.gif", series: 4, reps: 12, weight: 10, targetWeight: 20, notes: "Controle a descida." },
+                    { name: "Desenvolvimento de Ombro no Banco com Halteres", path: "Exercicios/Ombros/Desenvolvimento de Ombro no Banco com Halteres.gif", series: 3, reps: 12, weight: 5, targetWeight: 10, notes: "Mantenha a postura reta." },
+                    { name: "Elevação lateral com halteres sentado", path: "Exercicios/Ombros/Elevação lateral com halteres sentado.gif", series: 3, reps: 15, weight: 3, targetWeight: 6, notes: "Movimento controlado." },
+                    { name: "Tríceps pulley corda", path: "Exercicios/Tríceps/Tríceps pulley corda.gif", series: 3, reps: 15, weight: 10, targetWeight: 15, notes: "Cotovelos fixos." },
+                    { name: "Tríceps testa com barra", path: "Exercicios/Tríceps/Tríceps testa com barra.gif", series: 3, reps: 12, weight: 5, targetWeight: 10, notes: "Mantenha a estabilidade." },
+                    { name: "Voador no pec deck", path: "Exercicios/Peitoral/Voador no pec deck.gif", series: 3, reps: 15, weight: 10, targetWeight: 20, notes: "Contraia o peitoral no pico." }
+                ]
+            },
+            {
+                name: "Quarta-Feira - Pernas (Foco em Quadríceps)",
+                description: "Treino completo de quadríceps para força e definição.",
+                coverStyle: "pernas",
+                exercises: [
+                    { name: "Leg Press", path: "Exercicios/Pernas/Leg Press.gif", series: 4, reps: 15, weight: 40, targetWeight: 70, notes: "Mantenha a lombar apoiada." },
+                    { name: "Agachamento na Máquina Hack", path: "Exercicios/Pernas/Agachamento na Máquina Hack.gif", series: 3, reps: 12, weight: 10, targetWeight: 25, notes: "Agachamento Hack controlado." },
+                    { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 3, reps: 15, weight: 15, targetWeight: 25, notes: "Pico de contração no topo." },
+                    { name: "Agachamento Búlgaro com Halteres", path: "Exercicios/Pernas/Agachamento Búlgaro com Halteres.gif", series: 3, reps: 12, weight: 5, targetWeight: 10, notes: "Equilíbrio e amplitude." },
+                    { name: "Avanço com Halteres", path: "Exercicios/Pernas/Avanço com Halteres.gif", series: 3, reps: 12, weight: 5, targetWeight: 10, notes: "Passada firme para frente." },
+                    { name: "Cadeira Flexora", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 3, reps: 15, weight: 15, targetWeight: 25, notes: "Controle a subida." }
+                ]
+            },
+            {
+                name: "Quinta-Feira - Costas & Bíceps",
+                description: "Fortalecimento das costas e definição dos braços.",
+                coverStyle: "costas",
+                exercises: [
+                    { name: "Pulldown com corda", path: "Exercicios/Costas/Pulldown com corda.gif", series: 4, reps: 12, weight: 15, targetWeight: 25, notes: "Puxe direcionando para a coxa." },
+                    { name: "Remada Sentada com Cabo", path: "Exercicios/Costas/Remada Sentada com Cabo.gif", series: 3, reps: 15, weight: 15, targetWeight: 25, notes: "Foco na contração das costas." },
+                    { name: "Remada Curvada com Barra", path: "Exercicios/Costas/Remada Curvada com Barra.gif", series: 3, reps: 12, weight: 15, targetWeight: 25, notes: "Mantenha a coluna reta." },
+                    { name: "Rosca Direta com Barra", path: "Exercicios/Bíceps/Rosca Direta com Barra.gif", series: 3, reps: 15, weight: 5, targetWeight: 10, notes: "Movimento limpo." },
+                    { name: "Rosca alternada com halteres sentado", path: "Exercicios/Bíceps/Rosca alternada com halteres sentado.gif", series: 3, reps: 12, weight: 5, targetWeight: 8, notes: "Gire o punho na subida." },
+                    { name: "Rosca martelo", path: "Exercicios/Bíceps/Rosca martelo.gif", series: 3, reps: 12, weight: 5, targetWeight: 8, notes: "Pegada neutra constante." }
+                ]
+            },
+            {
+                name: "Sexta-Feira - Pernas (Foco em Posteriores, Glúteos & Panturrilha)",
+                description: "Desenvolvimento de posteriores de coxa, glúteos e panturrilhas.",
+                coverStyle: "gluteos",
+                exercises: [
+                    { name: "Stiff com barra", path: "Exercicios/Pernas/Stiff com barra.gif", series: 4, reps: 15, weight: 10, targetWeight: 20, notes: "Sentir alongar bem os posteriores." },
+                    { name: "Cadeira Flexora", path: "Exercicios/Pernas/Cadeira flexora.gif", series: 4, reps: 15, weight: 15, targetWeight: 25, notes: "Controle completo do movimento." },
+                    { name: "Elevação Pélvica Na Máquina", path: "Exercicios/Glúteos/Elevação Pélvica Na Máquina.gif", series: 3, reps: 20, weight: 20, targetWeight: 40, notes: "Foco no glúteo." },
+                    { name: "Agachamento Sumô com Halteres", path: "Exercicios/Pernas/Agachamento Sumô com Halteres.gif", series: 3, reps: 12, weight: 10, targetWeight: 20, notes: "Sustentação na subida." },
+                    { name: "Elevação de Panturrilha Sentado com Alavanca", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 10, targetWeight: 20, notes: "Gêmeos sentado (faixa de 10 a 20 reps)." },
+                    { name: "Elevação de panturrilha em pé", path: "Exercicios/Panturrilhas/Elevação de panturrilha em pé.gif", series: 4, reps: 15, weight: 0, targetWeight: 0, notes: "Gêmeos plantar (faixa de 10 a 20 reps)." }
                 ]
             }
         ]
