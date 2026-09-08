@@ -1,0 +1,12 @@
+{
+  "appId": "online.labkids.academia",
+  "appName": "FitLife",
+  "webDir": "dist",
+  "server": {
+    "url": "https://academia.labkids.online",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
