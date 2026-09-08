@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { supabase } from '../supabaseClient';
+import { dbService } from '../services/dbService';
 
 // Helper to parse notes and reactions
 const parseHistoryNotesAndReactions = (notesStr = '') => {
@@ -32,19 +32,13 @@ export default function FeedView() {
 
     const fetchFeed = async () => {
         setLoading(true);
-        if (supabase) {
+        if (dbService.isCloudActive()) {
             try {
-                const { data, error } = await supabase
-                    .from('fitlife_history')
-                    .select('*')
-                    .order('date', { ascending: false })
-                    .limit(30);
-
-                if (error) {
-                    console.error('Erro ao buscar feed do Supabase:', error);
-                    loadLocalFallback();
+                const data = await dbService.fetchFeed(30);
+                if (data && data.length > 0) {
+                    setFeedItems(data);
                 } else {
-                    setFeedItems(data || []);
+                    loadLocalFallback();
                 }
             } catch (err) {
                 console.error('Erro na requisição do feed:', err);
@@ -115,27 +109,20 @@ export default function FeedView() {
             return item;
         }));
 
-        if (supabase) {
-            try {
-                await supabase
-                    .from('fitlife_history')
-                    .update({ notes: updatedNotes })
-                    .eq('id', workoutId);
-            } catch (err) {
-                console.error('Erro ao salvar reação no Supabase:', err);
-            }
-        } else {
-            // Salva no localStorage correspondente
-            const key = `fitlife_v3_history_${workoutProfileId}`;
-            const historyList = JSON.parse(localStorage.getItem(key) || '[]');
-            const updatedList = historyList.map(h => {
-                if (String(h.id) === String(workoutId)) {
-                    return { ...h, notes: updatedNotes };
-                }
-                return h;
-            });
-            localStorage.setItem(key, JSON.stringify(updatedList));
+        if (dbService.isCloudActive()) {
+            await dbService.updateWorkoutNotes(workoutId, updatedNotes);
         }
+
+        // Salva no localStorage correspondente
+        const key = `fitlife_v3_history_${workoutProfileId}`;
+        const historyList = JSON.parse(localStorage.getItem(key) || '[]');
+        const updatedList = historyList.map(h => {
+            if (String(h.id) === String(workoutId)) {
+                return { ...h, notes: updatedNotes };
+            }
+            return h;
+        });
+        localStorage.setItem(key, JSON.stringify(updatedList));
     };
 
     const formatDuration = (seconds) => {

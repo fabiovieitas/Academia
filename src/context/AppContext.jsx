@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import rawExercises from '../assets/exercises.json';
-import { supabase } from '../supabaseClient';
+import { dbService } from '../services/dbService';
 import {
     CALISTENIA_PROJECT,
     CALISTHENICS_MANEUVERS_INITIAL,
@@ -97,56 +97,22 @@ export const AppProvider = ({ children }) => {
     const audioContextRef = useRef(null);
     const timerEndTimeRef = useRef(null);
 
-    // --- FUNÇÕES AUXILIARES SUPABASE ---
-    const loadDataFromSupabase = async (profileId) => {
-        if (!supabase) return;
+    // --- FUNÇÕES AUXILIARES DE SINCRONIZAÇÃO NA NUVEM (TURSO / SUPABASE) ---
+    const loadDataFromCloud = async (profileId) => {
+        if (!dbService.isCloudActive()) return;
         try {
+            const data = await dbService.loadProfileData(profileId);
+            if (!data) return;
+
             // 1. Carregar treinos
-            const { data: workoutsData, error: workoutsError } = await supabase
-                .from('fitlife_workouts')
-                .select('*')
-                .eq('profile_id', profileId);
-                
-            if (!workoutsError && workoutsData) {
-                if (workoutsData.length > 0) {
-                    const parsedWorkouts = workoutsData.map(w => ({
-                        id: Number(w.id) || w.id,
-                        name: w.name,
-                        description: w.description,
-                        coverStyle: w.cover_style,
-                        exercises: w.exercises || [],
-                        createdAt: w.created_at,
-                        updatedAt: w.updated_at
-                    }));
-                    setWorkouts(parsedWorkouts);
-                    localStorage.setItem(`fitlife_v3_workouts_${profileId}`, JSON.stringify(parsedWorkouts));
-                }
+            if (data.workouts && data.workouts.length > 0) {
+                setWorkouts(data.workouts);
+                localStorage.setItem(`fitlife_v3_workouts_${profileId}`, JSON.stringify(data.workouts));
             }
 
             // 2. Carregar histórico
-            const { data: historyData, error: historyError } = await supabase
-                .from('fitlife_history')
-                .select('*')
-                .eq('profile_id', profileId)
-                .order('date', { ascending: false });
-                
-            if (!historyError && historyData) {
-                const parsedHistory = historyData.map(h => ({
-                    id: Number(h.id) || h.id,
-                    workoutId: Number(h.workout_id) || h.workout_id,
-                    workoutName: h.workout_name,
-                    date: h.date,
-                    duration: h.duration,
-                    isCardio: h.is_cardio,
-                    cardioType: h.cardio_type,
-                    distance: h.distance,
-                    heartRate: h.heart_rate,
-                    calories: h.calories,
-                    exercises: h.exercises || [],
-                    notes: h.notes
-                }));
-                
-                // Mesclagem local-first para evitar perda de dados se o banco estiver inacessível ou com erros de RLS
+            if (data.history) {
+                const parsedHistory = data.history;
                 const localHistoryRaw = localStorage.getItem(`fitlife_v3_history_${profileId}`);
                 let localHistory = [];
                 try {
@@ -165,30 +131,24 @@ export const AppProvider = ({ children }) => {
                 setHistory(mergedHistory);
                 localStorage.setItem(`fitlife_v3_history_${profileId}`, JSON.stringify(mergedHistory));
 
-                // Se houver registros locais novos, sincroniza de volta ao Supabase
                 if (mergedHistory.length > parsedHistory.length) {
-                    syncHistoryToSupabase(profileId, mergedHistory);
+                    dbService.syncHistory(profileId, mergedHistory);
                 }
             }
 
             // 3. Carregar dados consolidados
-            const { data: pdData, error: pdError } = await supabase
-                .from('fitlife_profile_data')
-                .select('*')
-                .eq('profile_id', profileId)
-                .maybeSingle();
-
-            if (!pdError && pdData) {
-                if (pdData.favorites !== null) {
+            const pdData = data.profileData;
+            if (pdData) {
+                if (pdData.favorites !== null && pdData.favorites !== undefined) {
                     const localFavs = JSON.parse(localStorage.getItem(`fitlife_v3_favorites_${profileId}`) || '[]');
                     const mergedFavs = Array.from(new Set([...localFavs, ...pdData.favorites]));
                     setFavorites(mergedFavs);
                     localStorage.setItem(`fitlife_v3_favorites_${profileId}`, JSON.stringify(mergedFavs));
-                    if (mergedFavs.length > pdData.favorites.length) {
-                        updateProfileDataField(profileId, 'favorites', mergedFavs);
+                    if (mergedFavs.length > (pdData.favorites || []).length) {
+                        dbService.updateProfileDataField(profileId, 'favorites', mergedFavs);
                     }
                 }
-                if (pdData.personal_records !== null) {
+                if (pdData.personal_records !== null && pdData.personal_records !== undefined) {
                     const localPRs = JSON.parse(localStorage.getItem(`fitlife_v3_pr_${profileId}`) || '{}');
                     const mergedPRs = { ...localPRs };
                     Object.keys(pdData.personal_records).forEach(key => {
@@ -201,31 +161,25 @@ export const AppProvider = ({ children }) => {
                     setPersonalRecords(mergedPRs);
                     localStorage.setItem(`fitlife_v3_pr_${profileId}`, JSON.stringify(mergedPRs));
                     if (JSON.stringify(mergedPRs) !== JSON.stringify(pdData.personal_records)) {
-                        updateProfileDataField(profileId, 'personal_records', mergedPRs);
+                        dbService.updateProfileDataField(profileId, 'personal_records', mergedPRs);
                     }
                 }
-                if (pdData.measurements !== null) {
+                if (pdData.measurements !== null && pdData.measurements !== undefined) {
                     const localMeasurements = JSON.parse(localStorage.getItem(`fitlife_v3_measurements_${profileId}`) || '[]');
                     const mergedMap = new Map();
                     localMeasurements.forEach(m => mergedMap.set(m.date, m));
-                    pdData.measurements.forEach(m => mergedMap.set(m.date, m));
+                    (pdData.measurements || []).forEach(m => mergedMap.set(m.date, m));
                     const mergedMeasurements = Array.from(mergedMap.values())
                         .sort((a, b) => new Date(a.date) - new Date(b.date));
                     
                     setMeasurements(mergedMeasurements);
                     localStorage.setItem(`fitlife_v3_measurements_${profileId}`, JSON.stringify(mergedMeasurements));
-                    if (mergedMeasurements.length > pdData.measurements.length) {
-                        updateProfileDataField(profileId, 'measurements', mergedMeasurements);
+                    if (mergedMeasurements.length > (pdData.measurements || []).length) {
+                        dbService.updateProfileDataField(profileId, 'measurements', mergedMeasurements);
                     }
                 }
-                // 3.5 Carregar progresso de calistenia dedicado
-                const { data: calisthenicsData, error: calisthenicsError } = await supabase
-                    .from('fitlife_calisthenics_progress')
-                    .select('*')
-                    .eq('profile_id', profileId);
-                    
-                if (!calisthenicsError && calisthenicsData && calisthenicsData.length > 0) {
-                    const skillsMerged = buildSkillsFromDb(calisthenicsData);
+                if (data.calisthenicsData && data.calisthenicsData.length > 0) {
+                    const skillsMerged = buildSkillsFromDb(data.calisthenicsData);
                     const { merged } = mergeDefaultSkills(skillsMerged);
                     
                     const localSkills = JSON.parse(localStorage.getItem(`fitlife_v3_skills_${profileId}`) || 'null');
@@ -242,8 +196,7 @@ export const AppProvider = ({ children }) => {
                         setCalisthenicsSkills(merged);
                         localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(merged));
                     }
-                } else if (pdData.skills !== null) {
-                    // Fallback para o JSON legado caso não haja registros na nova tabela
+                } else if (pdData.skills !== null && pdData.skills !== undefined) {
                     const legacySkills = pdData.skills;
                     if (legacySkills && legacySkills.frog_stand) {
                         const { merged } = mergeDefaultSkills(legacySkills);
@@ -254,16 +207,16 @@ export const AppProvider = ({ children }) => {
                         localStorage.setItem(`fitlife_v3_skills_${profileId}`, JSON.stringify(CALISTHENICS_MANEUVERS_INITIAL));
                     }
                 }
-                if (pdData.profile_details !== null) {
+                if (pdData.profile_details !== null && pdData.profile_details !== undefined) {
                     const localDetails = JSON.parse(localStorage.getItem(`fitlife_v3_profile_details_${profileId}`) || 'null') || {};
                     const mergedDetails = { ...localDetails, ...pdData.profile_details };
                     setProfileDetails(mergedDetails);
                     localStorage.setItem(`fitlife_v3_profile_details_${profileId}`, JSON.stringify(mergedDetails));
                     if (JSON.stringify(mergedDetails) !== JSON.stringify(pdData.profile_details)) {
-                        updateProfileDataField(profileId, 'profile_details', mergedDetails);
+                        dbService.updateProfileDataField(profileId, 'profile_details', mergedDetails);
                     }
                 }
-                if (pdData.active_workout !== null) {
+                if (pdData.active_workout !== null && pdData.active_workout !== undefined) {
                     const activeW = {
                         ...pdData.active_workout,
                         exercises: pdData.active_workout.exercises || []
@@ -278,110 +231,35 @@ export const AppProvider = ({ children }) => {
                         setActiveWorkout(null);
                     }
                 }
-                if (pdData.evolution_photos !== null) {
+                if (pdData.evolution_photos !== null && pdData.evolution_photos !== undefined) {
                     const localPhotos = JSON.parse(localStorage.getItem(`fitlife_v3_evolution_photos_${profileId}`) || '[]');
                     const mergedMap = new Map();
                     localPhotos.forEach(p => mergedMap.set(String(p.id), p));
-                    pdData.evolution_photos.forEach(p => mergedMap.set(String(p.id), p));
+                    (pdData.evolution_photos || []).forEach(p => mergedMap.set(String(p.id), p));
                     const mergedPhotos = Array.from(mergedMap.values());
                     
                     setEvolutionPhotos(mergedPhotos);
                     localStorage.setItem(`fitlife_v3_evolution_photos_${profileId}`, JSON.stringify(mergedPhotos));
-                    if (mergedPhotos.length > pdData.evolution_photos.length) {
-                        updateProfileDataField(profileId, 'evolution_photos', mergedPhotos);
+                    if (mergedPhotos.length > (pdData.evolution_photos || []).length) {
+                        dbService.updateProfileDataField(profileId, 'evolution_photos', mergedPhotos);
                     }
                 }
             }
         } catch (err) {
-            console.error('Erro ao sincronizar do Supabase:', err);
+            console.error('Erro ao sincronizar do banco de dados na nuvem:', err);
         }
     };
 
-    const syncWorkoutsToSupabase = async (profileId, list) => {
-        if (!supabase) return;
-        try {
-            const currentIds = list.map(w => String(w.id));
-            if (currentIds.length > 0) {
-                await supabase
-                    .from('fitlife_workouts')
-                    .delete()
-                    .eq('profile_id', profileId)
-                    .not('id', 'in', `(${currentIds.join(',')})`);
-            } else {
-                await supabase
-                    .from('fitlife_workouts')
-                    .delete()
-                    .eq('profile_id', profileId);
-            }
-            if (list.length > 0) {
-                const rows = list.map(w => ({
-                    id: String(w.id),
-                    profile_id: profileId,
-                    name: w.name,
-                    description: w.description || '',
-                    cover_style: w.coverStyle || 'geral',
-                    exercises: w.exercises,
-                    updated_at: new Date().toISOString()
-                }));
-                await supabase.from('fitlife_workouts').upsert(rows);
-            }
-        } catch (e) {
-            console.error('Erro ao sincronizar treinos para o Supabase:', e);
-        }
+    const syncWorkoutsToCloud = async (profileId, list) => {
+        await dbService.syncWorkouts(profileId, list);
     };
 
-    const syncHistoryToSupabase = async (profileId, list) => {
-        if (!supabase) return;
-        try {
-            const currentIds = list.map(h => String(h.id));
-            if (currentIds.length > 0) {
-                await supabase
-                    .from('fitlife_history')
-                    .delete()
-                    .eq('profile_id', profileId)
-                    .not('id', 'in', `(${currentIds.join(',')})`);
-            } else {
-                await supabase
-                    .from('fitlife_history')
-                    .delete()
-                    .eq('profile_id', profileId);
-            }
-            if (list.length > 0) {
-                const rows = list.map(h => ({
-                    id: String(h.id),
-                    profile_id: profileId,
-                    workout_id: h.workoutId ? String(h.workoutId) : null,
-                    workout_name: h.workoutName,
-                    date: h.date,
-                    duration: h.duration,
-                    is_cardio: h.isCardio || false,
-                    cardio_type: h.cardioType || null,
-                    distance: h.distance || 0,
-                    heart_rate: h.heartRate || null,
-                    calories: h.calories || null,
-                    exercises: h.exercises,
-                    notes: h.notes || ''
-                }));
-                await supabase.from('fitlife_history').upsert(rows);
-            }
-        } catch (e) {
-            console.error('Erro ao sincronizar histórico para o Supabase:', e);
-        }
+    const syncHistoryToCloud = async (profileId, list) => {
+        await dbService.syncHistory(profileId, list);
     };
 
     const updateProfileDataField = async (profileId, field, data) => {
-        if (!supabase) return;
-        try {
-            await supabase
-                .from('fitlife_profile_data')
-                .upsert({
-                    profile_id: profileId,
-                    [field]: data,
-                    updated_at: new Date().toISOString()
-                });
-        } catch (e) {
-            console.error(`Erro ao sincronizar ${field} para o Supabase:`, e);
-        }
+        await dbService.updateProfileDataField(profileId, field, data);
     };
 
     // Sintetizador de som nativo para descanso global
@@ -568,8 +446,8 @@ export const AppProvider = ({ children }) => {
                 setActiveWorkout(null);
             }
 
-            // Carrega do Supabase em background (Local-first / Stale-While-Revalidate)
-            loadDataFromSupabase(activeProfileId);
+            // Carrega da Nuvem em background (Local-first / Stale-While-Revalidate)
+            loadDataFromCloud(activeProfileId);
         } else {
             setWorkouts([]);
             setHistory([]);
@@ -603,7 +481,7 @@ export const AppProvider = ({ children }) => {
         setWorkouts(newWorkouts);
         if (activeProfileId) {
             localStorage.setItem(`fitlife_v3_workouts_${activeProfileId}`, JSON.stringify(newWorkouts));
-            syncWorkoutsToSupabase(activeProfileId, newWorkouts);
+            syncWorkoutsToCloud(activeProfileId, newWorkouts);
         }
     };
 
@@ -612,7 +490,7 @@ export const AppProvider = ({ children }) => {
         setHistory(newHistory);
         if (activeProfileId) {
             localStorage.setItem(`fitlife_v3_history_${activeProfileId}`, JSON.stringify(newHistory));
-            syncHistoryToSupabase(activeProfileId, newHistory);
+            syncHistoryToCloud(activeProfileId, newHistory);
         }
     };
 
@@ -813,28 +691,15 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem(`fitlife_v3_skills_${activeProfileId}`, JSON.stringify(newSkills));
             updateProfileDataField(activeProfileId, 'skills', newSkills);
 
-            if (supabase) {
-                try {
-                    const upserts = Object.keys(newSkills).map(mId => {
-                        const m = newSkills[mId];
-                        return {
-                            profile_id: activeProfileId,
-                            maneuver_id: mId,
-                            status: m.status,
-                            phase1_progress: m.phase1_progress.map(p => ({ exercise: p.exercise, value: p.value })),
-                            phase2_progress: m.phase2_progress.map(p => ({ exercise: p.exercise, value: p.value })),
-                            phase2_unlocked: m.phase2_unlocked,
-                            maneuver_unlocked: m.maneuver_unlocked,
-                            updated_at: new Date().toISOString()
-                        };
-                    });
-                    
-                    await supabase
-                        .from('fitlife_calisthenics_progress')
-                        .upsert(upserts);
-                } catch (e) {
-                    console.error('Erro ao sincronizar progresso de calistenia para o Supabase:', e);
-                }
+            for (const mId of Object.keys(newSkills)) {
+                const m = newSkills[mId];
+                dbService.syncCalisthenicsProgress(activeProfileId, mId, {
+                    status: m.status,
+                    phase1_progress: m.phase1_progress.map(p => ({ exercise: p.exercise, value: p.value })),
+                    phase2_progress: m.phase2_progress.map(p => ({ exercise: p.exercise, value: p.value })),
+                    phase2_unlocked: m.phase2_unlocked,
+                    maneuver_unlocked: m.maneuver_unlocked
+                });
             }
         }
     };
@@ -1122,18 +987,8 @@ export const AppProvider = ({ children }) => {
             updatedFields.evolution_photos = data.evolutionPhotos;
         }
 
-        if (supabase && Object.keys(updatedFields).length > 0) {
-            try {
-                await supabase
-                    .from('fitlife_profile_data')
-                    .upsert({
-                        profile_id: activeProfileId,
-                        ...updatedFields,
-                        updated_at: new Date().toISOString()
-                    });
-            } catch (e) {
-                console.error('Erro ao salvar backup no Supabase:', e);
-            }
+        if (Object.keys(updatedFields).length > 0) {
+            dbService.updateProfileDataMultiple(activeProfileId, updatedFields);
         }
     };
 
