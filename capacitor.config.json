@@ -3,7 +3,7 @@
   "appName": "FitLife",
   "webDir": "dist",
   "server": {
-    "url": "https://academia.labkids.online",
+    "androidScheme": "http",
     "cleartext": true
   },
   "android": {
