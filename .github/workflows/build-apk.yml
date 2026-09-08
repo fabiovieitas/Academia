@@ -32,6 +32,10 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build Web Assets
+        env:
+          VITE_TURSO_DATABASE_URL: ${{ secrets.VITE_TURSO_DATABASE_URL || 'libsql://academia-fabiovieitas.aws-ap-south-1.turso.io' }}
+          VITE_TURSO_AUTH_TOKEN: ${{ secrets.VITE_TURSO_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg4NzM5OTgsImlkIjoiMDFhMDgxMjgtMWQwMS03ZWYxLThiNDgtMTA0MzMzN2Q4NzFmIiwia2lkIjoiekZRMlpBUnYxLVVNR2c1OGNFTWFiWGdkS3J4Y3FoeU9CTUpOVVdHVDBfOCIsInJpZCI6ImI2ODA0MmEwLTc4MzctNGY5MS04MDJlLWI4NjZmMzMwNWRkYyJ9.60uWXwwTuDPCGfNz5KDmw0dMupbRZMLWrdCJA1FULyj8kc1KUu9_kngz1woKCZXMG5vE9WyhV3e_85ebMdfmCQ' }}
+          VITE_MEDIA_URL: 'https://fabiovieitas.github.io/academia-assets'
         run: npm run build
 
       - name: Sync Capacitor

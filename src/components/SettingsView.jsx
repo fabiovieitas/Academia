@@ -220,20 +220,19 @@ export default function SettingsView({ isInstallable, onInstall }) {
             {/* INSTALAR APP NO CELULAR */}
             {(() => {
                 const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-                // Definir URL para o QR Code
-                const ipToUse = localIp || '192.168.1.15';
-                const targetUrl = window.location.hostname === 'localhost'
-                    ? `http://${ipToUse}:5173`
-                    : window.location.origin;
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(targetUrl)}`;
+                const targetUrl = 'https://academia.labkids.online';
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(targetUrl)}`;
 
                 return (
                     <div className="card" style={{ marginBottom: '20px' }}>
                         <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            📱 Instalar no Celular
+                            📱 Compartilhar & Instalar no Celular
                         </h3>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '8px 12px', borderRadius: '8px', marginBottom: '15px', fontSize: '12px', color: '#22c55e' }}>
+                            <span>☁️</span>
+                            <span><strong>Nuvem Ativa:</strong> Banco Turso sincronizado em tempo real</span>
+                        </div>
 
                         {/* Se não for standalone, oferece instalação neste aparelho */}
                         {!isStandalone && (
@@ -251,113 +250,49 @@ export default function SettingsView({ isInstallable, onInstall }) {
                                 >
                                     ⚡ Instalar Aplicativo Agora
                                 </button>
-
-                                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '12px' }}>
-                                    <span style={{ fontWeight: 'bold', fontSize: '12px', display: 'block', marginBottom: '6px', color: 'var(--text-main)' }}>
-                                        {isIOS ? '🍎 Como Adicionar no iPhone (Safari):' : '🤖 Como Adicionar no Android (Chrome):'}
-                                    </span>
-                                    <ol style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0, paddingLeft: '16px', lineHeight: '1.5' }}>
-                                        {isIOS ? (
-                                            <>
-                                                <li>Toque no botão de <strong>Compartilhar</strong> (ícone 📤 na barra inferior).</li>
-                                                <li>Selecione <strong>Adicionar à Tela de Início</strong> (ícone ➕).</li>
-                                                <li>Toque em <strong>Adicionar</strong>.</li>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <li>Toque nos <strong>três pontinhos ⋮</strong> no canto superior direito.</li>
-
-
-                                                <li>Selecione <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela de início</strong>.</li>
-                                                <li>Confirme a instalação.</li>
-                                            </>
-                                        )}
-                                    </ol>
-                                    {window.location.hostname !== 'localhost' && window.location.protocol === 'http:' && (
-                                        <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.05)', fontSize: '10px', color: 'var(--accent)', lineHeight: '1.4' }}>
-                                            ℹ️ <strong>Nota de Rede:</strong> Como você está acessando por IP local, a instalação automática direta pode não aparecer por segurança (falta de HTTPS). Use as instruções acima ou clique no botão acima!
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         )}
 
-                        {/* Compartilhar/Instalar em outro celular (sempre visível) */}
+                        {/* Compartilhar/Instalar em outro celular */}
                         <div>
                             <span style={{ fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '6px', color: 'var(--accent)' }}>
-                                {isStandalone ? 'Instalar no celular da sua esposa (ou outro aparelho)' : 'Opção 2: Instalar no celular da sua esposa (ou outro aparelho)'}
+                                Acessar ou Instalar no Celular da Esposa (ou outro aparelho)
                             </span>
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>
-                                Conecte o outro celular na **mesma rede Wi-Fi** deste dispositivo para abrir e instalar o FitLife nela.
+                                Aponte a câmera para o QR Code abaixo para abrir direto o FitLife oficial:
                             </p>
-
-                            {window.location.hostname === 'localhost' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
-                                        Digite o IP de Rede do seu computador:
-                                    </label>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <input
-                                            type="text"
-                                            value={localIp}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                setLocalIp(val);
-                                                localStorage.setItem('fitlife_local_ip', val);
-                                            }}
-                                            placeholder="Ex: 192.168.1.15"
-                                            style={{
-                                                flex: 1,
-                                                background: 'var(--bg-tertiary)',
-                                                border: '1px solid rgba(255,255,255,0.1)',
-                                                color: '#fff',
-                                                padding: '6px 10px',
-                                                borderRadius: '6px',
-                                                fontSize: '12px'
-                                            }}
-                                        />
-                                    </div>
-                                    <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
-                                        *Verifique o endereço "Network" mostrado no terminal do servidor do app.
-                                    </span>
-                                </div>
-                            )}
 
                             <div style={{
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                gap: '10px',
+                                gap: '12px',
                                 background: 'rgba(0,0,0,0.2)',
                                 padding: '15px',
                                 borderRadius: '8px',
                                 border: '1px solid rgba(255,255,255,0.05)'
                             }}>
-                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-main)', textAlign: 'center' }}>
-                                    Escaneie o QR Code com a câmera do celular dela:
-                                </span>
-
                                 <img
                                     src={qrCodeUrl}
                                     alt="QR Code de Instalação"
                                     style={{
-                                        width: '140px',
-                                        height: '140px',
-                                        borderRadius: '6px',
+                                        width: '150px',
+                                        height: '150px',
+                                        borderRadius: '8px',
                                         border: '4px solid #fff',
                                         background: '#fff'
                                     }}
                                 />
 
-                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', wordBreak: 'break-all', textAlign: 'center' }}>
-                                    Ou digite no navegador dela:<br />
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                    Endereço Oficial:<br />
                                     <a
                                         href={targetUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 'bold' }}
+                                        style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 'bold', fontSize: '13px' }}
                                     >
-                                        {targetUrl}
+                                        academia.labkids.online
                                     </a>
                                 </span>
                             </div>
