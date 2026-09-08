@@ -27,11 +27,11 @@ async function main() {
     const sqlPath = path.join(__dirname, '..', 'turso_schema.sql');
     const sqlContent = fs.readFileSync(sqlPath, 'utf8');
 
-    // Split statements by semicolon
+    // Split statements by semicolon and strip line comments
     const statements = sqlContent
         .split(';')
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith('--'));
+        .map(s => s.replace(/--.*$/gm, '').trim())
+        .filter(s => s.length > 0);
 
     console.log(`📋 Executando ${statements.length} instruções SQL no Turso...`);
 
