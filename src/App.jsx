@@ -82,32 +82,6 @@ function MainAppContent() {
         }
     };
 
-    // PWA Install prompt state
-    const [deferredPrompt, setDeferredPrompt] = useState(null);
-    const [isInstallable, setIsInstallable] = useState(false);
-    const [showInstallModal, setShowInstallModal] = useState(false);
-    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-
-    useEffect(() => {
-        const handleBeforeInstallPrompt = (e) => {
-            e.preventDefault();
-            setDeferredPrompt(e);
-            setIsInstallable(true);
-        };
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-        const handleAppInstalled = () => {
-            setIsInstallable(false);
-            setDeferredPrompt(null);
-        };
-        window.addEventListener('appinstalled', handleAppInstalled);
-
-        return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-            window.removeEventListener('appinstalled', handleAppInstalled);
-        };
-    }, []);
-
     // Efeito para navegar automaticamente para a aba do treino quando um é iniciado
     useEffect(() => {
         if (activeWorkout) {
@@ -175,40 +149,6 @@ function MainAppContent() {
                             <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold' }}>v0.12</span>
                         </div>
                     </div>
-                    {!isStandalone && (
-                        <button 
-                            onClick={() => {
-                                if (isInstallable && deferredPrompt) {
-                                    deferredPrompt.prompt();
-                                    deferredPrompt.userChoice.then((choiceResult) => {
-                                        if (choiceResult.outcome === 'accepted') {
-                                            console.log('Usuário aceitou a instalação do PWA');
-                                        }
-                                        setDeferredPrompt(null);
-                                        setIsInstallable(false);
-                                    });
-                                } else {
-                                    setShowInstallModal(true);
-                                }
-                            }}
-                            className="btn-primary"
-                            style={{
-                                padding: '6px 12px',
-                                fontSize: '12px',
-                                borderRadius: '20px',
-                                width: 'auto',
-                                margin: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: 'var(--accent)',
-                                color: 'var(--text-dark)',
-                                boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.35)'
-                            }}
-                        >
-                            <span>📱 Instalar App</span>
-                        </button>
-                    )}
                 </div>
             )}
             <div className="app-content" style={{ paddingTop: currentTab !== 'gym' ? '10px' : '20px' }}>
@@ -247,25 +187,7 @@ function MainAppContent() {
 
                 {currentTab === 'feed' && <FeedView />}
 
-                {currentTab === 'settings' && (
-                    <SettingsView 
-                        isInstallable={isInstallable}
-                        onInstall={() => {
-                            if (deferredPrompt) {
-                                deferredPrompt.prompt();
-                                deferredPrompt.userChoice.then((choiceResult) => {
-                                    if (choiceResult.outcome === 'accepted') {
-                                        console.log('Usuário aceitou a instalação do PWA');
-                                    }
-                                    setDeferredPrompt(null);
-                                    setIsInstallable(false);
-                                });
-                            } else {
-                                setShowInstallModal(true);
-                            }
-                        }}
-                    />
-                )}
+                {currentTab === 'settings' && <SettingsView />}
 
                 {currentTab === 'exercises' && (
                     <div style={{ paddingBottom: '20px' }}>
@@ -529,69 +451,6 @@ function MainAppContent() {
                     </button>
                 </div>
             )}
-            {/* MODAL DE INSTRUÇÕES DE INSTALAÇÃO */}
-            {showInstallModal && (() => {
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                return (
-                    <div className="modal-overlay" onClick={() => setShowInstallModal(false)} style={{ zIndex: 120 }}>
-                        <div className="modal-sheet" style={{ height: 'auto', maxHeight: '85vh', display: 'flex', flexDirection: 'column', width: '92%', maxWidth: '440px' }} onClick={e => e.stopPropagation()}>
-                            <div className="modal-header-sheet">
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 'bold', letterSpacing: '1px' }}>
-                                        Adicionar à Tela de Início 📱
-                                    </span>
-                                    <h3 style={{ margin: 0 }}>Como instalar no celular</h3>
-                                </div>
-                                <button className="modal-close-btn" onClick={() => setShowInstallModal(false)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
-                            </div>
-                            
-                            <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                                    Tenha acesso rápido ao <strong>FitLife</strong> direto da sua tela inicial como um aplicativo nativo (tela cheia e carregamento rápido).
-                                </p>
-                                
-                                {isIOS ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        <div style={{ background: 'rgba(var(--accent-rgb), 0.05)', border: '1px solid rgba(var(--accent-rgb), 0.15)', borderRadius: '10px', padding: '12px' }}>
-                                            <span style={{ fontWeight: 'bold', color: 'var(--accent)', fontSize: '14px', display: 'block', marginBottom: '8px' }}>🍎 Instruções para iPhone / iPad (Safari)</span>
-                                            <ol style={{ fontSize: '13px', color: 'var(--text-main)', margin: 0, paddingLeft: '18px', lineHeight: '1.6' }}>
-                                                <li>Toque no botão de <strong>Compartilhar</strong> (ícone <span style={{ fontSize: '15px' }}>📤</span> na barra inferior do Safari).</li>
-                                                <li>Role a lista de opções para baixo e selecione <strong>Adicionar à Tela de Início</strong> (ícone <span style={{ fontSize: '15px' }}>➕</span>).</li>
-                                                <li>Toque em <strong>Adicionar</strong> no canto superior direito.</li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        <div style={{ background: 'rgba(var(--accent-rgb), 0.05)', border: '1px solid rgba(var(--accent-rgb), 0.15)', borderRadius: '10px', padding: '12px' }}>
-                                            <span style={{ fontWeight: 'bold', color: 'var(--accent)', fontSize: '14px', display: 'block', marginBottom: '8px' }}>🤖 Instruções para Android (Chrome)</span>
-                                            <ol style={{ fontSize: '13px', color: 'var(--text-main)', margin: 0, paddingLeft: '18px', lineHeight: '1.6' }}>
-                                                <li>Toque no ícone de menu (os <strong>três pontinhos ⋮</strong> no canto superior direito).</li>
-                                                <li>Selecione a opção <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela de início</strong>.</li>
-                                                <li>Confirme a instalação e o ícone aparecerá na sua tela inicial automaticamente.</li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '5px' }}>
-                                    💡 Se você já instalou o aplicativo, abra-o a partir do ícone na tela inicial para desfrutar da experiência completa em tela cheia!
-                                </div>
-                            </div>
-                            
-                            <div style={{ padding: '15px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                <button 
-                                    className="btn-secondary" 
-                                    onClick={() => setShowInstallModal(false)}
-                                    style={{ width: '100%', padding: '12px' }}
-                                >
-                                    Entendi
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            })()}
             
             {/* Estilo Dinâmico para Animação do Toast */}
             <style>{`

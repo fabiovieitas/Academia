@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
-export default function SettingsView({ isInstallable, onInstall }) {
+export default function SettingsView() {
     const {
         activeProfile,
         selectProfile,
@@ -217,49 +217,28 @@ export default function SettingsView({ isInstallable, onInstall }) {
                 </form>
             </div>
 
-            {/* INSTALAR APP NO CELULAR */}
+            {/* SINCRONIZAÇÃO E ACESSO */}
             {(() => {
-                const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
                 const targetUrl = 'https://academia.labkids.online';
                 const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(targetUrl)}`;
 
                 return (
                     <div className="card" style={{ marginBottom: '20px' }}>
                         <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            📱 Compartilhar & Instalar no Celular
+                            ☁️ Nuvem & Sincronização em Tempo Real
                         </h3>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '8px 12px', borderRadius: '8px', marginBottom: '15px', fontSize: '12px', color: '#22c55e' }}>
-                            <span>☁️</span>
-                            <span><strong>Nuvem Ativa:</strong> Banco Turso sincronizado em tempo real</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '10px 14px', borderRadius: '8px', marginBottom: '15px', fontSize: '13px', color: '#22c55e' }}>
+                            <span style={{ fontSize: '16px' }}>🟢</span>
+                            <span><strong>Nuvem Ativa:</strong> Banco Turso sincronizado e seguro em tempo real</span>
                         </div>
 
-                        {/* Se não for standalone, oferece instalação neste aparelho */}
-                        {!isStandalone && (
-                            <div style={{ marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '6px', color: 'var(--accent)' }}>
-                                    Opção 1: Instalar neste aparelho
-                                </span>
-                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>
-                                    Adicione o FitLife à tela inicial para treinar em tela cheia com acesso offline.
-                                </p>
-                                <button
-                                    onClick={onInstall}
-                                    className="btn-primary"
-                                    style={{ padding: '12px 14px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', cursor: 'pointer', marginBottom: '15px' }}
-                                >
-                                    ⚡ Instalar Aplicativo Agora
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Compartilhar/Instalar em outro celular */}
                         <div>
                             <span style={{ fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '6px', color: 'var(--accent)' }}>
-                                Acessar ou Instalar no Celular da Esposa (ou outro aparelho)
+                                Acessar no Celular da Esposa (ou outro aparelho)
                             </span>
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>
-                                Aponte a câmera para o QR Code abaixo para abrir direto o FitLife oficial:
+                                Aponte a câmera para o QR Code abaixo para abrir o FitLife no aparelho dela:
                             </p>
 
                             <div style={{
@@ -274,7 +253,7 @@ export default function SettingsView({ isInstallable, onInstall }) {
                             }}>
                                 <img
                                     src={qrCodeUrl}
-                                    alt="QR Code de Instalação"
+                                    alt="QR Code FitLife"
                                     style={{
                                         width: '150px',
                                         height: '150px',
