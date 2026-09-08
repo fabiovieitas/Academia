@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "online.labkids.academia.twa",
+      "sha256_cert_fingerprints": [
+        "03:75:55:54:31:1E:0A:D8:1F:9D:A4:32:DC:5E:BA:DC:2E:9B:9B:FD:A5:98:44:A2:6B:14:10:4B:27:24:81:E7"
+      ]
+    }
+  }
+]
