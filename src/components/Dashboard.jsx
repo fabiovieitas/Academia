@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PRESET_WORKOUTS, CALISTENIA_PROJECT } from '../context/workoutData';
 import { resolveMediaUrl, handleImageErrorWithFallback } from '../utils/media';
+import BodyRecoveryMap from './BodyRecoveryMap';
+import CoupleGamification from './CoupleGamification';
 
 const estimateWorkoutDuration = (workout) => {
     if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
@@ -39,10 +41,13 @@ const COVER_IMAGES = {
 export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorkout, onLogout, onChangeTab }) {
     const { 
         activeProfile, 
+        profiles,
         workouts, 
         deleteWorkout, 
         activeWorkout, 
         workoutStreak,
+        personalRecords,
+        history,
         loadPreset,
         startFreeWorkout,
         addCardioWorkout,
@@ -765,52 +770,92 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                 </div>
             </div>
 
-            {/* SEGMENTED CONTROL: MUSCULAÇÃO VS CALISTENIA */}
+            {/* SEGMENTED CONTROL: 4 MODOS INTELIGENTES */}
             <div style={{ 
                 display: 'flex', 
                 background: 'rgba(255, 255, 255, 0.03)', 
                 padding: '4px', 
-                borderRadius: '10px', 
+                borderRadius: '12px', 
                 border: '1px solid rgba(255, 255, 255, 0.05)', 
-                marginBottom: '20px' 
+                marginBottom: '20px',
+                gap: '4px',
+                overflowX: 'auto'
             }}>
                 <button 
                     onClick={() => setDashboardView('musculacao')}
                     style={{
                         flex: 1,
-                        padding: '8px 12px',
+                        padding: '8px 10px',
                         borderRadius: '8px',
                         border: 'none',
                         background: dashboardView === 'musculacao' ? 'var(--accent)' : 'transparent',
                         color: dashboardView === 'musculacao' ? 'var(--text-dark)' : 'var(--text-muted)',
                         fontWeight: '700',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         cursor: 'pointer',
+                        whiteSpace: 'nowrap',
                         transition: 'var(--transition)'
                     }}
                 >
-                    🏋️ Musculação
+                    🏋️ Treinos
                 </button>
                 <button 
                     onClick={() => setDashboardView('calistenia')}
                     style={{
                         flex: 1,
-                        padding: '8px 12px',
+                        padding: '8px 10px',
                         borderRadius: '8px',
                         border: 'none',
                         background: dashboardView === 'calistenia' ? 'var(--accent)' : 'transparent',
                         color: dashboardView === 'calistenia' ? 'var(--text-dark)' : 'var(--text-muted)',
                         fontWeight: '700',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         cursor: 'pointer',
+                        whiteSpace: 'nowrap',
                         transition: 'var(--transition)'
                     }}
                 >
-                    🤸 Calistenia (Skill Tree)
+                    🤸 Calistenia
+                </button>
+                <button 
+                    onClick={() => setDashboardView('recuperacao')}
+                    style={{
+                        flex: 1,
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: dashboardView === 'recuperacao' ? 'var(--accent)' : 'transparent',
+                        color: dashboardView === 'recuperacao' ? 'var(--text-dark)' : 'var(--text-muted)',
+                        fontWeight: '700',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'var(--transition)'
+                    }}
+                >
+                    🧬 Recuperação
+                </button>
+                <button 
+                    onClick={() => setDashboardView('conquistas')}
+                    style={{
+                        flex: 1,
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: dashboardView === 'conquistas' ? 'var(--accent)' : 'transparent',
+                        color: dashboardView === 'conquistas' ? 'var(--text-dark)' : 'var(--text-muted)',
+                        fontWeight: '700',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'var(--transition)'
+                    }}
+                >
+                    🏆 Casal & Metas
                 </button>
             </div>
 
-            {dashboardView === 'musculacao' ? (
+            {dashboardView === 'musculacao' && (
                 workouts.length === 0 ? (
                     <div style={{
                         textAlign: 'center',
@@ -948,8 +993,10 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                         ))}
                     </div>
                 )
-            ) : (
-                /* GRID DE CALISTENIA */
+            )}
+
+            {/* ABA: CALISTENIA */}
+            {dashboardView === 'calistenia' && (
                 <div className="workout-grid">
                     {Object.values(calisthenicsSkills || {}).map((maneuver) => {
                         const covers = {
@@ -1285,10 +1332,26 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                 </div>
             )}
 
+            {/* ABA: RECUPERAÇÃO MUSCULAR & MAPA ANATÔMICO */}
+            {dashboardView === 'recuperacao' && (
+                <div style={{ marginTop: '10px' }}>
+                    <BodyRecoveryMap history={history} />
+                </div>
+            )}
 
-
-
-            {/* MODAL DE PRESETS */}
+            {/* ABA: GAMIFICAÇÃO & METAS DE CASAL */}
+            {dashboardView === 'conquistas' && (
+                <div style={{ marginTop: '10px' }}>
+                    <CoupleGamification 
+                        activeProfile={activeProfile}
+                        history={history}
+                        profiles={profiles}
+                        workoutStreak={workoutStreak}
+                        personalRecords={personalRecords}
+                        calisthenicsSkills={calisthenicsSkills}
+                    />
+                </div>
+            )}
             {showPresetsModal && (
                 <div className="modal-overlay" onClick={() => setShowPresetsModal(false)}>
                     <div className="modal-sheet" style={{ height: 'auto', maxHeight: '80vh' }} onClick={e => e.stopPropagation()}>

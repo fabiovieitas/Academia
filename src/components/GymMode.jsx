@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import ExerciseBrowser from './ExerciseBrowser';
 import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
 import { getExerciseMediaUrls, getFallbackSvg } from '../utils/media';
+import { getExerciseOverloadAdvice } from '../utils/overloadAdvisor';
 
 const EXERCISE_INSTRUCTIONS = {
     "Supino Reto": "1. Deite-se no banco reto com os olhos sob a barra.\n2. Segure a barra com pegada firme e retraia as escápulas.\n3. Desça a barra de forma controlada até tocar de leve o peito.\n4. Empurre verticalmente até estender os braços, concentrando a força no peitoral.",
@@ -156,6 +157,36 @@ export default function GymMode({ onFinish, onCancel }) {
                 setGifLoadError(true);
             }
         }
+    };
+
+    // Análise inteligente de Sobrecarga Progressiva (Auto Overload)
+    const overloadAdvice = useMemo(() => {
+        return getExerciseOverloadAdvice(currentExercise?.name, history);
+    }, [currentExercise?.name, history]);
+
+    const handleApplySuggestedWeight = (targetWeight) => {
+        if (!currentExercise || !activeWorkout) return;
+        const updatedExercises = exercises.map((ex, exIndex) => {
+            if (exIndex === currentExerciseIndex) {
+                const updatedSeries = ex.series.map(s => {
+                    if (!s.completed && !s.isWarmup) {
+                        return {
+                            ...s,
+                            weight: targetWeight,
+                            actualWeight: targetWeight
+                        };
+                    }
+                    return s;
+                });
+                return { ...ex, series: updatedSeries };
+            }
+            return ex;
+        });
+
+        saveActiveWorkoutState({
+            ...activeWorkout,
+            exercises: updatedExercises
+        });
     };
 
     // Estados do cronômetro específico da série
@@ -1017,6 +1048,55 @@ export default function GymMode({ onFinish, onCancel }) {
                     )}
                 </div>
 
+                {/* Dica de Sobrecarga no Modo Foco */}
+                {overloadAdvice && (
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.12) 0%, rgba(18, 20, 28, 0.95) 100%)',
+                        border: '1px solid rgba(var(--accent-rgb), 0.25)',
+                        borderRadius: '12px',
+                        padding: '10px 14px',
+                        marginBottom: '15px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px'
+                    }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 'bold' }}>
+                                    ⚡ Sobrecarga
+                                </span>
+                                {overloadAdvice.estimated1RM > 0 && (
+                                    <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(52, 211, 153, 0.15)', color: '#34d399', fontWeight: 'bold' }}>
+                                        1RM: ~{overloadAdvice.estimated1RM}kg
+                                    </span>
+                                )}
+                            </div>
+                            <p style={{ margin: 0, fontSize: '11.5px', color: 'rgba(255,255,255,0.9)', lineHeight: '1.3' }}>
+                                {overloadAdvice.message}
+                            </p>
+                        </div>
+                        {overloadAdvice.suggestedWeight && (
+                            <button
+                                onClick={() => handleApplySuggestedWeight(overloadAdvice.suggestedWeight)}
+                                style={{
+                                    background: 'var(--accent)',
+                                    color: 'var(--text-dark)',
+                                    border: 'none',
+                                    padding: '6px 10px',
+                                    borderRadius: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer',
+                                    flexShrink: 0
+                                }}
+                            >
+                                + Meta
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {/* Progresso de Séries no Modo Foco */}
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
                     {currentExercise.series.map((s, idx) => (
@@ -1571,6 +1651,60 @@ export default function GymMode({ onFinish, onCancel }) {
                     marginBottom: '15px'
                 }}>
                     <strong>Nota:</strong> {currentExercise.notes}
+                </div>
+            )}
+
+            {/* Assistente Inteligente de Sobrecarga Progressiva */}
+            {overloadAdvice && (
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.12) 0%, rgba(18, 20, 28, 0.95) 100%)',
+                    border: '1px solid rgba(var(--accent-rgb), 0.25)',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    marginBottom: '15px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.25)'
+                }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                            <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                                ⚡ Assistente de Carga
+                            </span>
+                            {overloadAdvice.estimated1RM > 0 && (
+                                <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(52, 211, 153, 0.15)', color: '#34d399', fontWeight: 'bold', border: '1px solid rgba(52, 211, 153, 0.3)' }}>
+                                    1RM: ~{overloadAdvice.estimated1RM}kg
+                                </span>
+                            )}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '12.5px', color: 'rgba(255,255,255,0.95)', lineHeight: '1.4' }}>
+                            {overloadAdvice.message}
+                        </p>
+                    </div>
+
+                    {overloadAdvice.suggestedWeight && (
+                        <button
+                            onClick={() => handleApplySuggestedWeight(overloadAdvice.suggestedWeight)}
+                            style={{
+                                background: 'var(--accent)',
+                                color: 'var(--text-dark)',
+                                border: 'none',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '800',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                            }}
+                            title="Aplica a carga sugerida nas séries ainda não concluídas"
+                        >
+                            Aplicar {overloadAdvice.suggestedWeight}kg
+                        </button>
+                    )}
                 </div>
             )}
 
