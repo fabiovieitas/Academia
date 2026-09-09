@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PRESET_WORKOUTS, CALISTENIA_PROJECT } from '../context/workoutData';
 import { resolveMediaUrl, handleImageErrorWithFallback } from '../utils/media';
