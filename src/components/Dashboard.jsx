@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PRESET_WORKOUTS, CALISTENIA_PROJECT } from '../context/workoutData';
+import { resolveMediaUrl, handleImageErrorWithFallback } from '../utils/media';
 
 const estimateWorkoutDuration = (workout) => {
     if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
@@ -23,24 +24,7 @@ const calculateTotalSets = (workout) => {
 };
 
 const getExerciseThumbnailUrl = (exercise) => {
-    if (!exercise) return '';
-    const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-    if (exercise.thumbnail) {
-        if (exercise.thumbnail.startsWith('http')) return exercise.thumbnail;
-        if (exercise.thumbnail.startsWith('/') || exercise.thumbnail.startsWith('Exercicios/')) {
-            return `/${exercise.thumbnail}`;
-        }
-        return `${baseMediaUrl}/${exercise.thumbnail}`;
-    }
-    if (exercise.path && (exercise.path.endsWith('.gif') || exercise.path.endsWith('.png'))) {
-        if (exercise.path.startsWith('http')) return exercise.path;
-        return `/${exercise.path}`;
-    }
-    if (exercise.name) {
-        const cleanName = exercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-        return `${baseMediaUrl}/thumbnails/${encodeURIComponent(cleanName)}.png`;
-    }
-    return '';
+    return resolveMediaUrl(exercise);
 };
 
 const COVER_IMAGES = {
@@ -893,10 +877,8 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                             <img 
                                                                 src={thumb} 
                                                                 alt={ex.name} 
-                                                                onError={(e) => {
-                                                                    e.target.onerror = null;
-                                                                    e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="8" fill="%239ca3af">💪</text></svg>';
-                                                                }}
+                                                                loading="lazy"
+                                                                onError={(e) => handleImageErrorWithFallback(e, ex)}
                                                             />
                                                         </div>
                                                     );
@@ -2249,10 +2231,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                     src={thumb} 
                                                     alt={ex.name} 
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
-                                                    }}
+                                                    onError={(e) => handleImageErrorWithFallback(e, ex)}
                                                 />
                                             </div>
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitlife-v1';
+const CACHE_NAME = 'fitlife-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -11,24 +11,28 @@ const PRECACHE_ASSETS = [
   '/icon-512-maskable.png'
 ];
 
-// 1. Install Event - Pré-carrega arquivos essenciais para funcionamento offline
+// 1. Install Event - Pré-carrega arquivos essenciais e força ativação imediata
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('⚡ Service Worker: Pré-carregando arquivos para modo offline...');
       return cache.addAll(PRECACHE_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// 2. Activate Event - Limpa versões antigas de cache
+// 2. Activate Event - Limpa versões antigas de cache e assume controle imediatamente
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .map((name) => {
+            console.log('🧹 Service Worker: Removendo cache antigo:', name);
+            return caches.delete(name);
+          })
       );
     }).then(() => self.clients.claim())
   );

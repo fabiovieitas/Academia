@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import ExerciseBrowser from './ExerciseBrowser';
 import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
+import { getExerciseMediaUrls, getFallbackSvg } from '../utils/media';
 
 const EXERCISE_INSTRUCTIONS = {
     "Supino Reto": "1. Deite-se no banco reto com os olhos sob a barra.\n2. Segure a barra com pegada firme e retraia as escápulas.\n3. Desça a barra de forma controlada até tocar de leve o peito.\n4. Empurre verticalmente até estender os braços, concentrando a força no peitoral.",
@@ -131,17 +132,14 @@ export default function GymMode({ onFinish, onCancel }) {
     const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false);
     const [gifLoadError, setGifLoadError] = useState(false);
     const [gifSrc, setGifSrc] = useState('');
-    const [gifStage, setGifStage] = useState(0); // 0: local, 1: remote gif, 2: remote thumb, 3: error
+    const [gifStage, setGifStage] = useState(0);
 
     useEffect(() => {
         setGifLoadError(false);
         setGifStage(0);
         if (currentExercise) {
-            const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
-            const initialSrc = resolvedPath
-                ? (resolvedPath.startsWith('http') ? resolvedPath : `/${resolvedPath}`)
-                : '';
-            setGifSrc(initialSrc);
+            const urls = getExerciseMediaUrls(currentExercise);
+            setGifSrc(urls[0] || '');
         } else {
             setGifSrc('');
         }
@@ -149,34 +147,11 @@ export default function GymMode({ onFinish, onCancel }) {
 
     const handleGifError = () => {
         if (currentExercise) {
-            const { path: resolvedPath } = getResolvedExerciseDetails(currentExercise);
-            const hasCustomMedia = !!import.meta.env.VITE_MEDIA_URL;
-
-            if (gifStage === 0) {
-                if (hasCustomMedia) {
-                    setGifStage(1);
-                    const customSrc = resolvedPath
-                        ? (resolvedPath.startsWith('http') ? resolvedPath : `${import.meta.env.VITE_MEDIA_URL}/${resolvedPath}`)
-                        : '';
-                    setGifSrc(customSrc);
-                } else {
-                    setGifStage(2);
-                    const publicSrc = resolvedPath
-                        ? (resolvedPath.startsWith('http') ? resolvedPath : `https://www.gifdotreino.com/${resolvedPath}`)
-                        : '';
-                    setGifSrc(publicSrc);
-                }
-            } else if (gifStage === 1) {
-                setGifStage(2);
-                const publicSrc = resolvedPath
-                    ? (resolvedPath.startsWith('http') ? resolvedPath : `https://www.gifdotreino.com/${resolvedPath}`)
-                    : '';
-                setGifSrc(publicSrc);
-            } else if (gifStage === 2) {
-                setGifStage(3);
-                const cleanName = currentExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
-                setGifSrc(thumbnailSrc);
+            const urls = getExerciseMediaUrls(currentExercise);
+            const nextStage = gifStage + 1;
+            if (nextStage < urls.length) {
+                setGifStage(nextStage);
+                setGifSrc(urls[nextStage]);
             } else {
                 setGifLoadError(true);
             }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import ExerciseBrowser from './ExerciseBrowser';
+import { resolveMediaUrl, handleImageErrorWithFallback } from '../utils/media';
 
 export default function WorkoutEditor({ workout, onSave, onCancel }) {
     const [name, setName] = useState(workout ? workout.name : '');
@@ -138,16 +139,7 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
 
             <div className="exercise-list-editor">
                 {exercises.map((ex, index) => {
-                    const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-                    let thumbUrl = '';
-                    if (ex.thumbnail) {
-                        thumbUrl = ex.thumbnail.startsWith('http') ? ex.thumbnail : `${baseMediaUrl}/${ex.thumbnail}`;
-                    } else if (ex.path && (ex.path.endsWith('.gif') || ex.path.endsWith('.png'))) {
-                        thumbUrl = ex.path.startsWith('http') ? ex.path : `/${ex.path}`;
-                    } else {
-                        const cleanName = ex.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                        thumbUrl = encodeURI(`${baseMediaUrl}/thumbnails/${cleanName}.png`);
-                    }
+                    const thumbUrl = resolveMediaUrl(ex);
                     const parts = (ex.path || '').split('/');
                     const catName = parts.length > 1 ? parts[1] : '';
 
@@ -179,15 +171,8 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
                                 <img 
                                     src={thumbUrl} 
                                     alt={ex.name} 
-                                    onError={(e) => {
-                                         if (!e.target.src.includes('gifdotreino.com')) {
-                                             const cleanName = ex.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                                             e.target.src = encodeURI(`https://www.gifdotreino.com/thumbnails/${cleanName}.png`);
-                                         } else {
-                                             e.target.onerror = null;
-                                             e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
-                                         }
-                                    }}
+                                    loading="lazy"
+                                    onError={(e) => handleImageErrorWithFallback(e, ex)}
                                 />
                             </div>
 

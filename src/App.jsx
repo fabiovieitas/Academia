@@ -10,6 +10,7 @@ import EvolutionView from './components/EvolutionView';
 import SettingsView from './components/SettingsView';
 import FeedView from './components/FeedView';
 import { CALISTHENICS_PATH_MAP } from './context/workoutData';
+import { getExerciseMediaUrls } from './utils/media';
 
 function MainAppContent() {
     const { 
@@ -22,10 +23,11 @@ function MainAppContent() {
         timeLeft,
         setTimeLeft,
         toastMessage,
-        setToastMessage
+        setToastMessage,
+        currentTab,
+        setCurrentTab
     } = useApp();
 
-    const [currentTab, setCurrentTab] = useState('dashboard'); // 'dashboard', 'history', 'exercises'
     const [editingWorkout, setEditingWorkout] = useState(null); // workout object
     const [isCreating, setIsCreating] = useState(false);
     const [selectedDetailExercise, setSelectedDetailExercise] = useState(null); // Para ver detalhes do exercício
@@ -37,16 +39,8 @@ function MainAppContent() {
         setDetailGifError(false);
         setDetailGifStage(0);
         if (selectedDetailExercise) {
-            let path = selectedDetailExercise.path;
-            if (!path) {
-                const cleanKey = selectedDetailExercise.name.toLowerCase().trim();
-                const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                path = CALISTHENICS_PATH_MAP[cleanKey] || CALISTHENICS_PATH_MAP[cleanKeyNoPrefix] || '';
-            }
-            const initialSrc = path.startsWith('http')
-                ? path
-                : `/${path}`;
-            setDetailGifSrc(initialSrc);
+            const urls = getExerciseMediaUrls(selectedDetailExercise);
+            setDetailGifSrc(urls[0] || '');
         } else {
             setDetailGifSrc('');
         }
@@ -54,28 +48,11 @@ function MainAppContent() {
 
     const handleDetailGifError = () => {
         if (selectedDetailExercise) {
-            const path = selectedDetailExercise.path;
-            const hasCustomMedia = !!import.meta.env.VITE_MEDIA_URL;
-
-            if (detailGifStage === 0) {
-                if (hasCustomMedia) {
-                    setDetailGifStage(1);
-                    const customSrc = path.startsWith('http') ? path : `${import.meta.env.VITE_MEDIA_URL}/${path}`;
-                    setDetailGifSrc(customSrc);
-                } else {
-                    setDetailGifStage(2);
-                    const publicSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
-                    setDetailGifSrc(publicSrc);
-                }
-            } else if (detailGifStage === 1) {
-                setDetailGifStage(2);
-                const publicSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
-                setDetailGifSrc(publicSrc);
-            } else if (detailGifStage === 2) {
-                setDetailGifStage(3);
-                const cleanName = selectedDetailExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
-                setDetailGifSrc(thumbnailSrc);
+            const urls = getExerciseMediaUrls(selectedDetailExercise);
+            const nextStage = detailGifStage + 1;
+            if (nextStage < urls.length) {
+                setDetailGifStage(nextStage);
+                setDetailGifSrc(urls[nextStage]);
             } else {
                 setDetailGifError(true);
             }

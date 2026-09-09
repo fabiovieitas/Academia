@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
+import { getExerciseMediaUrls, getFallbackSvg, handleImageErrorWithFallback } from '../utils/media';
 
 const normalizeString = (str) => {
     return str
@@ -75,16 +76,8 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
         setPreviewGifError(false);
         setPreviewGifStage(0);
         if (previewExercise) {
-            let path = previewExercise.path;
-            if (!path) {
-                const cleanKey = previewExercise.name.toLowerCase().trim();
-                const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                path = CALISTHENICS_PATH_MAP[cleanKey] || CALISTHENICS_PATH_MAP[cleanKeyNoPrefix] || '';
-            }
-            const initialSrc = path.startsWith('http')
-                ? path
-                : `/${path}`;
-            setPreviewGifSrc(initialSrc);
+            const urls = getExerciseMediaUrls(previewExercise);
+            setPreviewGifSrc(urls[0] || '');
         } else {
             setPreviewGifSrc('');
         }
@@ -92,28 +85,11 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
 
     const handlePreviewGifError = () => {
         if (previewExercise) {
-            const path = previewExercise.path || '';
-            const hasCustomMedia = !!import.meta.env.VITE_MEDIA_URL;
-
-            if (previewGifStage === 0) {
-                if (hasCustomMedia) {
-                    setPreviewGifStage(1);
-                    const customSrc = path.startsWith('http') ? path : `${import.meta.env.VITE_MEDIA_URL}/${path}`;
-                    setPreviewGifSrc(customSrc);
-                } else {
-                    setPreviewGifStage(2);
-                    const publicSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
-                    setPreviewGifSrc(publicSrc);
-                }
-            } else if (previewGifStage === 1) {
-                setPreviewGifStage(2);
-                const publicSrc = path.startsWith('http') ? path : `https://www.gifdotreino.com/${path}`;
-                setPreviewGifSrc(publicSrc);
-            } else if (previewGifStage === 2) {
-                setPreviewGifStage(3);
-                const cleanName = previewExercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-                const thumbnailSrc = `https://www.gifdotreino.com/thumbnails/${cleanName}.png`;
-                setPreviewGifSrc(thumbnailSrc);
+            const urls = getExerciseMediaUrls(previewExercise);
+            const nextStage = previewGifStage + 1;
+            if (nextStage < urls.length) {
+                setPreviewGifStage(nextStage);
+                setPreviewGifSrc(urls[nextStage]);
             } else {
                 setPreviewGifError(true);
             }
@@ -186,23 +162,9 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
     };
 
     const resolveThumbnailUrl = (exercise) => {
-        const isLocalThumb = exercise.thumbnail && (
-            exercise.thumbnail.startsWith('/') || 
-            exercise.thumbnail.startsWith('Exercicios/') || 
-            exercise.thumbnail.startsWith('http')
-        );
-        const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-        if (isLocalThumb) {
-            return encodeURI(exercise.thumbnail.startsWith('http') ? exercise.thumbnail : `/${exercise.thumbnail}`);
-        }
-        if (exercise.thumbnail) {
-            return encodeURI(`${baseMediaUrl}/${exercise.thumbnail}`);
-        }
-        const cleanName = exercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-        return encodeURI(`${baseMediaUrl}/thumbnails/${cleanName}.png`);
+        const urls = getExerciseMediaUrls(exercise);
+        return urls[0] || getFallbackSvg(exercise?.path?.split('/')[1] || 'Geral');
     };
-
-    const fallbackSvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -368,14 +330,7 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                                                 src={thumbUrl} 
                                                 alt={exercise.name} 
                                                 loading="lazy"
-                                                onError={(e) => {
-                                                    if (!e.target.src.includes('gifdotreino.com') && exercise.thumbnail) {
-                                                        e.target.src = encodeURI(`https://www.gifdotreino.com/${exercise.thumbnail}`);
-                                                    } else {
-                                                        e.target.onerror = null;
-                                                        e.target.src = fallbackSvg;
-                                                    }
-                                                }}
+                                                onError={(e) => handleImageErrorWithFallback(e, exercise)}
                                             />
                                             {/* Botão Favorito no Canto */}
                                             <button 
@@ -481,14 +436,7 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                                                 src={thumbUrl} 
                                                 alt={exercise.name} 
                                                 loading="lazy"
-                                                onError={(e) => {
-                                                    if (!e.target.src.includes('gifdotreino.com') && exercise.thumbnail) {
-                                                        e.target.src = encodeURI(`https://www.gifdotreino.com/${exercise.thumbnail}`);
-                                                    } else {
-                                                        e.target.onerror = null;
-                                                        e.target.src = fallbackSvg;
-                                                    }
-                                                }}
+                                                onError={(e) => handleImageErrorWithFallback(e, exercise)}
                                             />
                                             <div style={{ position: 'absolute', bottom: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', borderRadius: '50%', padding: '2px 4px', fontSize: '9px' }}>🔍</div>
                                         </div>

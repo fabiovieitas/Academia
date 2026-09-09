@@ -13,3 +13,5 @@ services:
         sync: false
       - key: VITE_TURSO_AUTH_TOKEN
         sync: false
+      - key: VITE_MEDIA_URL
+        value: https://fabiovieitas.github.io/academia-assets
