@@ -23,11 +23,10 @@ function MainAppContent() {
         timeLeft,
         setTimeLeft,
         toastMessage,
-        setToastMessage,
-        currentTab,
-        setCurrentTab
+        setToastMessage
     } = useApp();
 
+    const [currentTab, setCurrentTab] = useState('dashboard');
     const [editingWorkout, setEditingWorkout] = useState(null); // workout object
     const [isCreating, setIsCreating] = useState(false);
     const [selectedDetailExercise, setSelectedDetailExercise] = useState(null); // Para ver detalhes do exercício
