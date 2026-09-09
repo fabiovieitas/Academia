@@ -6,11 +6,41 @@ const estimateWorkoutDuration = (workout) => {
     if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
     let totalSeries = 0;
     workout.exercises.forEach(ex => {
-        totalSeries += parseInt(ex.series) || 3;
+        const numSeries = Array.isArray(ex.series) ? ex.series.length : (parseInt(ex.series) || 3);
+        totalSeries += numSeries;
     });
     const restTime = 60; // 60 segundos padrão
     const seconds = (totalSeries * 45) + (Math.max(0, totalSeries - 1) * restTime);
     return Math.round(seconds / 60);
+};
+
+const calculateTotalSets = (workout) => {
+    if (!workout || !workout.exercises) return 0;
+    return workout.exercises.reduce((acc, ex) => {
+        const numSeries = Array.isArray(ex.series) ? ex.series.length : (parseInt(ex.series) || 3);
+        return acc + numSeries;
+    }, 0);
+};
+
+const getExerciseThumbnailUrl = (exercise) => {
+    if (!exercise) return '';
+    const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
+    if (exercise.thumbnail) {
+        if (exercise.thumbnail.startsWith('http')) return exercise.thumbnail;
+        if (exercise.thumbnail.startsWith('/') || exercise.thumbnail.startsWith('Exercicios/')) {
+            return `/${exercise.thumbnail}`;
+        }
+        return `${baseMediaUrl}/${exercise.thumbnail}`;
+    }
+    if (exercise.path && (exercise.path.endsWith('.gif') || exercise.path.endsWith('.png'))) {
+        if (exercise.path.startsWith('http')) return exercise.path;
+        return `/${exercise.path}`;
+    }
+    if (exercise.name) {
+        const cleanName = exercise.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+        return `${baseMediaUrl}/thumbnails/${encodeURIComponent(cleanName)}.png`;
+    }
+    return '';
 };
 
 const COVER_IMAGES = {
@@ -830,65 +860,105 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                     style={{ backgroundImage: `url(${COVER_IMAGES[workout.coverStyle || 'geral']})` }}
                                 >
                                     <div className="workout-card-cover-overlay"></div>
+                                    {workout.coverStyle && (
+                                        <span className="workout-cover-tag">{workout.coverStyle.toUpperCase()}</span>
+                                    )}
                                 </div>
-                                <div className="workout-card-body">
-                                    <div className="workout-info" style={{ flex: 1 }}>
-                                        <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>{workout.name}</h3>
-                                        <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{workout.description || 'Sem descrição'}</p>
-                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                                            <span className="badge-gym">{(workout.exercises || []).length} exercícios</span>
-                                            <span className="badge-gym">⏱️ {estimateWorkoutDuration(workout)} min</span>
-                                            {workout.coverStyle && (
-                                                <span className="badge-gym category-badge">{workout.coverStyle.toUpperCase()}</span>
-                                            )}
+                                <div className="workout-card-body" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                                        <div className="workout-info" style={{ flex: 1, minWidth: 0 }}>
+                                            <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: '#fff' }}>{workout.name}</h3>
+                                            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{workout.description || 'Rotina personalizada de musculação'}</p>
                                         </div>
-                                    </div>
-
-                                    <div className="workout-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                        <button 
-                                            className="btn-icon" 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlePrintWorkout(workout);
-                                            }}
-                                            title="Imprimir / Salvar PDF"
-                                            style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                                        >
-                                            🖨️
-                                        </button>
-                                        <button 
-                                            className="btn-icon" 
+                                        <button
+                                            className="btn-start-workout-pill"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onStartWorkout(workout);
                                             }}
-                                            title="Iniciar Treino"
-                                            style={{ background: 'rgba(var(--accent-rgb), 0.1)', borderColor: 'rgba(var(--accent-rgb), 0.2)', color: 'var(--accent)' }}
+                                            title="Iniciar Treino Agora"
                                         >
-                                            ▶
+                                            ▶ Treinar
                                         </button>
-                                        <button 
-                                            className="btn-icon" 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onEditWorkout(workout);
-                                            }}
-                                            title="Editar Treino"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button 
-                                            className="btn-icon" 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (window.confirm(`Tem certeza que deseja excluir o treino "${workout.name}"?`)) {
-                                                    deleteWorkout(workout.id);
-                                                }
-                                            }}
-                                            title="Excluir Treino"
-                                        >
-                                            🗑️
-                                        </button>
+                                    </div>
+
+                                    {/* Mini Strip com Avatares dos primeiros exercícios */}
+                                    {(workout.exercises || []).length > 0 && (
+                                        <div className="workout-exercises-preview-strip">
+                                            <div className="exercise-avatar-stack">
+                                                {workout.exercises.slice(0, 4).map((ex, exIdx) => {
+                                                    const thumb = getExerciseThumbnailUrl(ex);
+                                                    return (
+                                                        <div key={exIdx} className="exercise-avatar-mini" title={ex.name}>
+                                                            <img 
+                                                                src={thumb} 
+                                                                alt={ex.name} 
+                                                                onError={(e) => {
+                                                                    e.target.onerror = null;
+                                                                    e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="8" fill="%239ca3af">💪</text></svg>';
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    );
+                                                })}
+                                                {workout.exercises.length > 4 && (
+                                                    <div className="exercise-avatar-mini avatar-more-badge">
+                                                        +{workout.exercises.length - 4}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {workout.exercises.slice(0, 2).map(e => e.name).join(', ')}
+                                                {workout.exercises.length > 2 ? '...' : ''}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Badges e Ações */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px' }}>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                            <span className="badge-gym">📊 {(workout.exercises || []).length} ex</span>
+                                            <span className="badge-gym">🔢 {calculateTotalSets(workout)} séries</span>
+                                            <span className="badge-gym">⏱️ {estimateWorkoutDuration(workout)} min</span>
+                                        </div>
+
+                                        <div className="workout-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                            <button 
+                                                className="btn-icon" 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handlePrintWorkout(workout);
+                                                }}
+                                                title="Imprimir / Salvar PDF"
+                                                style={{ width: '32px', height: '32px', fontSize: '13px', background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)', color: '#fff' }}
+                                            >
+                                                🖨️
+                                            </button>
+                                            <button 
+                                                className="btn-icon" 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEditWorkout(workout);
+                                                }}
+                                                title="Editar Treino"
+                                                style={{ width: '32px', height: '32px', fontSize: '13px' }}
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button 
+                                                className="btn-icon" 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (window.confirm(`Tem certeza que deseja excluir o treino "${workout.name}"?`)) {
+                                                        deleteWorkout(workout.id);
+                                                    }
+                                                }}
+                                                title="Excluir Treino"
+                                                style={{ width: '32px', height: '32px', fontSize: '13px' }}
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2082,6 +2152,172 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                 </button>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL DE DETALHES DO TREINO DO USUÁRIO */}
+            {selectedUserWorkout && (
+                <div className="modal-overlay" onClick={() => setSelectedUserWorkout(null)} style={{ zIndex: 110 }}>
+                    <div className="modal-sheet workout-detail-sheet" style={{ height: 'auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header-sheet" style={{ padding: '16px 20px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 'bold', letterSpacing: '1px' }}>
+                                    📋 Ficha do Treino
+                                </span>
+                                <h3 style={{ margin: 0, fontSize: '18px' }}>{selectedUserWorkout.name}</h3>
+                            </div>
+                            <button className="modal-close-btn" onClick={() => setSelectedUserWorkout(null)}>&times;</button>
+                        </div>
+                        
+                        <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            {/* Banner de Resumo */}
+                            <div style={{
+                                background: `linear-gradient(135deg, rgba(var(--accent-rgb), 0.12) 0%, var(--bg-secondary) 100%)`,
+                                border: '1px solid rgba(var(--accent-rgb), 0.25)',
+                                borderRadius: '14px',
+                                padding: '14px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <div>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
+                                        {selectedUserWorkout.description || 'Rotina personalizada'}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                        <span className="badge-gym">⏱️ ~{estimateWorkoutDuration(selectedUserWorkout)} min</span>
+                                        <span className="badge-gym">📊 {(selectedUserWorkout.exercises || []).length} exercícios</span>
+                                        <span className="badge-gym">🔢 {calculateTotalSets(selectedUserWorkout)} séries</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Lista Completa dos Exercícios com Sequência */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <h4 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+                                    Exercícios da Sequência ({(selectedUserWorkout.exercises || []).length})
+                                </h4>
+                                
+                                {(selectedUserWorkout.exercises || []).map((ex, exIdx) => {
+                                    const thumb = getExerciseThumbnailUrl(ex);
+                                    const numSeries = Array.isArray(ex.series) ? ex.series.length : (parseInt(ex.series) || 3);
+                                    const repsVal = Array.isArray(ex.series) ? (ex.series[0]?.reps || ex.reps || 10) : (ex.reps || 10);
+                                    const weightVal = Array.isArray(ex.series) ? (ex.series[0]?.weight || ex.weight || 0) : (ex.weight || 0);
+                                    const targetWeightVal = ex.targetWeight || 0;
+
+                                    return (
+                                        <div 
+                                            key={exIdx} 
+                                            className="workout-timeline-item"
+                                            style={{
+                                                background: 'var(--bg-secondary)',
+                                                border: '1px solid rgba(255,255,255,0.04)',
+                                                borderRadius: '12px',
+                                                padding: '12px',
+                                                display: 'flex',
+                                                gap: '12px',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <div style={{
+                                                width: '26px',
+                                                height: '26px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(var(--accent-rgb), 0.1)',
+                                                color: 'var(--accent)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '12px',
+                                                fontWeight: '700',
+                                                flexShrink: 0
+                                            }}>
+                                                {exIdx + 1}
+                                            </div>
+
+                                            <div style={{
+                                                width: '56px',
+                                                height: '56px',
+                                                borderRadius: '8px',
+                                                overflow: 'hidden',
+                                                background: 'var(--bg-tertiary)',
+                                                flexShrink: 0,
+                                                border: '1px solid rgba(255,255,255,0.05)'
+                                            }}>
+                                                <img 
+                                                    src={thumb} 
+                                                    alt={ex.name} 
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56"><rect width="56" height="56" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <h5 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', margin: '0 0 4px', lineHeight: '1.3' }}>
+                                                    {ex.name}
+                                                </h5>
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                    <span style={{ color: 'var(--accent)', fontWeight: '600' }}>
+                                                        {numSeries} séries × {repsVal} reps
+                                                    </span>
+                                                    {weightVal > 0 && (
+                                                        <span>• Carga: <strong>{weightVal} kg</strong></span>
+                                                    )}
+                                                    {targetWeightVal > 0 && (
+                                                        <span style={{ color: '#34d399' }}>• Meta: <strong>{targetWeightVal} kg</strong></span>
+                                                    )}
+                                                </div>
+                                                {ex.notes && (
+                                                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0', fontStyle: 'italic' }}>
+                                                        💡 {ex.notes}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Ações Fixas no Rodapé */}
+                        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '10px', background: 'var(--bg-secondary)' }}>
+                            <button 
+                                className="btn-secondary"
+                                onClick={() => {
+                                    const w = selectedUserWorkout;
+                                    setSelectedUserWorkout(null);
+                                    onEditWorkout(w);
+                                }}
+                                style={{ flex: 1, padding: '12px', fontSize: '13px' }}
+                            >
+                                ✏️ Editar
+                            </button>
+                            <button 
+                                className="btn-secondary"
+                                onClick={() => {
+                                    handlePrintWorkout(selectedUserWorkout);
+                                }}
+                                style={{ width: '48px', padding: '12px', fontSize: '15px' }}
+                                title="Imprimir / PDF"
+                            >
+                                🖨️
+                            </button>
+                            <button 
+                                className="btn-primary"
+                                onClick={() => {
+                                    const w = selectedUserWorkout;
+                                    setSelectedUserWorkout(null);
+                                    onStartWorkout(w);
+                                }}
+                                style={{ flex: 2, padding: '12px', fontSize: '14px', fontWeight: 'bold' }}
+                            >
+                                ▶ Iniciar Treino
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

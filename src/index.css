@@ -1406,3 +1406,299 @@ button {
   animation: pulse 1.5s infinite ease-in-out;
 }
 
+/* =========================================================
+   ESTILOS PREMIUM PARA APRESENTAÇÃO DE EXERCÍCIOS E ROTINAS
+   ========================================================= */
+
+/* Alternador de Visualização (Grade vs Lista) */
+.browser-view-toggle {
+  display: flex;
+  background: var(--bg-tertiary);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 3px;
+}
+
+.view-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.view-toggle-btn.active {
+  background: var(--accent);
+  color: var(--text-dark);
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.35);
+}
+
+/* Grade Visual Moderna de Exercícios */
+.exercise-modern-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 340px) {
+  .exercise-modern-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.exercise-grid-card {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.exercise-grid-card:hover {
+  border-color: rgba(var(--accent-rgb), 0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+
+.exercise-grid-thumb-wrap {
+  width: 100%;
+  height: 125px;
+  background: var(--bg-tertiary);
+  position: relative;
+  overflow: hidden;
+}
+
+.exercise-grid-thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.exercise-grid-card:hover .exercise-grid-thumb-wrap img {
+  transform: scale(1.08);
+}
+
+.exercise-grid-fav-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(10, 11, 14, 0.75);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 2;
+}
+
+.exercise-grid-fav-btn:hover {
+  transform: scale(1.15);
+  background: rgba(10, 11, 14, 0.95);
+}
+
+.exercise-grid-zoom-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(10, 11, 14, 0.75);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 2;
+  transition: var(--transition);
+}
+
+.exercise-grid-zoom-btn:hover {
+  transform: scale(1.15);
+}
+
+.exercise-grid-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.exercise-grid-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 35px;
+}
+
+.exercise-grid-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.exercise-grid-card:hover .exercise-grid-cta {
+  background: var(--accent);
+  color: var(--text-dark);
+}
+
+.exercise-tag-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Lista Detalhada Moderna */
+.exercise-detailed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modern-list-row {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: var(--transition);
+}
+
+.modern-list-row:hover {
+  border-color: rgba(var(--accent-rgb), 0.25);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Tag de Capa e Botão Treinar na Rotina */
+.workout-cover-tag {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  z-index: 1;
+}
+
+.btn-start-workout-pill {
+  background: var(--accent);
+  color: var(--text-dark);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3);
+  white-space: nowrap;
+  transition: var(--transition);
+  cursor: pointer;
+  border: none;
+}
+
+.btn-start-workout-pill:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 22px rgba(var(--accent-rgb), 0.5);
+}
+
+/* Strip com miniaturas dos primeiros exercícios */
+.workout-exercises-preview-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.exercise-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.exercise-avatar-mini {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-secondary);
+  margin-left: -8px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.exercise-avatar-mini:first-child {
+  margin-left: 0;
+}
+
+.exercise-avatar-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-more-badge {
+  background: var(--bg-tertiary);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.workout-timeline-item {
+  transition: var(--transition);
+}
+
+.workout-timeline-item:hover {
+  border-color: rgba(var(--accent-rgb), 0.25) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+

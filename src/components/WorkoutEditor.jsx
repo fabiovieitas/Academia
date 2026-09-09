@@ -139,7 +139,18 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
             <div className="exercise-list-editor">
                 {exercises.map((ex, index) => {
                     const baseMediaUrl = import.meta.env.VITE_MEDIA_URL || 'https://www.gifdotreino.com';
-                    const thumbUrl = encodeURI(`${baseMediaUrl}/thumbnails/${ex.name}.png`);
+                    let thumbUrl = '';
+                    if (ex.thumbnail) {
+                        thumbUrl = ex.thumbnail.startsWith('http') ? ex.thumbnail : `${baseMediaUrl}/${ex.thumbnail}`;
+                    } else if (ex.path && (ex.path.endsWith('.gif') || ex.path.endsWith('.png'))) {
+                        thumbUrl = ex.path.startsWith('http') ? ex.path : `/${ex.path}`;
+                    } else {
+                        const cleanName = ex.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                        thumbUrl = encodeURI(`${baseMediaUrl}/thumbnails/${cleanName}.png`);
+                    }
+                    const parts = (ex.path || '').split('/');
+                    const catName = parts.length > 1 ? parts[1] : '';
+
                     return (
                         <div key={index} className="exercise-editor-card">
                             <div className="drag-handle" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -147,13 +158,18 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
                                     onClick={() => handleMoveUp(index)} 
                                     disabled={index === 0}
                                     style={{ background: 'none', color: index === 0 ? 'rgba(255,255,255,0.1)' : 'var(--text-muted)' }}
+                                    title="Mover para cima"
                                 >
                                     ▲
                                 </button>
+                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--accent)', textAlign: 'center' }}>
+                                    {index + 1}
+                                </span>
                                 <button 
                                     onClick={() => handleMoveDown(index)} 
                                     disabled={index === exercises.length - 1}
                                     style={{ background: 'none', color: index === exercises.length - 1 ? 'rgba(255,255,255,0.1)' : 'var(--text-muted)' }}
+                                    title="Mover para baixo"
                                 >
                                     ▼
                                 </button>
@@ -165,7 +181,8 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
                                     alt={ex.name} 
                                     onError={(e) => {
                                          if (!e.target.src.includes('gifdotreino.com')) {
-                                             e.target.src = encodeURI(`https://www.gifdotreino.com/thumbnails/${ex.name}.png`);
+                                             const cleanName = ex.name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+                                             e.target.src = encodeURI(`https://www.gifdotreino.com/thumbnails/${cleanName}.png`);
                                          } else {
                                              e.target.onerror = null;
                                              e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af">GIF</text></svg>';
@@ -176,10 +193,16 @@ export default function WorkoutEditor({ workout, onSave, onCancel }) {
 
                             <div className="info">
                                 <div className="info-header">
-                                    <h4>{ex.name}</h4>
+                                    <div>
+                                        <h4 style={{ margin: '0 0 2px' }}>{ex.name}</h4>
+                                        {catName && (
+                                            <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '600' }}>{catName}</span>
+                                        )}
+                                    </div>
                                     <button 
                                         className="remove-btn"
                                         onClick={() => handleRemoveExercise(index)}
+                                        title="Remover exercício"
                                     >
                                         &times;
                                     </button>

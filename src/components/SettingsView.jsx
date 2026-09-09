@@ -217,68 +217,57 @@ export default function SettingsView() {
                 </form>
             </div>
 
-            {/* SINCRONIZAÇÃO E ACESSO */}
-            {(() => {
-                const targetUrl = 'https://academia.labkids.online';
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(targetUrl)}`;
+            {/* SINCRONIZAÇÃO E ACESSO NUVEM */}
+            <div className="card" style={{ marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ☁️ Nuvem & Sincronização em Tempo Real
+                </h3>
 
-                return (
-                    <div className="card" style={{ marginBottom: '20px' }}>
-                        <h3 style={{ fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            ☁️ Nuvem & Sincronização em Tempo Real
-                        </h3>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '10px 14px', borderRadius: '8px', marginBottom: '15px', fontSize: '13px', color: '#22c55e' }}>
-                            <span style={{ fontSize: '16px' }}>🟢</span>
-                            <span><strong>Nuvem Ativa:</strong> Banco Turso sincronizado e seguro em tempo real</span>
-                        </div>
-
-                        <div>
-                            <span style={{ fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '6px', color: 'var(--accent)' }}>
-                                Acessar no Celular da Esposa (ou outro aparelho)
-                            </span>
-                            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.4' }}>
-                                Aponte a câmera para o QR Code abaixo para abrir o FitLife no aparelho dela:
-                            </p>
-
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '12px',
-                                background: 'rgba(0,0,0,0.2)',
-                                padding: '15px',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(255,255,255,0.05)'
-                            }}>
-                                <img
-                                    src={qrCodeUrl}
-                                    alt="QR Code FitLife"
-                                    style={{
-                                        width: '150px',
-                                        height: '150px',
-                                        borderRadius: '8px',
-                                        border: '4px solid #fff',
-                                        background: '#fff'
-                                    }}
-                                />
-
-                                <span style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
-                                    Endereço Oficial:<br />
-                                    <a
-                                        href={targetUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 'bold', fontSize: '13px' }}
-                                    >
-                                        academia.labkids.online
-                                    </a>
-                                </span>
-                            </div>
-                        </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px 14px', borderRadius: '10px', marginBottom: '15px', fontSize: '13px', color: '#22c55e' }}>
+                    <span style={{ fontSize: '18px' }}>🟢</span>
+                    <div>
+                        <strong style={{ display: 'block', color: '#22c55e' }}>Banco Turso Conectado</strong>
+                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>Todos os treinos, pesos e histórico são salvos automaticamente na nuvem</span>
                     </div>
-                );
-            })()}
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '14px' }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '4px', color: 'var(--text-main)' }}>
+                        🌐 Endereço Oficial do FitLife:
+                    </span>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                        Acesse em qualquer navegador ou envie para sua esposa:
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                            type="text"
+                            readOnly
+                            value="https://academia.labkids.online"
+                            style={{
+                                flex: 1,
+                                background: 'var(--bg-tertiary)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'var(--accent)',
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                fontSize: '13px',
+                                fontWeight: '600'
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                navigator.clipboard.writeText('https://academia.labkids.online');
+                                alert('Link copiado para a área de transferência!');
+                            }}
+                            className="btn-primary"
+                            style={{ padding: '10px 14px', fontSize: '12px', width: 'auto', whiteSpace: 'nowrap' }}
+                        >
+                            📋 Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {/* ÁUDIO & VOZ */}
             <div className="card" style={{ marginBottom: '20px' }}>
