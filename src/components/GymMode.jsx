@@ -4,6 +4,10 @@ import ExerciseBrowser from './ExerciseBrowser';
 import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
 import { getExerciseMediaUrls, getFallbackSvg } from '../utils/media';
 import { getExerciseOverloadAdvice } from '../utils/overloadAdvisor';
+import PlateCalculatorModal from './PlateCalculatorModal';
+import OneRMTableModal from './OneRMTableModal';
+import FloatingRestTimer from './FloatingRestTimer';
+import WorkoutShareModal from './WorkoutShareModal';
 
 const EXERCISE_INSTRUCTIONS = {
     "Supino Reto": "1. Deite-se no banco reto com os olhos sob a barra.\n2. Segure a barra com pegada firme e retraia as escápulas.\n3. Desça a barra de forma controlada até tocar de leve o peito.\n4. Empurre verticalmente até estender os braços, concentrando a força no peitoral.",
@@ -188,6 +192,103 @@ export default function GymMode({ onFinish, onCancel }) {
             exercises: updatedExercises
         });
     };
+
+    // Estados para os recursos avançados (Padrão Gym Day / Hevy)
+    const [showPlateModal, setShowPlateModal] = useState(false);
+    const [plateModalWeight, setPlateModalWeight] = useState(60);
+    const [showOneRMModal, setShowOneRMModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+
+    // Anotações de Regulagem e Equipamento por Exercício (salvo no localStorage)
+    const [exerciseNotes, setExerciseNotes] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('fitlife_exercise_notes') || '{}');
+        } catch (e) {
+            return {};
+        }
+    });
+
+    const handleSaveExerciseNote = (exName, noteText) => {
+        if (!exName) return;
+        const updated = { ...exerciseNotes, [exName]: noteText };
+        setExerciseNotes(updated);
+        try {
+            localStorage.setItem('fitlife_exercise_notes', JSON.stringify(updated));
+        } catch (e) {}
+    };
+
+    // Alternador de Tag de Série (N -> W -> D -> F)
+    const handleCycleSetTag = (setIndex) => {
+        const updatedExercises = exercises.map((ex, exIndex) => {
+            if (exIndex === currentExerciseIndex) {
+                const updatedSeries = ex.series.map((s, sIndex) => {
+                    if (sIndex === setIndex) {
+                        const currentTag = s.tag || (s.isWarmup ? 'W' : 'N');
+                        let nextTag = 'N';
+                        if (currentTag === 'N') nextTag = 'W';
+                        else if (currentTag === 'W') nextTag = 'D';
+                        else if (currentTag === 'D') nextTag = 'F';
+                        else if (currentTag === 'F') nextTag = 'N';
+
+                        return {
+                            ...s,
+                            tag: nextTag,
+                            isWarmup: nextTag === 'W'
+                        };
+                    }
+                    return s;
+                });
+                return { ...ex, series: updatedSeries };
+            }
+            return ex;
+        });
+
+        saveActiveWorkoutState({
+            ...activeWorkout,
+            exercises: updatedExercises
+        });
+    };
+
+    // Busca os dados exatos de carga e reps da última sessão deste exercício
+    const getLastSessionLoad = (exerciseName) => {
+        if (!exerciseName || !history || history.length === 0) return null;
+        const cleanName = exerciseName.toLowerCase().trim();
+        for (let i = 0; i < history.length; i++) {
+            const h = history[i];
+            if (!h.exercises) continue;
+            const match = h.exercises.find(e => e.name && e.name.toLowerCase().trim() === cleanName);
+            if (match && match.series && match.series.length > 0) {
+                return match.series;
+            }
+        }
+        return null;
+    };
+
+    // Volume Total Levantado no Treino (kg movimentados)
+    const totalVolume = useMemo(() => {
+        let vol = 0;
+        exercises.forEach(ex => {
+            (ex.series || []).forEach(s => {
+                if (s.completed && !s.isWarmup) {
+                    const w = parseFloat(s.actualWeight) || parseFloat(s.weight) || 0;
+                    const r = parseInt(s.actualReps) || parseInt(s.reps) || 0;
+                    vol += w * r;
+                }
+            });
+        });
+        return vol;
+    }, [exercises]);
+
+    // Total de Séries Concluídas
+    const totalCompletedSets = useMemo(() => {
+        let count = 0;
+        exercises.forEach(ex => {
+            (ex.series || []).forEach(s => {
+                if (s.completed) count++;
+            });
+        });
+        return count;
+    }, [exercises]);
 
     // Estados do cronômetro específico da série
     const [activeSeriesTimer, setActiveSeriesTimer] = useState(0);
@@ -411,19 +512,6 @@ export default function GymMode({ onFinish, onCancel }) {
     };
 
 
-    const getLastSessionLoad = (exerciseName) => {
-        if (!history || history.length === 0) return null;
-        for (let i = history.length - 1; i >= 0; i--) {
-            const hWorkout = history[i];
-            if (hWorkout.exercises) {
-                const found = hWorkout.exercises.find(ex => ex.name.toLowerCase() === exerciseName.toLowerCase());
-                if (found && found.series && found.series.length > 0) {
-                    return found.series;
-                }
-            }
-        }
-        return null;
-    };
 
     // Resetar expansão das instruções ao mudar de exercício (auto-expande para mobilidade/aquecimento/técnica)
     useEffect(() => {
@@ -557,11 +645,13 @@ export default function GymMode({ onFinish, onCancel }) {
         });
     };
 
-    // Toggle de conclusão de série
+    // Toggle de conclusão de série com auto-preenchimento de valores fantasma
     const handleToggleSetComplete = (setIndex) => {
         let isPRChecked = false;
         let prWeight = 0;
         let prReps = 0;
+        const lastSessionLoad = getLastSessionLoad(currentExercise?.name);
+        const ghostSet = lastSessionLoad && lastSessionLoad[setIndex];
 
         const updatedExercises = exercises.map((ex, exIndex) => {
             if (exIndex === currentExerciseIndex) {
@@ -569,16 +659,33 @@ export default function GymMode({ onFinish, onCancel }) {
                     if (sIndex === setIndex) {
                         const nextCompleted = !s.completed;
                         
-                        // Se completou a série, inicia o timer de descanso!
+                        // Se completou a série, garante preenchimento de carga e reps com valores fantasma
+                        let newActualWeight = s.actualWeight;
+                        if (newActualWeight === null || newActualWeight === undefined || newActualWeight === '') {
+                            newActualWeight = ghostSet ? (ghostSet.actualWeight || ghostSet.weight) : (s.weight || 0);
+                        }
+
+                        let newActualReps = s.actualReps;
+                        if (newActualReps === null || newActualReps === undefined || newActualReps === '') {
+                            newActualReps = ghostSet ? (ghostSet.actualReps || ghostSet.reps) : (s.reps || 10);
+                        }
+
                         if (nextCompleted) {
                             setTimeLeft(restTime);
                             setTimerActive(true);
-                            isPRChecked = true;
-                            prWeight = parseFloat(s.actualWeight) || 0;
-                            prReps = parseInt(s.actualReps) || 0;
+                            if (!s.isWarmup && s.tag !== 'W') {
+                                isPRChecked = true;
+                                prWeight = parseFloat(newActualWeight) || 0;
+                                prReps = parseInt(newActualReps) || 0;
+                            }
                         }
                         
-                        return { ...s, completed: nextCompleted };
+                        return { 
+                            ...s, 
+                            completed: nextCompleted,
+                            actualWeight: newActualWeight,
+                            actualReps: newActualReps
+                        };
                     }
                     return s;
                 });
@@ -592,8 +699,8 @@ export default function GymMode({ onFinish, onCancel }) {
             exercises: updatedExercises
         });
 
-        // Se marcou como concluído, verifica se bateu PR
-        if (isPRChecked) {
+        // Se marcou como concluído e não é aquecimento, verifica se bateu PR
+        if (isPRChecked && prWeight > 0) {
             const exerciseName = currentExercise.name;
             const prevPR = personalRecords[exerciseName];
             const isNewPR = !prevPR || 
@@ -824,39 +931,49 @@ export default function GymMode({ onFinish, onCancel }) {
                     Você completou com sucesso a rotina <strong>{activeWorkout.workoutName}</strong>.
                 </p>
 
-                {/* Caixa de Estatísticas Rápidas */}
+                {/* Caixa de Estatísticas Rápidas (3 Colunas) */}
                 <div style={{
-                    display: 'flex',
-                    gap: '15px',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
                     width: '100%',
                     maxWidth: '360px',
-                    marginBottom: '30px'
+                    marginBottom: '25px'
                 }}>
                     <div style={{
-                        flex: 1,
                         background: 'var(--bg-secondary)',
                         border: '1px solid rgba(255,255,255,0.05)',
                         borderRadius: '16px',
-                        padding: '15px',
+                        padding: '12px 8px',
                         textAlign: 'center'
                     }}>
-                        <span style={{ fontSize: '20px', display: 'block', marginBottom: '5px' }}>⏱️</span>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block' }}>Duração</span>
-                        <strong style={{ fontSize: '18px', color: '#fff' }}>{Math.round(durationTimer / 60)} min</strong>
+                        <span style={{ fontSize: '18px', display: 'block', marginBottom: '3px' }}>⏱️</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Duração</span>
+                        <strong style={{ fontSize: '15px', color: '#fff' }}>{Math.round(durationTimer / 60)} min</strong>
                     </div>
                     <div style={{
-                        flex: 1,
                         background: 'var(--bg-secondary)',
                         border: '1px solid rgba(255,255,255,0.05)',
                         borderRadius: '16px',
-                        padding: '15px',
+                        padding: '12px 8px',
                         textAlign: 'center'
                     }}>
-                        <span style={{ fontSize: '20px', display: 'block', marginBottom: '5px' }}>💪</span>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block' }}>Exercícios</span>
-                        <strong style={{ fontSize: '18px', color: '#fff' }}>
-                            {exercises.filter(ex => ex.series.some(s => s.completed)).length} / {exercises.length}
+                        <span style={{ fontSize: '18px', display: 'block', marginBottom: '3px' }}>📊</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Volume</span>
+                        <strong style={{ fontSize: '15px', color: 'var(--accent)' }}>
+                            {totalVolume > 1000 ? `${(totalVolume / 1000).toFixed(1)} t` : `${totalVolume} kg`}
                         </strong>
+                    </div>
+                    <div style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        borderRadius: '16px',
+                        padding: '12px 8px',
+                        textAlign: 'center'
+                    }}>
+                        <span style={{ fontSize: '18px', display: 'block', marginBottom: '3px' }}>🔢</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Séries</span>
+                        <strong style={{ fontSize: '15px', color: '#34d399' }}>{totalCompletedSets}</strong>
                     </div>
                 </div>
 
@@ -959,9 +1076,33 @@ export default function GymMode({ onFinish, onCancel }) {
                     </div>
                 </div>
 
-                <button className="btn-primary" onClick={handleConfirmFinish} style={{ maxWidth: '360px' }}>
-                    Concluir e Salvar
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '360px' }}>
+                    <button 
+                        type="button"
+                        onClick={() => setShowShareModal(true)}
+                        style={{
+                            background: '#25D366',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '14px',
+                            borderRadius: '12px',
+                            fontSize: '14px',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)'
+                        }}
+                    >
+                        💬 Compartilhar Resumo no WhatsApp
+                    </button>
+
+                    <button className="btn-primary" onClick={handleConfirmFinish}>
+                        Concluir e Salvar Treino
+                    </button>
+                </div>
             </div>
         );
     }
@@ -1028,13 +1169,21 @@ export default function GymMode({ onFinish, onCancel }) {
                     >
                         {currentExercise.name}
                     </h2>
-                    <div 
-                        onClick={() => { setHistoryModalExercise(currentExercise.name); setShowHistoryModal(true); }}
-                        style={{ fontSize: '11px', color: 'var(--accent)', marginBottom: '6px', cursor: 'pointer', fontWeight: '500' }}
-                    >
-                        📊 Ver histórico de cargas
+                    <div style={{ fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {category}
                     </div>
-                    <span style={{ fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>{category}</span>
+                    
+                    {/* Anotação de Regulagem no Modo Foco */}
+                    <div className="exercise-note-container" style={{ margin: '8px auto 0', maxWidth: '320px' }}>
+                        <span style={{ fontSize: '13px' }}>📌</span>
+                        <input 
+                            type="text" 
+                            className="exercise-note-input" 
+                            placeholder="Nota de regulagem (ex: banco 3º furo, polia 5)..."
+                            value={exerciseNotes[currentExercise.name] || ''}
+                            onChange={(e) => handleSaveExerciseNote(currentExercise.name, e.target.value)}
+                        />
+                    </div>
                 </div>
 
                 {/* GIF Limpo e Compacto */}
@@ -1048,7 +1197,7 @@ export default function GymMode({ onFinish, onCancel }) {
                     )}
                 </div>
 
-                {/* Dica de Sobrecarga no Modo Foco */}
+                {/* Dica de Sobrecarga e Botões Rápidos no Modo Foco */}
                 {overloadAdvice && (
                     <div style={{
                         background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.12) 0%, rgba(18, 20, 28, 0.95) 100%)',
@@ -1076,55 +1225,64 @@ export default function GymMode({ onFinish, onCancel }) {
                                 {overloadAdvice.message}
                             </p>
                         </div>
-                        {overloadAdvice.suggestedWeight && (
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                             <button
-                                onClick={() => handleApplySuggestedWeight(overloadAdvice.suggestedWeight)}
+                                type="button"
+                                onClick={() => setShowOneRMModal(true)}
                                 style={{
-                                    background: 'var(--accent)',
-                                    color: 'var(--text-dark)',
-                                    border: 'none',
-                                    padding: '6px 10px',
+                                    background: 'rgba(255,255,255,0.06)',
+                                    color: '#fff',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    padding: '6px 8px',
                                     borderRadius: '6px',
                                     fontSize: '11px',
-                                    fontWeight: '800',
-                                    cursor: 'pointer',
-                                    flexShrink: 0
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                + Meta
+                                📈 1RM %
                             </button>
-                        )}
+                            {overloadAdvice.suggestedWeight && (
+                                <button
+                                    onClick={() => handleApplySuggestedWeight(overloadAdvice.suggestedWeight)}
+                                    style={{
+                                        background: 'var(--accent)',
+                                        color: 'var(--text-dark)',
+                                        border: 'none',
+                                        padding: '6px 10px',
+                                        borderRadius: '6px',
+                                        fontSize: '11px',
+                                        fontWeight: '800',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    + Meta
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* Progresso de Séries no Modo Foco */}
+                {/* Progresso de Séries com Tags no Modo Foco */}
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
                     {currentExercise.series.map((s, idx) => (
                         <div 
                             key={idx}
+                            onClick={() => handleCycleSetTag(idx)}
+                            className={`set-tag-pill ${s.tag === 'W' || s.isWarmup ? 'set-tag-warmup' : s.tag === 'D' ? 'set-tag-dropset' : s.tag === 'F' ? 'set-tag-failure' : 'set-tag-normal'}`}
                             style={{
-                                width: '30px',
-                                height: '30px',
+                                width: '34px',
+                                height: '34px',
                                 borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                transition: 'var(--transition)',
-                                background: idx === displaySetIdx 
-                                    ? 'var(--accent)' 
-                                    : (s.completed ? 'rgba(52, 211, 153, 0.2)' : 'rgba(255,255,255,0.05)'),
-                                color: idx === displaySetIdx 
-                                    ? 'var(--text-dark)' 
-                                    : (s.completed ? '#34d399' : 'var(--text-muted)'),
-                                border: idx === displaySetIdx 
-                                    ? '2px solid #fff' 
-                                    : (s.completed ? '1px solid rgba(52, 211, 153, 0.4)' : '1px solid rgba(255,255,255,0.08)'),
-                                boxShadow: idx === displaySetIdx ? 'var(--shadow-glow)' : 'none'
+                                fontSize: '11px',
+                                fontWeight: '800',
+                                border: idx === displaySetIdx ? '2px solid var(--accent)' : undefined,
+                                boxShadow: idx === displaySetIdx ? 'var(--shadow-glow)' : 'none',
+                                cursor: 'pointer'
                             }}
+                            title="Toque para alternar tipo de série (Normal, Aquecimento, Drop-set, Falha)"
                         >
-                            {s.isWarmup ? 'AQ' : idx + 1}
+                            {s.tag || (s.isWarmup ? 'W' : 'N')}{idx + 1}
                         </div>
                     ))}
                 </div>
@@ -1132,18 +1290,28 @@ export default function GymMode({ onFinish, onCancel }) {
                 {/* Painel Central: Série Ativa e Inputs Gigantes */}
                 <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px', gap: '20px', marginBottom: '20px', background: 'rgba(18, 20, 28, 0.95)' }}>
                     <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '4px' }}>
-                            Série Ativa
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                Série Ativa
+                            </span>
+                            <span 
+                                onClick={() => handleCycleSetTag(displaySetIdx)}
+                                className={`set-tag-pill ${activeSet.tag === 'W' || activeSet.isWarmup ? 'set-tag-warmup' : activeSet.tag === 'D' ? 'set-tag-dropset' : activeSet.tag === 'F' ? 'set-tag-failure' : 'set-tag-normal'}`}
+                                style={{ width: '22px', height: '22px', fontSize: '10px', cursor: 'pointer' }}
+                                title="Toque para alternar tipo"
+                            >
+                                {activeSet.tag || (activeSet.isWarmup ? 'W' : 'N')}
+                            </span>
+                        </div>
                         <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#fff' }}>
-                            {activeSet.isWarmup ? 'Aquecimento' : `Série ${displaySetIdx + 1}`} {activeSet.completed && '✓ (Concluída)'}
+                            {activeSet.tag === 'W' || activeSet.isWarmup ? 'Aquecimento' : activeSet.tag === 'D' ? 'Drop-set' : activeSet.tag === 'F' ? 'Falha Total' : `Série ${displaySetIdx + 1}`} {activeSet.completed && '✓ (Concluída)'}
                         </h3>
                     </div>
 
                     {/* Mostra carga anterior */}
                     {prevSet ? (
                         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--accent)', background: 'rgba(var(--accent-rgb), 0.05)', padding: '6px 12px', borderRadius: '8px', fontWeight: '600' }}>
-                            ⏮️ Anterior: {isCurrentTimeBased ? `${prevSet.actualReps} s` : `${prevSet.actualWeight} kg x ${prevSet.actualReps} reps`}
+                            ⏮️ Anterior: {isCurrentTimeBased ? `${prevSet.actualReps} s` : `${prevSet.actualWeight || prevSet.weight} kg x ${prevSet.actualReps || prevSet.reps} reps`}
                         </div>
                     ) : pr ? (
                         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--accent)', background: 'rgba(var(--accent-rgb), 0.05)', padding: '6px 12px', borderRadius: '8px', fontWeight: '600' }}>
@@ -1215,7 +1383,7 @@ export default function GymMode({ onFinish, onCancel }) {
                                 <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tempo Manual (s)</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => handleAdjustActiveSet('actualReps', -1)}
                                         style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
                                     >
@@ -1224,12 +1392,13 @@ export default function GymMode({ onFinish, onCancel }) {
                                     <input 
                                         type="number" 
                                         value={activeSet.actualReps ?? ''} 
+                                        placeholder={prevSet ? `${prevSet.actualReps || prevSet.reps}` : (activeSet.reps || '0')}
                                         onChange={e => handleUpdateSet(displaySetIdx, 'actualReps', e.target.value)}
                                         disabled={activeSet.completed}
                                         style={{ width: '100px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '24px', fontWeight: '800', textAlign: 'center', padding: '8px', borderRadius: '12px' }}
                                     />
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => handleAdjustActiveSet('actualReps', 1)}
                                         style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: '16px' }}
                                     >
@@ -1262,12 +1431,33 @@ export default function GymMode({ onFinish, onCancel }) {
                     ) : (
                         /* Modo Foco - Seletores Tradicionais de Musculação */
                         <>
-                            {/* Input Gigante de Peso */}
+                            {/* Input Gigante de Peso com Botão de Anilhas */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>Carga (kg)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Carga (kg)</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setPlateModalWeight(parseFloat(activeSet.actualWeight) || parseFloat(activeSet.weight) || 60);
+                                            setShowPlateModal(true);
+                                        }}
+                                        style={{
+                                            background: 'rgba(59, 130, 246, 0.15)',
+                                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                                            color: '#60a5fa',
+                                            padding: '2px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '10px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        🧮 Anilhas
+                                    </button>
+                                </div>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => handleAdjustActiveSet('actualWeight', -5)}
                                         style={{ width: '55px', height: '55px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}
                                     >
@@ -1276,12 +1466,13 @@ export default function GymMode({ onFinish, onCancel }) {
                                     <input 
                                         type="number" 
                                         value={activeSet.actualWeight ?? ''} 
+                                        placeholder={prevSet ? `${prevSet.actualWeight || prevSet.weight}` : (activeSet.weight || '0')}
                                         onChange={e => handleUpdateSet(displaySetIdx, 'actualWeight', e.target.value)}
                                         disabled={activeSet.completed}
                                         style={{ width: '80px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '28px', fontWeight: '800', textAlign: 'center', padding: '10px', borderRadius: '12px' }}
                                     />
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => handleAdjustActiveSet('actualWeight', 5)}
                                         style={{ width: '55px', height: '55px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}
                                     >
@@ -1290,12 +1481,12 @@ export default function GymMode({ onFinish, onCancel }) {
                                 </div>
                             </div>
 
-                            {/* Input Gigante de Repetições (Apenas de 1 em 1 conforme pedido) */}
+                            {/* Input Gigante de Repetições */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>Repetições</label>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => handleAdjustActiveSet('actualReps', -1)}
                                         style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
                                     >
@@ -1304,12 +1495,13 @@ export default function GymMode({ onFinish, onCancel }) {
                                     <input 
                                         type="number" 
                                         value={activeSet.actualReps ?? ''} 
+                                        placeholder={prevSet ? `${prevSet.actualReps || prevSet.reps}` : (activeSet.reps || '10')}
                                         onChange={e => handleUpdateSet(displaySetIdx, 'actualReps', e.target.value)}
                                         disabled={activeSet.completed}
                                         style={{ width: '80px', background: 'var(--bg-tertiary)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '28px', fontWeight: '800', textAlign: 'center', padding: '10px', borderRadius: '12px' }}
                                     />
                                     <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => handleAdjustActiveSet('actualReps', 1)}
                                         style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '20px' }}
                                     >
@@ -1535,7 +1727,59 @@ export default function GymMode({ onFinish, onCancel }) {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
                         <p>{category}</p>
-                        <div style={{ display: 'flex', gap: '6px' }}>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                            {!isCurrentTimeBased && (
+                                <>
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            const w = parseFloat(series[activeSetIdx !== -1 ? activeSetIdx : 0]?.actualWeight) || parseFloat(series[0]?.weight) || targetW || 20;
+                                            setPlateModalWeight(w);
+                                            setShowPlateModal(true);
+                                        }}
+                                        style={{
+                                            background: 'rgba(59, 130, 246, 0.15)',
+                                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                                            color: '#60a5fa',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '10px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '2px',
+                                            backdropFilter: 'blur(4px)',
+                                            transition: 'var(--transition)'
+                                        }}
+                                        title="Calculadora visual de anilhas"
+                                    >
+                                        🧮 Anilhas
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowOneRMModal(true)}
+                                        style={{
+                                            background: 'rgba(168, 85, 247, 0.15)',
+                                            border: '1px solid rgba(168, 85, 247, 0.3)',
+                                            color: '#c084fc',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '10px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '2px',
+                                            backdropFilter: 'blur(4px)',
+                                            transition: 'var(--transition)'
+                                        }}
+                                        title="Tabela de porcentagens de 1RM"
+                                    >
+                                        📈 1RM %
+                                    </button>
+                                </>
+                            )}
                             <button 
                                 className="btn-warmup"
                                 onClick={handleAddWarmupSets}
@@ -1638,6 +1882,18 @@ export default function GymMode({ onFinish, onCancel }) {
                         {getExerciseInstruction(currentExercise.name, category)}
                     </div>
                 )}
+            </div>
+
+            {/* Nota de Equipamento / Regulagem (Persistent Note) */}
+            <div className="exercise-note-container" style={{ marginBottom: '15px' }}>
+                <span className="exercise-note-icon">📝</span>
+                <input 
+                    type="text" 
+                    className="exercise-note-input"
+                    placeholder="Nota de regulagem (ex: banco 3º furo, polia 5)..."
+                    value={exerciseNotes[currentExercise?.name] || ''}
+                    onChange={e => handleSaveExerciseNote(currentExercise?.name, e.target.value)}
+                />
             </div>
 
             {currentExercise.notes && (
@@ -1767,189 +2023,196 @@ export default function GymMode({ onFinish, onCancel }) {
                 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: isCurrentTimeBased ? '30px 1fr 40px' : '30px 1fr 1fr 40px',
+                    gridTemplateColumns: isCurrentTimeBased ? '36px 1fr 40px' : '36px 1fr 1fr 40px',
                     padding: '0 8px 5px',
                     fontSize: '11px',
                     color: 'var(--text-muted)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                 }}>
-                    <div>Série</div>
+                    <div>Tipo</div>
                     {!isCurrentTimeBased && <div style={{ textAlign: 'center' }}>Peso (kg)</div>}
                     <div style={{ textAlign: 'center' }}>{isCurrentTimeBased ? 'Tempo (s)' : 'Reps'}</div>
                     <div style={{ textAlign: 'right' }}>Status</div>
                 </div>
 
-                {currentExercise.series.map((set, setIdx) => (
-                    <div 
-                        key={setIdx} 
-                        className={`set-row-item ${set.completed ? 'done' : ''} ${set.isWarmup ? 'warmup-row' : ''}`}
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: isCurrentTimeBased ? '30px 1fr 40px' : '30px 1fr 1fr 40px',
-                            alignItems: 'center'
-                        }}
-                    >
-                        <div className="set-number" style={set.isWarmup ? {
-                            background: 'rgba(234, 179, 8, 0.15)',
-                            color: '#eab308',
-                            border: '1px solid rgba(234, 179, 8, 0.3)'
-                        } : {}}>
-                            {set.isWarmup ? 'AQ' : setIdx + 1}
-                        </div>
-                        
-                        {/* Peso (Ocultado em exercícios de tempo) */}
-                        {!isCurrentTimeBased && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', width: '100%', justifyContent: 'center' }}>
-                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -5)} disabled={set.completed}>-5</button>
-                                    <div className="set-input-wrap" style={{ width: '46px', padding: '4px 4px' }}>
-                                        <input 
-                                            type="number" 
-                                            value={set.actualWeight ?? ''} 
-                                            onChange={e => handleUpdateSet(setIdx, 'actualWeight', e.target.value)}
-                                            disabled={set.completed}
-                                            style={{ fontSize: '12px' }}
-                                        />
-                                        <span>kg</span>
-                                    </div>
-                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', 5)} disabled={set.completed}>+5</button>
-                                </div>
-                                {lastLoadSeries && lastLoadSeries[setIdx] && (
-                                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
-                                        Ant: {lastLoadSeries[setIdx].actualWeight}kg
-                                    </span>
-                                )}
+                {currentExercise.series.map((set, setIdx) => {
+                    const tag = set.tag || (set.isWarmup ? 'W' : 'N');
+                    const tagClass = tag === 'W' ? 'warmup' : tag === 'D' ? 'dropset' : tag === 'F' ? 'failure' : 'normal';
+                    
+                    return (
+                        <div 
+                            key={setIdx} 
+                            className={`set-row-item ${set.completed ? 'done' : ''} ${set.isWarmup ? 'warmup-row' : ''}`}
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: isCurrentTimeBased ? '36px 1fr 40px' : '36px 1fr 1fr 40px',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <div 
+                                className={`set-tag-pill set-tag-${tagClass}`}
+                                onClick={() => handleCycleSetTag(setIdx)}
+                                title="Toque para alternar tipo (N = Normal, W = Aquecimento, D = Drop-set, F = Falha)"
+                            >
+                                {tag}{setIdx + 1}
                             </div>
-                        )}
+                            
+                            {/* Peso (Ocultado em exercícios de tempo) */}
+                            {!isCurrentTimeBased && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', width: '100%', justifyContent: 'center' }}>
+                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', -5)} disabled={set.completed}>-5</button>
+                                        <div className="set-input-wrap" style={{ width: '46px', padding: '4px 4px' }}>
+                                            <input 
+                                                type="number" 
+                                                value={set.actualWeight ?? ''} 
+                                                onChange={e => handleUpdateSet(setIdx, 'actualWeight', e.target.value)}
+                                                disabled={set.completed}
+                                                placeholder={lastLoadSeries && lastLoadSeries[setIdx] ? String(lastLoadSeries[setIdx].actualWeight) : (targetW ? String(targetW) : '0')}
+                                                style={{ fontSize: '12px' }}
+                                            />
+                                            <span>kg</span>
+                                        </div>
+                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualWeight', 5)} disabled={set.completed}>+5</button>
+                                    </div>
+                                    {lastLoadSeries && lastLoadSeries[setIdx] && (
+                                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                            Ant: {lastLoadSeries[setIdx].actualWeight}kg
+                                        </span>
+                                    )}
+                                </div>
+                            )}
 
-                        {/* Repetições ou Tempo */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                            {isCurrentTimeBased ? (
-                                set.completed ? (
-                                    /* Série Concluída por Tempo */
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8 }}>
-                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)}>-</button>
-                                        <div className="set-input-wrap" style={{ width: '56px', padding: '2px 4px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.3)' }}>
+                            {/* Repetições ou Tempo */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                {isCurrentTimeBased ? (
+                                    set.completed ? (
+                                        /* Série Concluída por Tempo */
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8 }}>
+                                            <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)}>-</button>
+                                            <div className="set-input-wrap" style={{ width: '56px', padding: '2px 4px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.3)' }}>
+                                                <input 
+                                                    type="number" 
+                                                    value={set.actualReps ?? ''} 
+                                                    onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
+                                                    style={{ fontSize: '12px', textAlign: 'center', color: '#34d399', fontWeight: 'bold' }}
+                                                />
+                                                <span style={{ fontSize: '10px', color: '#34d399' }}>s</span>
+                                            </div>
+                                            <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)}>+</button>
+                                        </div>
+                                    ) : (
+                                        isSeriesTimerRunning && timerSetIndex === setIdx ? (
+                                            /* Timer Rodando Ativamente para esta série */
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ 
+                                                    fontSize: '15px', 
+                                                    fontFamily: 'monospace', 
+                                                    fontWeight: '800', 
+                                                    color: 'var(--accent)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '3px'
+                                                }}>
+                                                    ⏱️ {activeSeriesTimer}s
+                                                </span>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => handleStopSeriesTimer(setIdx)}
+                                                    style={{
+                                                        background: '#ef4444',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        padding: '3px 8px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '10px',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '2px'
+                                                    }}
+                                                >
+                                                    ⏹️ Parar
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            /* Timer parado, pronto para Iniciar ou digitar manual */
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => handleStartOverlayTimer(setIdx)}
+                                                    style={{
+                                                        background: '#10b981',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        padding: '3px 8px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '10px',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '2px'
+                                                    }}
+                                                >
+                                                    ▶️ Iniciar
+                                                </button>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)}>-</button>
+                                                    <div className="set-input-wrap" style={{ width: '48px', padding: '2px 4px' }}>
+                                                        <input 
+                                                            type="number" 
+                                                            value={set.actualReps ?? ''} 
+                                                            onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
+                                                            placeholder={lastLoadSeries && lastLoadSeries[setIdx] ? String(lastLoadSeries[setIdx].actualReps) : (set.reps || '0')}
+                                                            style={{ fontSize: '12px', textAlign: 'center' }}
+                                                        />
+                                                        <span style={{ fontSize: '10px' }}>s</span>
+                                                    </div>
+                                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)}>+</button>
+                                                </div>
+                                            </div>
+                                        )
+                                    )
+                                ) : (
+                                    /* Repetições tradicionais */
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', width: '100%', justifyContent: 'center' }}>
+                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)} disabled={set.completed}>-</button>
+                                        <div className="set-input-wrap" style={{ width: '48px', padding: '4px 4px' }}>
                                             <input 
                                                 type="number" 
                                                 value={set.actualReps ?? ''} 
                                                 onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
-                                                style={{ fontSize: '12px', textAlign: 'center', color: '#34d399', fontWeight: 'bold' }}
+                                                disabled={set.completed}
+                                                placeholder={lastLoadSeries && lastLoadSeries[setIdx] ? String(lastLoadSeries[setIdx].actualReps) : (set.reps || '10')}
+                                                style={{ fontSize: '12px' }}
                                             />
-                                            <span style={{ fontSize: '10px', color: '#34d399' }}>s</span>
+                                            <span>r</span>
                                         </div>
-                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)}>+</button>
+                                        <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)} disabled={set.completed}>+</button>
                                     </div>
-                                ) : (
-                                    isSeriesTimerRunning && timerSetIndex === setIdx ? (
-                                        /* Timer Rodando Ativamente para esta série */
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span style={{ 
-                                                fontSize: '15px', 
-                                                fontFamily: 'monospace', 
-                                                fontWeight: '800', 
-                                                color: 'var(--accent)',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '3px'
-                                            }}>
-                                                ⏱️ {activeSeriesTimer}s
-                                            </span>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => handleStopSeriesTimer(setIdx)}
-                                                style={{
-                                                    background: '#ef4444',
-                                                    color: '#fff',
-                                                    border: 'none',
-                                                    padding: '3px 8px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '10px',
-                                                    fontWeight: '700',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '2px'
-                                                }}
-                                            >
-                                                ⏹️ Parar
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        /* Timer parado, pronto para Iniciar ou digitar manual */
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => handleStartOverlayTimer(setIdx)}
-                                                style={{
-                                                    background: '#10b981',
-                                                    color: '#fff',
-                                                    border: 'none',
-                                                    padding: '3px 8px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '10px',
-                                                    fontWeight: '700',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '2px'
-                                                }}
-                                            >
-                                                ▶️ Iniciar
-                                            </button>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)}>-</button>
-                                                <div className="set-input-wrap" style={{ width: '48px', padding: '2px 4px' }}>
-                                                    <input 
-                                                        type="number" 
-                                                        value={set.actualReps ?? ''} 
-                                                        onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
-                                                        placeholder={set.reps || '0'}
-                                                        style={{ fontSize: '12px', textAlign: 'center' }}
-                                                    />
-                                                    <span style={{ fontSize: '10px' }}>s</span>
-                                                </div>
-                                                <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)}>+</button>
-                                            </div>
-                                        </div>
-                                    )
-                                )
-                            ) : (
-                                /* Repetições tradicionais */
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', width: '100%', justifyContent: 'center' }}>
-                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', -1)} disabled={set.completed}>-</button>
-                                    <div className="set-input-wrap" style={{ width: '48px', padding: '4px 4px' }}>
-                                        <input 
-                                            type="number" 
-                                            value={set.actualReps ?? ''} 
-                                            onChange={e => handleUpdateSet(setIdx, 'actualReps', e.target.value)}
-                                            disabled={set.completed}
-                                            style={{ fontSize: '12px' }}
-                                        />
-                                        <span>r</span>
-                                    </div>
-                                    <button type="button" className="adjust-btn btn-mini" onClick={() => handleAdjustSet(setIdx, 'actualReps', 1)} disabled={set.completed}>+</button>
-                                </div>
-                            )}
-                            {lastLoadSeries && lastLoadSeries[setIdx] && (
-                                <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
-                                    Ant: {lastLoadSeries[setIdx].actualReps}{isCurrentTimeBased ? 's' : ' r'}
-                                </span>
-                            )}
-                        </div>
+                                )}
+                                {lastLoadSeries && lastLoadSeries[setIdx] && (
+                                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                        Ant: {lastLoadSeries[setIdx].actualReps}{isCurrentTimeBased ? 's' : ' r'}
+                                    </span>
+                                )}
+                            </div>
 
-                        {/* Status Checkmark */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <div 
-                                className={`checkbox-completed ${set.completed ? 'checked' : ''}`}
-                                onClick={() => handleToggleSetComplete(setIdx)}
-                            >
-                                {set.completed ? '✓' : ''}
+                            {/* Status Checkmark */}
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <div 
+                                    className={`checkbox-completed ${set.completed ? 'checked' : ''}`}
+                                    onClick={() => handleToggleSetComplete(setIdx)}
+                                >
+                                    {set.completed ? '✓' : ''}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* ROTEIRO DO TREINO */}
@@ -2455,6 +2718,82 @@ export default function GymMode({ onFinish, onCancel }) {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Modal Calculadora de Anilhas */}
+            {showPlateModal && (
+                <PlateCalculatorModal 
+                    initialWeight={plateModalWeight || maxSessionWeight || 20}
+                    onClose={() => setShowPlateModal(false)}
+                    onApplyWeight={(appliedWeight) => {
+                        const updatedExercises = exercises.map((ex, exIndex) => {
+                            if (exIndex === currentExerciseIndex) {
+                                const updatedSeries = ex.series.map(s => {
+                                    if (!s.completed && !s.isWarmup) {
+                                        return { ...s, actualWeight: appliedWeight, weight: appliedWeight };
+                                    }
+                                    return s;
+                                });
+                                return { ...ex, series: updatedSeries };
+                            }
+                            return ex;
+                        });
+                        saveActiveWorkoutState({
+                            ...activeWorkout,
+                            exercises: updatedExercises
+                        });
+                    }}
+                />
+            )}
+
+            {/* Modal Tabela de Porcentagens 1RM */}
+            {showOneRMModal && (
+                <OneRMTableModal 
+                    exerciseName={currentExercise?.name || ''}
+                    weight={maxSessionWeight || targetW || 50}
+                    reps={series[0]?.actualReps || 10}
+                    onClose={() => setShowOneRMModal(false)}
+                    onApplyWeight={(w) => {
+                        const updatedExercises = exercises.map((ex, exIndex) => {
+                            if (exIndex === currentExerciseIndex) {
+                                const updatedSeries = ex.series.map(s => {
+                                    if (!s.completed && !s.isWarmup) {
+                                        return { ...s, actualWeight: w, weight: w };
+                                    }
+                                    return s;
+                                });
+                                return { ...ex, series: updatedSeries };
+                            }
+                            return ex;
+                        });
+                        saveActiveWorkoutState({
+                            ...activeWorkout,
+                            exercises: updatedExercises
+                        });
+                    }}
+                />
+            )}
+
+            {/* Modal de Compartilhamento WhatsApp / Story */}
+            {showShareModal && (
+                <WorkoutShareModal 
+                    workoutName={activeWorkout?.workoutName || 'Treino'}
+                    durationSeconds={durationTimer}
+                    totalVolume={totalVolume}
+                    totalSets={totalCompletedSets}
+                    exercises={exercises}
+                    onClose={() => setShowShareModal(false)}
+                />
+            )}
+
+            {/* Floating Rest Timer Widget */}
+            {timerActive && (
+                <FloatingRestTimer 
+                    timeLeft={timeLeft}
+                    totalDuration={restTime || 60}
+                    onAdjust={handleAdjustTimer}
+                    onSkip={handleSkipRest}
+                />
             )}
         </div>
     );
