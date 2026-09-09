@@ -62,6 +62,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
     const [selectedPresetKey, setSelectedPresetKey] = useState(null);
     const [showCalisteniaModal, setShowCalisteniaModal] = useState(false);
     const [selectedUserWorkout, setSelectedUserWorkout] = useState(null);
+    const [previewExercise, setPreviewExercise] = useState(null);
     const [dashboardView, setDashboardView] = useState('musculacao'); // 'musculacao' | 'calistenia'
     const [expandedSkillId, setExpandedSkillId] = useState(null);
     const [caliInputs, setCaliInputs] = useState({});
@@ -2192,6 +2193,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                         <div 
                                             key={exIdx} 
                                             className="workout-timeline-item"
+                                            onClick={() => setPreviewExercise(ex)}
                                             style={{
                                                 background: 'var(--bg-secondary)',
                                                 border: '1px solid rgba(255,255,255,0.04)',
@@ -2199,8 +2201,11 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                 padding: '12px',
                                                 display: 'flex',
                                                 gap: '12px',
-                                                alignItems: 'center'
+                                                alignItems: 'center',
+                                                cursor: 'pointer',
+                                                transition: 'var(--transition)'
                                             }}
+                                            title="Toque para ver o GIF ampliado"
                                         >
                                             <div style={{
                                                 width: '26px',
@@ -2225,7 +2230,8 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                 overflow: 'hidden',
                                                 background: 'var(--bg-tertiary)',
                                                 flexShrink: 0,
-                                                border: '1px solid rgba(255,255,255,0.05)'
+                                                border: '1px solid rgba(255,255,255,0.05)',
+                                                position: 'relative'
                                             }}>
                                                 <img 
                                                     src={thumb} 
@@ -2233,6 +2239,18 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     onError={(e) => handleImageErrorWithFallback(e, ex)}
                                                 />
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    right: '3px',
+                                                    bottom: '3px',
+                                                    background: 'rgba(0,0,0,0.6)',
+                                                    borderRadius: '4px',
+                                                    padding: '1px 3px',
+                                                    fontSize: '9px',
+                                                    color: '#fff'
+                                                }}>
+                                                    🔍
+                                                </div>
                                             </div>
 
                                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -2295,6 +2313,113 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                 style={{ flex: 2, padding: '12px', fontSize: '14px', fontWeight: 'bold' }}
                             >
                                 ▶ Iniciar Treino
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL DE ZOOM / PREVIEW AMPLIADO DO GIF */}
+            {previewExercise && (
+                <div className="modal-overlay" onClick={() => setPreviewExercise(null)} style={{ zIndex: 120 }}>
+                    <div 
+                        className="modal-sheet" 
+                        style={{ 
+                            maxWidth: '420px', 
+                            height: 'auto', 
+                            maxHeight: '90vh', 
+                            padding: 0,
+                            overflow: 'hidden',
+                            borderRadius: '20px'
+                        }} 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="modal-header-sheet" style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 'bold', letterSpacing: '1px' }}>
+                                    {previewExercise.path ? previewExercise.path.split('/')[1] || 'Exercício' : 'Demonstração'}
+                                </span>
+                                <h3 style={{ margin: '2px 0 0', fontSize: '17px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {previewExercise.name}
+                                </h3>
+                            </div>
+                            <button className="modal-close-btn" onClick={() => setPreviewExercise(null)}>&times;</button>
+                        </div>
+
+                        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
+                            {/* GIF Ampliado */}
+                            <div style={{ 
+                                width: '100%', 
+                                height: '260px', 
+                                background: 'var(--bg-tertiary)', 
+                                borderRadius: '14px', 
+                                overflow: 'hidden',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '1px solid rgba(255,255,255,0.05)'
+                            }}>
+                                <img 
+                                    src={resolveMediaUrl(previewExercise)} 
+                                    alt={previewExercise.name} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                    onError={(e) => handleImageErrorWithFallback(e, previewExercise)}
+                                />
+                            </div>
+
+                            {/* Detalhes de Séries, Reps e Carga */}
+                            <div style={{
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                borderRadius: '12px',
+                                padding: '12px 14px',
+                                display: 'flex',
+                                justifyContent: 'space-around',
+                                textAlign: 'center'
+                            }}>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Séries</span>
+                                    <strong style={{ fontSize: '15px', color: 'var(--accent)' }}>
+                                        {Array.isArray(previewExercise.series) ? previewExercise.series.length : (previewExercise.series || 3)}
+                                    </strong>
+                                </div>
+                                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.05)', height: '24px', margin: 'auto 0' }}></div>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Reps</span>
+                                    <strong style={{ fontSize: '15px', color: '#fff' }}>
+                                        {Array.isArray(previewExercise.series) ? (previewExercise.series[0]?.reps || previewExercise.reps || 10) : (previewExercise.reps || 10)}
+                                    </strong>
+                                </div>
+                                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.05)', height: '24px', margin: 'auto 0' }}></div>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Carga</span>
+                                    <strong style={{ fontSize: '15px', color: '#34d399' }}>
+                                        {previewExercise.weight ? `${previewExercise.weight} kg` : '--'}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            {previewExercise.notes && (
+                                <div style={{
+                                    background: 'rgba(var(--accent-rgb), 0.08)',
+                                    border: '1px solid rgba(var(--accent-rgb), 0.2)',
+                                    borderRadius: '10px',
+                                    padding: '10px 12px',
+                                    fontSize: '12px',
+                                    color: 'var(--text-muted)',
+                                    lineHeight: '1.4'
+                                }}>
+                                    <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: '2px' }}>💡 Dica / Instrução:</strong>
+                                    {previewExercise.notes}
+                                </div>
+                            )}
+
+                            <button 
+                                className="btn-primary" 
+                                onClick={() => setPreviewExercise(null)}
+                                style={{ width: '100%', padding: '12px', marginTop: '4px' }}
+                            >
+                                Fechar Visualização
                             </button>
                         </div>
                     </div>
