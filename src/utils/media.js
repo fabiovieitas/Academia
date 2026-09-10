@@ -18,6 +18,22 @@ export const getFallbackSvg = (muscle = 'Geral') => {
     return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%2312141c"/><circle cx="50" cy="50" r="30" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="28">${icon}</text></svg>`;
 };
 
+const PATH_ALIASES = {
+    'Exercicios/Pernas/Stiff com barra.gif': [
+        'Exercicios/Pernas/Peso muerto piernas rígidas con barra.gif',
+        'Exercicios/Costas/Levantamento Terra Romeno.gif',
+        'Exercicios/Funcional e HIT/Stiff com Elástico de Resistência.gif'
+    ],
+    'Exercicios/Peitoral/Supino Reto.gif': [
+        'Exercicios/Peitoral/Supino com Halteres.gif',
+        'Exercicios/Peitoral/Supino Reto na Máquina.gif'
+    ],
+    'Exercicios/Pernas/Leg Press.gif': [
+        'Exercicios/Pernas/Leg Press Horizontal.gif',
+        'Exercicios/Pernas/Leg Press unilateral.gif'
+    ]
+};
+
 // Pipeline de URLs ordenado por confiabilidade e velocidade
 export const getExerciseMediaUrls = (exercise) => {
     if (!exercise) return [];
@@ -46,9 +62,9 @@ export const getExerciseMediaUrls = (exercise) => {
 
     const list = [];
 
-    // Se for calistenia local, tenta local primeiro
-    if (path.startsWith('Exercicios/Calistenia/')) {
-        list.push(`/${path}`);
+    // Se for arquivo em Exercicios/, tenta carregar localmente primeiro (ultra-rápido e offline)
+    if (path.startsWith('Exercicios/')) {
+        list.push(`/${encodedPath}`);
     }
 
     // 1. Raw GitHub do repositório academia-assets (rápido e direto)
@@ -56,6 +72,17 @@ export const getExerciseMediaUrls = (exercise) => {
 
     // 2. Raw GitHub do repositório Academia (commit com todos os GIFs preservados)
     list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encodedPath}`);
+
+    // 2.1 Aliases inteligentes (para exercícios com nomenclatura alternativa como Stiff, Supino Reto, etc.)
+    if (PATH_ALIASES[path]) {
+        for (const alias of PATH_ALIASES[path]) {
+            const encAlias = encodeURI(alias);
+            list.push(`/${encAlias}`);
+            list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encAlias}`);
+            list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encAlias}`);
+            list.push(`https://fabiovieitas.github.io/academia-assets/${encAlias}`);
+        }
+    }
 
     // 3. CDN GitHub Pages do academia-assets
     list.push(`https://fabiovieitas.github.io/academia-assets/${encodedPath}`);

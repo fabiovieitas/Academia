@@ -1331,19 +1331,13 @@ export const AppProvider = ({ children }) => {
                 }
             ];
         } else {
-            return [
-                {
-                    id: 3,
-                    name: "Treino Inferior Completo (Aparelhos)",
-                    description: "Treino de pernas e glúteos em máquinas",
-                    exercises: [
-                        { name: "Leg Press", path: "Exercicios/Pernas/Leg Press.gif", series: 4, reps: 10, weight: 80, notes: "Manter boa amplitude" },
-                        { name: "Elevação Pélvica na Máquina de Extensão de Pernas", path: "Exercicios/Glúteos/Elevação Pélvica na Máquina de Extensão de Pernas.gif", series: 4, reps: 12, weight: 20, notes: "Pico de contração de 2s" },
-                        { name: "Cadeira extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 3, reps: 10, weight: 25, notes: "Extensão controlada" },
-                        { name: "Abdução de quadril com cabo", path: "Exercicios/Glúteos/Abdução de quadril com cabo.gif", series: 3, reps: 12, weight: 15, notes: "" }
-                    ]
-                }
-            ];
+            const baseTime = Date.now();
+            return (PRESET_WORKOUTS.ESPOSA_VIDA?.workouts || []).map((w, idx) => ({
+                ...w,
+                id: baseTime + idx,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }));
         }
     }
 
