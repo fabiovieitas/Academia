@@ -57,49 +57,40 @@ export const getExerciseMediaUrls = (exercise) => {
     }
 
     const cleanName = name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-    const encodedPath = encodeURI(path);
     const encodedThumb = exercise.thumbnail ? encodeURI(exercise.thumbnail) : '';
+    const aliases = PATH_ALIASES[path] || [];
+    const primaryPath = aliases.length > 0 ? aliases[0] : path;
+    const pathsToTry = aliases.length > 0 ? [aliases[0], path, ...aliases.slice(1)] : [path];
 
     const list = [];
 
-    // Se for arquivo em Exercicios/, tenta carregar localmente primeiro (ultra-rápido e offline)
-    if (path.startsWith('Exercicios/')) {
-        list.push(`/${encodedPath}`);
+    // Se for calistenia (que está commitado no repositório), tenta local primeiro
+    if (path.startsWith('Exercicios/Calistenia/')) {
+        list.push(`/${encodeURI(path)}`);
     }
 
-    // 1. Raw GitHub do repositório academia-assets (rápido e direto)
-    list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encodedPath}`);
-
-    // 2. Raw GitHub do repositório Academia (commit com todos os GIFs preservados)
-    list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encodedPath}`);
-
-    // 2.1 Aliases inteligentes (para exercícios com nomenclatura alternativa como Stiff, Supino Reto, etc.)
-    if (PATH_ALIASES[path]) {
-        for (const alias of PATH_ALIASES[path]) {
-            const encAlias = encodeURI(alias);
-            list.push(`/${encAlias}`);
-            list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encAlias}`);
-            list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encAlias}`);
-            list.push(`https://fabiovieitas.github.io/academia-assets/${encAlias}`);
-        }
+    // 1. GitHub Pages CDN do repositório academia-assets & Commit preservado do Academia (resolução ultra rápida e 100% online)
+    for (const p of pathsToTry) {
+        const enc = encodeURI(p);
+        list.push(`https://fabiovieitas.github.io/academia-assets/${enc}`);
+        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${enc}`);
+        list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${enc}`);
     }
 
-    // 3. CDN GitHub Pages do academia-assets
-    list.push(`https://fabiovieitas.github.io/academia-assets/${encodedPath}`);
-
-    // 4. Se tiver thumbnail configurada no JSON
+    // 2. Se tiver thumbnail configurada no JSON
     if (encodedThumb) {
         list.push(`https://fabiovieitas.github.io/academia-assets/${encodedThumb}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encodedThumb}`);
         list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encodedThumb}`);
+        list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encodedThumb}`);
     }
 
-    // 5. Servidor gifdotreino
-    list.push(`https://www.gifdotreino.com/${encodedPath}`);
+    // 3. Servidor gifdotreino
+    list.push(`https://www.gifdotreino.com/${encodeURI(path)}`);
     list.push(`https://www.gifdotreino.com/thumbnails/${encodeURIComponent(cleanName)}.png`);
 
-    // 6. Local fallback
-    list.push(`/${encodedPath}`);
+    // 4. Local fallback (para desenvolvimento local)
+    list.push(`/${encodeURI(primaryPath)}`);
+    list.push(`/${encodeURI(path)}`);
 
     return Array.from(new Set(list));
 };

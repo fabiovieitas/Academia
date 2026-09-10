@@ -71,6 +71,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
     const [dashboardView, setDashboardView] = useState('musculacao'); // 'musculacao' | 'calistenia'
     const [expandedSkillId, setExpandedSkillId] = useState(null);
     const [caliInputs, setCaliInputs] = useState({});
+    const [workoutToDelete, setWorkoutToDelete] = useState(null);
 
     const handlePrintWorkout = (workout) => {
         const printWindow = window.open('', '_blank');
@@ -977,9 +978,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                 className="btn-icon" 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    if (window.confirm(`Tem certeza que deseja excluir o treino "${workout.name}"?`)) {
-                                                        deleteWorkout(workout.id);
-                                                    }
+                                                    setWorkoutToDelete(workout);
                                                 }}
                                                 title="Excluir Treino"
                                                 style={{ width: '32px', height: '32px', fontSize: '13px' }}
@@ -2483,6 +2482,112 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                 style={{ width: '100%', padding: '12px', marginTop: '4px' }}
                             >
                                 Fechar Visualização
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Confirmação de Exclusão de Treino Customizado */}
+            {workoutToDelete && (
+                <div 
+                    className="modal-overlay" 
+                    onClick={() => setWorkoutToDelete(null)}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        backdropFilter: 'blur(8px)',
+                        zIndex: 10000,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '20px'
+                    }}
+                >
+                    <div 
+                        className="modal-content" 
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            background: '#121214',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.8), 0 0 30px rgba(239, 68, 68, 0.15)',
+                            borderRadius: '20px',
+                            maxWidth: '400px',
+                            width: '100%',
+                            padding: '28px 24px',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                    >
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '50%',
+                            background: 'rgba(239, 68, 68, 0.12)',
+                            color: '#ef4444',
+                            fontSize: '28px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '16px',
+                            border: '1px solid rgba(239, 68, 68, 0.25)'
+                        }}>
+                            🗑️
+                        </div>
+
+                        <h3 style={{ fontSize: '19px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>
+                            Excluir Treino?
+                        </h3>
+
+                        <p style={{ fontSize: '14px', color: 'var(--text-muted, #a1a1aa)', marginBottom: '24px', lineHeight: '1.5' }}>
+                            Tem certeza que deseja excluir o treino <strong style={{ color: '#fff' }}>"{workoutToDelete.name}"</strong>? Esta ação não pode ser desfeita.
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => setWorkoutToDelete(null)}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.06)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: '#fff',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    deleteWorkout(workoutToDelete.id);
+                                    setWorkoutToDelete(null);
+                                }}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                    border: 'none',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
+                                    transition: 'transform 0.1s'
+                                }}
+                            >
+                                Sim, Excluir
                             </button>
                         </div>
                     </div>
