@@ -33,6 +33,7 @@ const COVER_IMAGES = {
     peito: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=600&auto=format&fit=crop',
     costas: 'https://images.unsplash.com/photo-1605296867304-46d5465a25f1?q=80&w=600&auto=format&fit=crop',
     pernas: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=600&auto=format&fit=crop',
+    gluteos: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=600&auto=format&fit=crop',
     core: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=600&auto=format&fit=crop',
     cardio: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop',
     geral: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop'
@@ -60,7 +61,8 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         setExpandedCalisthenicsSkillId,
         updateManeuverStatus,
         startCalisthenicsWorkout,
-        updateManeuverProgress
+        updateManeuverProgress,
+        setToastMessage
     } = useApp();
 
     const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -497,7 +499,12 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
             generatedWorkoutPlan.C
         ]);
 
-        alert('As planilhas do Treino ABC inteligente foram salvas nas suas rotinas!');
+        if (setToastMessage) {
+            setToastMessage('✅ Treinos ABC inteligente salvos com sucesso nas suas rotinas!');
+            setTimeout(() => {
+                setToastMessage(prev => prev && prev.includes('ABC inteligente') ? null : prev);
+            }, 5000);
+        }
         setGeneratedWorkoutPlan(null);
         setShowGeneratorModal(false);
     };
@@ -1955,13 +1962,18 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                     className="btn-primary" 
                                     onClick={() => {
                                         loadPreset(selectedPresetKey);
-                                        alert(`Modelo "${preset.name}" carregado com sucesso nas suas rotinas!`);
                                         setSelectedPresetKey(null);
                                         setShowPresetsModal(false);
+                                        if (setToastMessage) {
+                                            setToastMessage(`✅ Modelo "${preset.name}" carregado com sucesso nas suas rotinas!`);
+                                            setTimeout(() => {
+                                                setToastMessage(prev => prev && prev.includes(preset.name) ? null : prev);
+                                            }, 5000);
+                                        }
                                     }}
-                                    style={{ flex: 1, padding: '12px', background: 'var(--accent)', color: 'var(--text-dark)' }}
+                                    style={{ flex: 1, padding: '12px', background: 'var(--accent)', color: 'var(--text-dark)', fontWeight: 'bold' }}
                                 >
-                                    Importar Planilha
+                                    Carregar Este Treino
                                 </button>
                             </div>
                         </div>

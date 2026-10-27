@@ -410,13 +410,15 @@ function MainAppContent() {
                     animation: 'slideDown 0.3s ease-out, toastPulse 2s infinite',
                     transition: 'all 0.3s ease'
                 }}>
-                    <span style={{ fontSize: '20px' }}>⚡</span>
+                    <span style={{ fontSize: '20px' }}>
+                        {typeof toastMessage === 'string' && toastMessage.startsWith('✅') ? '✅' : '⚡'}
+                    </span>
                     <div style={{ flex: 1, textAlign: 'left' }}>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                            Sincronização Cruzada
+                        <span style={{ fontSize: '10px', color: 'var(--accent)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                            {typeof toastMessage === 'string' && toastMessage.includes('Calistenia') ? 'Sincronização Cruzada' : 'FitLife'}
                         </span>
                         <span style={{ fontSize: '12px', color: '#fff', fontWeight: '500', lineHeight: '1.4', display: 'block', marginTop: '2px' }}>
-                            {toastMessage}
+                            {typeof toastMessage === 'string' ? toastMessage.replace(/^✅\s*/, '') : toastMessage}
                         </span>
                     </div>
                     <button 

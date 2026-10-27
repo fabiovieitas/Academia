@@ -1007,7 +1007,28 @@ export const AppProvider = ({ children }) => {
             updatedAt: new Date().toISOString()
         }));
         
-        const updatedWorkouts = [...workouts, ...newWorkouts];
+        // Evita duplicar rotinas idênticas se já existirem na lista do usuário
+        const existingNames = new Set(workouts.map(w => (w.name || '').trim().toLowerCase()));
+        const nonDuplicateNewWorkouts = newWorkouts.filter(nw => !existingNames.has((nw.name || '').trim().toLowerCase()));
+        
+        let updatedWorkouts;
+        if (nonDuplicateNewWorkouts.length > 0) {
+            updatedWorkouts = [...workouts, ...nonDuplicateNewWorkouts];
+        } else {
+            // Se já existem, atualiza os exercícios com os dados mais recentes do preset sem criar clones
+            updatedWorkouts = workouts.map(w => {
+                const match = preset.workouts.find(pw => (pw.name || '').trim().toLowerCase() === (w.name || '').trim().toLowerCase());
+                if (match) {
+                    return {
+                        ...w,
+                        ...match,
+                        id: w.id,
+                        updatedAt: new Date().toISOString()
+                    };
+                }
+                return w;
+            });
+        }
         saveWorkoutsList(updatedWorkouts);
     };
 
