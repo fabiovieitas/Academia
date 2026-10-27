@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
-import { getExerciseMediaUrls, getFallbackSvg, handleImageErrorWithFallback } from '../utils/media';
+import { getExerciseMediaUrls, getFallbackSvg, handleImageErrorWithFallback, safeMediaUrl } from '../utils/media';
 
 const normalizeString = (str) => {
     return str
@@ -571,7 +571,7 @@ export default function ExerciseBrowser({ onSelect, onClose, initialCategory = '
                                         </div>
                                     ) : (
                                         <img 
-                                            src={encodeURI(previewGifSrc)} 
+                                            src={safeMediaUrl(previewGifSrc)} 
                                             alt={previewExercise.name} 
                                             style={{ width: '100%', maxHeight: '55vh', objectFit: 'contain' }}
                                             onError={handlePreviewGifError}

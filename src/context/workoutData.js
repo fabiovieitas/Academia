@@ -18,7 +18,7 @@ export const CALISTENIA_PROJECT = {
             coverStyle: "core",
             coverUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
             exercises: [
-                { name: "Isometria de Frog Stand (Corvo)", path: "", series: 4, reps: 15, weight: 0, targetWeight: 0, notes: "Equilibre o corpo sobre as mãos com os joelhos apoiados nos cotovelos. Sustente por 15 segundos." },
+                { name: "Isometria de Frog Stand (Corvo)", path: "Exercicios/Calistenia/Isometria_de_Frog_Stand.png", series: 4, reps: 15, weight: 0, targetWeight: 0, notes: "Equilibre o corpo sobre as mãos com os joelhos apoiados nos cotovelos. Sustente por 15 segundos." },
                 { name: "Flexão diamante", path: "Exercicios/Calistenia/Flexão diamante.gif", series: 3, reps: 10, weight: 0, targetWeight: 0, notes: "Fortaleça tríceps e estabilizadores mantendo as mãos juntas" },
                 { name: "Pike Push-up (Flexão Pike)", path: "Exercicios/Calistenia/Flexões de apoio de mão na parede.gif", series: 3, reps: 8, weight: 0, targetWeight: 0, notes: "Foco no ganho de força vertical dos ombros" },
                 { name: "Contração abdominal", path: "Exercicios/Mobilidade/Contração abdominal.gif", series: 3, reps: 15, weight: 0, targetWeight: 0, notes: "Mantenha o core firme e contraído para sustentação" }
@@ -416,7 +416,7 @@ export const PRESET_WORKOUTS = {
                     { name: "Elevação Pélvica Na Máquina", path: "Exercicios/Glúteos/Elevação Pélvica Na Máquina.gif", series: 3, reps: 20, weight: 20, targetWeight: 40, notes: "Foco no glúteo." },
                     { name: "Agachamento Sumô com Halteres", path: "Exercicios/Pernas/Agachamento Sumô com Halteres.gif", series: 3, reps: 12, weight: 10, targetWeight: 20, notes: "Sustentação na subida." },
                     { name: "Elevação de Panturrilha Sentado com Alavanca", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 15, weight: 10, targetWeight: 20, notes: "Gêmeos sentado (faixa de 10 a 20 reps)." },
-                    { name: "Elevação de panturrilha em pé", path: "Exercicios/Panturrilhas/Elevação de panturrilha em pé.gif", series: 4, reps: 15, weight: 0, targetWeight: 0, notes: "Gêmeos plantar (faixa de 10 a 20 reps)." }
+                    { name: "Elevação de panturrilha em pé", path: "Exercicios/Calistenia/Elevação de panturrilha em pé.gif", series: 4, reps: 15, weight: 0, targetWeight: 0, notes: "Gêmeos plantar (faixa de 10 a 20 reps)." }
                 ]
             }
         ]

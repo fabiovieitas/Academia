@@ -10,7 +10,7 @@ import EvolutionView from './components/EvolutionView';
 import SettingsView from './components/SettingsView';
 import FeedView from './components/FeedView';
 import { CALISTHENICS_PATH_MAP } from './context/workoutData';
-import { getExerciseMediaUrls } from './utils/media';
+import { getExerciseMediaUrls, safeMediaUrl } from './utils/media';
 
 function MainAppContent() {
     const { 
@@ -210,7 +210,7 @@ function MainAppContent() {
                                     </div>
                                 ) : (
                                     <img 
-                                        src={encodeURI(detailGifSrc)} 
+                                        src={safeMediaUrl(detailGifSrc)} 
                                         alt={selectedDetailExercise.name} 
                                         onLoad={() => setDetailGifError(false)}
                                         onError={handleDetailGifError}
@@ -394,7 +394,7 @@ function MainAppContent() {
                     top: '20px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    zIndex: 9999,
+                    zIndex: 100000,
                     background: 'rgba(18, 20, 28, 0.96)',
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',

@@ -65,6 +65,15 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         setToastMessage
     } = useApp();
 
+    const showToast = (msg, duration = 3500) => {
+        if (setToastMessage) {
+            setToastMessage(msg);
+            setTimeout(() => {
+                setToastMessage(prev => prev === msg ? null : prev);
+            }, duration);
+        }
+    };
+
     const [showPresetsModal, setShowPresetsModal] = useState(false);
     const [selectedPresetKey, setSelectedPresetKey] = useState(null);
     const [showCalisteniaModal, setShowCalisteniaModal] = useState(false);
@@ -78,7 +87,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
     const handlePrintWorkout = (workout) => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
-            alert('Por favor, permita pop-ups para exportar o PDF.');
+            showToast('⚠️ Por favor, permita pop-ups para exportar o PDF.');
             return;
         }
 
@@ -232,14 +241,14 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         const rawValue = caliInputs[key];
         const val = parseFloat(rawValue);
         if (isNaN(val) || val <= 0) {
-            alert("Por favor, insira um valor numérico válido maior que zero.");
+            showToast("⚠️ Por favor, insira um valor numérico válido maior que zero.");
             return;
         }
         try {
             updateManeuverProgress(maneuverId, type, exerciseName, val);
             setCaliInputs(prev => ({ ...prev, [key]: '' }));
         } catch (err) {
-            alert(err.message);
+            showToast(`⚠️ ${err.message}`);
         }
     };
 
@@ -290,7 +299,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
     // Algoritmo do Gerador Inteligente de Treinos ABC Customizados Adaptativos
     const handleGenerateWorkout = () => {
         if (!exercises || exercises.length === 0) {
-            alert('Erro: Banco de exercícios não carregado.');
+            showToast('⚠️ Erro: Banco de exercícios não carregado.');
             return;
         }
 
@@ -617,7 +626,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
 
     const handleSaveCardio = () => {
         if (!cardioDuration || !cardioDistance) {
-            alert('Por favor, informe a duração e a distância da atividade.');
+            showToast('⚠️ Por favor, informe a duração e a distância da atividade.');
             return;
         }
         
@@ -638,7 +647,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
         setGpxSuccess('');
         setGpxError('');
         setShowCardioModal(false);
-        alert('Atividade de cardio registrada com sucesso!');
+        showToast('✅ Atividade de cardio registrada com sucesso!');
     };
 
     return (
@@ -1175,7 +1184,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                             const nextStatus = maneuver.status === 'treinando' ? 'bloqueado' : 'treinando';
                                                             updateManeuverStatus(maneuver.id, nextStatus);
                                                         } catch (err) {
-                                                            alert(err.message);
+                                                            showToast(`⚠️ ${err.message}`);
                                                         }
                                                     }}
                                                     style={{
@@ -1198,7 +1207,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                                                             try {
                                                                 updateManeuverStatus(maneuver.id, 'dominado');
                                                             } catch (err) {
-                                                                alert(err.message);
+                                                                showToast(`⚠️ ${err.message}`);
                                                             }
                                                         }}
                                                         style={{

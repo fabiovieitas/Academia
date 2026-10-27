@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import ExerciseBrowser from './ExerciseBrowser';
 import { CALISTHENICS_PATH_MAP } from '../context/workoutData';
-import { getExerciseMediaUrls, getFallbackSvg } from '../utils/media';
+import { getExerciseMediaUrls, getFallbackSvg, safeMediaUrl } from '../utils/media';
 import { getExerciseOverloadAdvice } from '../utils/overloadAdvisor';
 import PlateCalculatorModal from './PlateCalculatorModal';
 import OneRMTableModal from './OneRMTableModal';
@@ -76,8 +76,20 @@ export default function GymMode({ onFinish, onCancel }) {
         addFreeWorkoutExercise,
         history,
         speakExerciseStart,
-        exercises: catalogExercises
+        exercises: catalogExercises,
+        setToastMessage
     } = useApp();
+    
+    const [confirmModal, setConfirmModal] = useState(null);
+
+    const showToast = (msg, duration = 3500) => {
+        if (setToastMessage) {
+            setToastMessage(msg);
+            setTimeout(() => {
+                setToastMessage(prev => prev === msg ? null : prev);
+            }, duration);
+        }
+    };
     
     const exercises = activeWorkout?.exercises || [];
     const currentExerciseIndex = activeWorkout?.currentExerciseIndex ?? 0;
@@ -757,7 +769,7 @@ export default function GymMode({ onFinish, onCancel }) {
             ...activeWorkout,
             exercises: updatedExercises
         });
-        alert('Duas séries de aquecimento (50% e 75% da carga alvo) foram adicionadas no início deste exercício!');
+        showToast('🔥 Duas séries de aquecimento adicionadas no início deste exercício!');
     };
 
     // Ajustar tempo do cronômetro (+15s / -15s)
@@ -791,23 +803,65 @@ export default function GymMode({ onFinish, onCancel }) {
             maxHR: parseInt(maxHeartRate) || null
         } : null;
         
-        let savePlanPermanently = false;
         if (activeWorkout?.isPlanModified) {
-            savePlanPermanently = window.confirm(
-                "Você fez alterações neste treino (adicionou ou removeu exercícios).\n\nDeseja salvar essa nova estrutura permanentemente neste plano para treinos futuros?"
-            );
+            setConfirmModal({
+                icon: '📋',
+                title: 'Atualizar Treino Original?',
+                message: 'Você fez alterações na estrutura deste treino (adicionou, removeu ou substituiu exercícios).',
+                description: 'Deseja salvar essa nova estrutura permanentemente neste plano para treinos futuros?',
+                actions: [
+                    {
+                        label: 'Salvar na Ficha',
+                        sublabel: 'Atualiza o plano para treinos futuros',
+                        primary: true,
+                        onClick: () => {
+                            setConfirmModal(null);
+                            finishWorkout(cardioStats, true);
+                            onFinish();
+                        }
+                    },
+                    {
+                        label: 'Apenas para Hoje',
+                        sublabel: 'Mantém o treino original inalterado',
+                        secondary: true,
+                        onClick: () => {
+                            setConfirmModal(null);
+                            finishWorkout(cardioStats, false);
+                            onFinish();
+                        }
+                    }
+                ],
+                onCancel: () => setConfirmModal(null),
+                cancelLabel: 'Voltar ao Treino'
+            });
+            return;
         }
 
-        finishWorkout(cardioStats, savePlanPermanently);
+        finishWorkout(cardioStats, false);
         onFinish();
     };
 
     // Cancelar/Descartar o treino
     const handleCancelWorkout = () => {
-        if (window.confirm('Tem certeza que deseja cancelar o treino atual? Todo o progresso de hoje será perdido.')) {
-            cancelWorkout();
-            onCancel();
-        }
+        setConfirmModal({
+            icon: '⚠️',
+            title: 'Cancelar Treino',
+            message: 'Tem certeza que deseja cancelar o treino atual?',
+            description: 'Todo o progresso realizado na sessão de hoje será perdido.',
+            actions: [
+                {
+                    label: 'Sim, Cancelar Treino',
+                    danger: true,
+                    onClick: () => {
+                        setConfirmModal(null);
+                        cancelWorkout();
+                        onCancel();
+                    }
+                }
+            ],
+            onCancel: () => setConfirmModal(null),
+            cancelLabel: 'Continuar Treinando'
+        });
     };
 
     // Formata o cronômetro do treino para hh:mm:ss
@@ -823,8 +877,6 @@ export default function GymMode({ onFinish, onCancel }) {
         return `${pad(mins)}:${pad(secs)}`;
     };
 
-
-
     // Dados para desenhar o timer circular
     const radius = 90;
     const circumference = 2 * Math.PI * radius;
@@ -837,11 +889,37 @@ export default function GymMode({ onFinish, onCancel }) {
     const targetPercent = targetW > 0 ? Math.min(100, Math.round((maxSessionWeight / targetW) * 100)) : 0;
 
     const handleSwapExercise = (newEx) => {
-        const savePermanently = window.confirm(
-            `Você escolheu substituir este exercício por "${newEx.name}".\n\nDeseja salvar essa substituição permanentemente no seu treino original?`
-        );
-        swapActiveWorkoutExercise(currentExerciseIndex, newEx, savePermanently);
         setIsSwapping(false);
+        setConfirmModal({
+            icon: '🔄',
+            title: 'Substituir Exercício',
+            message: `Substituir "${currentExercise?.name}" por "${newEx.name}"?`,
+            description: 'Deseja salvar essa substituição permanentemente na sua ficha ou aplicar apenas no treino de hoje?',
+            actions: [
+                {
+                    label: 'Salvar na Ficha',
+                    sublabel: 'Atualiza o plano para treinos futuros',
+                    primary: true,
+                    onClick: () => {
+                        swapActiveWorkoutExercise(currentExerciseIndex, newEx, true);
+                        setConfirmModal(null);
+                        showToast(`✅ "${newEx.name}" salvo no seu treino!`);
+                    }
+                },
+                {
+                    label: 'Apenas para Hoje',
+                    sublabel: 'Modifica somente a sessão de treino de hoje',
+                    secondary: true,
+                    onClick: () => {
+                        swapActiveWorkoutExercise(currentExerciseIndex, newEx, false);
+                        setConfirmModal(null);
+                        showToast(`⚡ "${newEx.name}" aplicado para hoje!`);
+                    }
+                }
+            ],
+            onCancel: () => setConfirmModal(null),
+            cancelLabel: 'Cancelar'
+        });
     };
 
     const handleAddExerciseToWorkout = (exerciseTemplate) => {
@@ -865,29 +943,44 @@ export default function GymMode({ onFinish, onCancel }) {
             exercises: updatedExercises,
             isPlanModified: true
         });
-        alert(`Exercício "${exerciseTemplate.name}" adicionado com sucesso no final do treino!`);
+        showToast(`✅ "${exerciseTemplate.name}" adicionado ao treino!`);
     };
 
     const handleRemoveCurrentExercise = () => {
         if (exercises.length <= 1) {
-            alert("Seu treino deve ter pelo menos um exercício!");
+            showToast("⚠️ Seu treino deve ter pelo menos um exercício!");
             return;
         }
 
-        if (window.confirm(`Tem certeza que deseja remover o exercício "${currentExercise.name}" do treino de hoje?`)) {
-            const updatedExercises = exercises.filter((_, idx) => idx !== currentExerciseIndex);
-            // Ajusta o índice do exercício ativo se necessário
-            const newIndex = currentExerciseIndex >= updatedExercises.length 
-                ? updatedExercises.length - 1 
-                : currentExerciseIndex;
+        setConfirmModal({
+            icon: '🗑️',
+            title: 'Remover Exercício',
+            message: `Remover "${currentExercise?.name}" do treino de hoje?`,
+            description: 'Ele não será executado nesta sessão de treino.',
+            actions: [
+                {
+                    label: 'Remover Exercício',
+                    danger: true,
+                    onClick: () => {
+                        const updatedExercises = exercises.filter((_, idx) => idx !== currentExerciseIndex);
+                        const newIndex = currentExerciseIndex >= updatedExercises.length 
+                            ? updatedExercises.length - 1 
+                            : currentExerciseIndex;
 
-            saveActiveWorkoutState({
-                ...activeWorkout,
-                exercises: updatedExercises,
-                currentExerciseIndex: newIndex,
-                isPlanModified: true
-            });
-        }
+                        saveActiveWorkoutState({
+                            ...activeWorkout,
+                            exercises: updatedExercises,
+                            currentExerciseIndex: newIndex,
+                            isPlanModified: true
+                        });
+                        setConfirmModal(null);
+                        showToast(`🗑️ "${currentExercise?.name}" removido.`);
+                    }
+                }
+            ],
+            onCancel: () => setConfirmModal(null),
+            cancelLabel: 'Manter Exercício'
+        });
     };
 
     if (showFinishSummary) {
@@ -1193,7 +1286,7 @@ export default function GymMode({ onFinish, onCancel }) {
                             💪 Guia técnico nas instruções comuns
                         </div>
                     ) : (
-                        <img src={encodeURI(gifSrc)} alt={currentExercise.name} style={{ height: '100%', width: 'auto', objectFit: 'contain' }} onError={handleGifError} />
+                        <img src={safeMediaUrl(gifSrc)} alt={currentExercise.name} style={{ height: '100%', width: 'auto', objectFit: 'contain' }} onError={handleGifError} />
                     )}
                 </div>
 
@@ -1706,7 +1799,7 @@ export default function GymMode({ onFinish, onCancel }) {
                     </div>
                 ) : (
                     <img 
-                        src={encodeURI(gifSrc)} 
+                        src={safeMediaUrl(gifSrc)} 
                         alt={currentExercise.name} 
                         onLoad={() => setGifLoadError(false)}
                         onError={handleGifError}
@@ -2794,6 +2887,106 @@ export default function GymMode({ onFinish, onCancel }) {
                     onAdjust={handleAdjustTimer}
                     onSkip={handleSkipRest}
                 />
+            )}
+
+            {/* Modal de Confirmação In-App (Substituição, Cancelamento, Remoção) */}
+            {confirmModal && (
+                <div 
+                    className="modal-overlay" 
+                    style={{ 
+                        zIndex: 99999, 
+                        animation: 'fadeIn 0.2s ease', 
+                        backdropFilter: 'blur(8px)', 
+                        background: 'rgba(0,0,0,0.8)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '16px'
+                    }}
+                    onClick={confirmModal.onCancel}
+                >
+                    <div 
+                        className="modal-card" 
+                        style={{ 
+                            maxWidth: '400px', 
+                            width: '100%', 
+                            background: 'linear-gradient(180deg, #1e2230 0%, #13151d 100%)', 
+                            border: '1px solid rgba(255,255,255,0.12)', 
+                            borderRadius: '24px', 
+                            padding: '24px 20px', 
+                            textAlign: 'center',
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
+                            animation: 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }} 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div style={{ fontSize: '42px', marginBottom: '12px' }}>
+                            {confirmModal.icon || '💬'}
+                        </div>
+                        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '800', color: '#fff' }}>
+                            {confirmModal.title}
+                        </h3>
+                        <p style={{ margin: '0 0 10px', fontSize: '14px', color: 'rgba(255,255,255,0.95)', lineHeight: '1.45', fontWeight: '600' }}>
+                            {confirmModal.message}
+                        </p>
+                        {confirmModal.description && (
+                            <p style={{ margin: '0 0 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: '1.4' }}>
+                                {confirmModal.description}
+                            </p>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {confirmModal.actions?.map((act, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={act.onClick}
+                                    style={{
+                                        padding: '13px 16px',
+                                        borderRadius: '14px',
+                                        border: 'none',
+                                        fontWeight: '700',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: act.danger 
+                                            ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' 
+                                            : act.primary 
+                                                ? 'linear-gradient(135deg, var(--accent) 0%, #4338ca 100%)' 
+                                                : 'rgba(255,255,255,0.08)',
+                                        color: '#fff',
+                                        boxShadow: act.primary || act.danger ? '0 4px 15px rgba(0,0,0,0.3)' : 'none',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    <span>{act.label}</span>
+                                    {act.sublabel && (
+                                        <span style={{ fontSize: '11px', opacity: 0.75, fontWeight: '400', marginTop: '3px' }}>
+                                            {act.sublabel}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                            <button
+                                onClick={confirmModal.onCancel}
+                                style={{
+                                    padding: '11px 16px',
+                                    borderRadius: '12px',
+                                    background: 'transparent',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    color: 'rgba(255,255,255,0.65)',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    marginTop: '4px'
+                                }}
+                            >
+                                {confirmModal.cancelLabel || 'Cancelar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

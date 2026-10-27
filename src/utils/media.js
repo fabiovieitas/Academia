@@ -18,7 +18,32 @@ export const getFallbackSvg = (muscle = 'Geral') => {
     return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%2312141c"/><circle cx="50" cy="50" r="30" fill="%23191c28"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="28">${icon}</text></svg>`;
 };
 
+export const safeMediaUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('data:')) return url;
+    try {
+        return encodeURI(decodeURI(url));
+    } catch (e) {
+        return url;
+    }
+};
+
 const PATH_ALIASES = {
+    'Exercicios/Panturrilhas/Elevação de panturrilha em pé.gif': [
+        'Exercicios/Calistenia/Elevação de panturrilha em pé.gif',
+        'Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif',
+        'Exercicios/Panturrilhas/Elevação de Panturrilha no Leg Press.gif'
+    ],
+    'Exercicios/Calistenia/Elevação de panturrilha em pé.gif': [
+        'Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif',
+        'Exercicios/Panturrilhas/Elevação de Panturrilha no Leg Press.gif'
+    ],
+    'Exercicios/Calistenia/Isometria_de_Frog_Stand.png': [
+        'Exercicios/Calistenia/Frog_Stand_Assistido.gif'
+    ],
+    'Exercicios/Calistenia/Aquecimento_de_Punhos.png': [
+        'Exercicios/Calistenia/Tecnica_da_Garra.png'
+    ],
     'Exercicios/Pernas/Stiff com barra.gif': [
         'Exercicios/Costas/Levantamento Terra Romeno.gif',
         'Exercicios/Pernas/Peso muerto piernas rígidas con barra.gif',
@@ -48,6 +73,7 @@ const PATH_ALIASES = {
         'Exercicios/Calistenia/Agachamento.gif'
     ],
     'Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif': [
+        'Exercicios/Calistenia/Elevação de panturrilha em pé.gif',
         'Exercicios/Panturrilhas/Elevação de Panturrilha no Leg Press.gif',
         'Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif'
     ],
@@ -79,44 +105,48 @@ export const getExerciseMediaUrls = (exercise) => {
     if (!path) return [];
 
     if (path.startsWith('http')) {
-        return [path];
+        return [safeMediaUrl(path)];
     }
 
     const cleanName = name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
-    const encodedThumb = exercise.thumbnail ? encodeURI(exercise.thumbnail) : '';
+    const encodedThumb = exercise.thumbnail ? safeMediaUrl(exercise.thumbnail) : '';
     const aliases = PATH_ALIASES[path] || [];
     const primaryPath = aliases.length > 0 ? aliases[0] : path;
-    const pathsToTry = aliases.length > 0 ? [aliases[0], path, ...aliases.slice(1)] : [path];
+    const pathsToTry = aliases.length > 0 ? [path, aliases[0], ...aliases.slice(1)] : [path];
 
     const list = [];
 
-    // Se for calistenia (que está commitado no repositório), tenta local primeiro
+    // Se for calistenia ou arquivo local na pasta public, disponibiliza relativo local prioritário
     if (path.startsWith('Exercicios/Calistenia/')) {
-        list.push(`/${encodeURI(path)}`);
+        list.push(`/${safeMediaUrl(path)}`);
     }
 
-    // 1. GitHub Pages CDN do repositório academia-assets & Commit preservado do Academia (resolução ultra rápida e 100% online)
+    // 1. CDNs e Repositórios oficiais do Academia
     for (const p of pathsToTry) {
-        const enc = encodeURI(p);
+        const enc = safeMediaUrl(p);
         list.push(`https://fabiovieitas.github.io/academia-assets/${enc}`);
+        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/main/public/${enc}`);
         list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${enc}`);
         list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${enc}`);
+        list.push(`/${enc}`);
     }
 
     // 2. Se tiver thumbnail configurada no JSON
     if (encodedThumb) {
         list.push(`https://fabiovieitas.github.io/academia-assets/${encodedThumb}`);
+        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/main/public/${encodedThumb}`);
         list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encodedThumb}`);
         list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encodedThumb}`);
+        list.push(`/${encodedThumb}`);
     }
 
     // 3. Servidor gifdotreino
-    list.push(`https://www.gifdotreino.com/${encodeURI(path)}`);
+    list.push(`https://www.gifdotreino.com/${safeMediaUrl(path)}`);
     list.push(`https://www.gifdotreino.com/thumbnails/${encodeURIComponent(cleanName)}.png`);
 
-    // 4. Local fallback (para desenvolvimento local)
-    list.push(`/${encodeURI(primaryPath)}`);
-    list.push(`/${encodeURI(path)}`);
+    // 4. Local fallback
+    list.push(`/${safeMediaUrl(primaryPath)}`);
+    list.push(`/${safeMediaUrl(path)}`);
 
     return Array.from(new Set(list));
 };
