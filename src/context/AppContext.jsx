@@ -1306,30 +1306,13 @@ export const AppProvider = ({ children }) => {
     // Treinos iniciais para novos usuários (para não vir totalmente vazio)
     function getInitialWorkouts(profileId) {
         if (profileId === 'fabio') {
-            return [
-                {
-                    id: 1,
-                    name: "Treino A - Peito e Tríceps (Aparelhos)",
-                    description: "Treino de empurrar para hipertrofia focado em máquinas",
-                    exercises: [
-                        { name: "Supino Reto na Máquina", path: "Exercicios/Peitoral/Supino Reto na Máquina.gif", series: 4, reps: 10, weight: 30, notes: "Foco no controle da descida" },
-                        { name: "Supino inclinado na máquina", path: "Exercicios/Peitoral/Supino inclinado na máquina.gif", series: 3, reps: 10, weight: 20, notes: "" },
-                        { name: "Extensão de tríceps no cabo alto", path: "Exercicios/Tríceps/Extensão de tríceps no cabo alto.gif", series: 4, reps: 12, weight: 25, notes: "" },
-                        { name: "Extensão de tríceps na máquina", path: "Exercicios/Tríceps/Extensão de tríceps na máquina.gif", series: 3, reps: 10, weight: 20, notes: "" }
-                    ]
-                },
-                {
-                    id: 2,
-                    name: "Treino B - Costas e Bíceps (Aparelhos)",
-                    description: "Treino de puxar focado em cabos e polias",
-                    exercises: [
-                        { name: "Puxada Alta", path: "Exercicios/Costas/Puxada Alta.gif", series: 4, reps: 10, weight: 55, notes: "" },
-                        { name: "Remada Sentada na Máquina", path: "Exercicios/Costas/Remada Sentada na Máquina.gif", series: 4, reps: 10, weight: 40, notes: "" },
-                        { name: "Rosca concentrada com cabo", path: "Exercicios/Bíceps/Rosca concentrada com cabo.gif", series: 3, reps: 10, weight: 20, notes: "" },
-                        { name: "Rosca Unilateral com Cabo", path: "Exercicios/Bíceps/Rosca Unilateral com Cabo.gif", series: 3, reps: 12, weight: 10, notes: "" }
-                    ]
-                }
-            ];
+            const baseTime = Date.now();
+            return (PRESET_WORKOUTS.SEMANAL_FORCA?.workouts || []).map((w, idx) => ({
+                ...w,
+                id: baseTime + idx,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }));
         } else {
             const baseTime = Date.now();
             return (PRESET_WORKOUTS.ESPOSA_VIDA?.workouts || []).map((w, idx) => ({

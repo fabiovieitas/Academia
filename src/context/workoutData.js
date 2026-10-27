@@ -238,6 +238,72 @@ export const buildSkillsFromDb = (dbRows) => {
 };
 
 export const PRESET_WORKOUTS = {
+    SEMANAL_FORCA: {
+        name: "📋 Ficha Semanal de Força (Seg a Sex)",
+        difficulty: "Avançado",
+        duration: "40-50 min/dia",
+        description: "Divisão completa de 5 dias (Empurrar, Pernas A, Puxar, Pernas B e Upper Body), combinando cargas altas, intensidade e hipertrofia com 100% dos GIFs mapeados.",
+        workouts: [
+            {
+                name: "Segunda-feira: Empurrar (Peito, Ombros e Tríceps)",
+                description: "Objetivo: Carga alta e estímulo de força na parte superior",
+                coverStyle: "peito",
+                exercises: [
+                    { name: "Supino Reto com Barra", path: "Exercicios/Peitoral/Supino Reto.gif", series: 4, reps: 8, weight: 30, targetWeight: 50, notes: "4 séries x 6 a 8 repetições (60-90s de descanso). Carga alta e estímulo de força na parte superior." },
+                    { name: "Supino Inclinado com Halteres", path: "Exercicios/Peitoral/Supino Inclinado com Halteres.gif", series: 3, reps: 10, weight: 14, targetWeight: 22, notes: "3 séries x 8 a 10 repetições. Controle a descida e mantenha boa amplitude." },
+                    { name: "Desenvolvimento de Ombros com Halteres", path: "Exercicios/Ombros/Desenvolvimento de Ombro no Banco com Halteres.gif", series: 3, reps: 10, weight: 12, targetWeight: 18, notes: "3 séries x 8 a 10 repetições. Banco inclinado a 75-80° para conforto articular." },
+                    { name: "Elevação Lateral de Ombros", path: "Exercicios/Ombros/Elevação lateral de braços com halteres.gif", series: 3, reps: 12, weight: 8, targetWeight: 12, notes: "3 séries x 10 a 12 repetições. Foco no deltoide lateral sem balançar o tronco." },
+                    { name: "Tríceps na Polia (Corda ou Barra)", path: "Exercicios/Tríceps/Tríceps pulley corda.gif", series: 3, reps: 12, weight: 20, targetWeight: 30, notes: "3 séries x 10 a 12 repetições. Cotovelos fixos ao lado do tronco." }
+                ]
+            },
+            {
+                name: "Terça-feira [40 MIN]: Pernas A (Foco Quadríceps & Panturrilhas)",
+                description: "Estratégia: Treino denso e direto ao ponto, priorizando grandes cargas",
+                coverStyle: "pernas",
+                exercises: [
+                    { name: "Agachamento Livre ou Smith", path: "Exercicios/Pernas/Agachamento Barra.gif", series: 4, reps: 8, weight: 40, targetWeight: 70, notes: "4 séries x 6 a 8 repetições. Priorize grandes cargas com profundidade e postura firme." },
+                    { name: "Leg Press 45°", path: "Exercicios/Pernas/Leg Press.gif", series: 3, reps: 12, weight: 80, targetWeight: 140, notes: "3 séries x 10 a 12 repetições (descanso de 60s). Foco no quadríceps e controle da fase excêntrica." },
+                    { name: "Cadeira Extensora", path: "Exercicios/Pernas/Cadeira extensora.gif", series: 3, reps: 15, weight: 30, targetWeight: 50, notes: "3 séries x 12 a 15 repetições (até a falha na última). Segure 1s no topo da contração." },
+                    { name: "Panturrilha em Pé", path: "Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif", series: 4, reps: 15, weight: 20, targetWeight: 40, notes: "4 séries x 12 a 15 repetições. Alongamento completo no ponto mais baixo e pico no topo." }
+                ]
+            },
+            {
+                name: "Quarta-feira: Puxar (Costas, Bíceps e Deltoide Posterior)",
+                description: "Objetivo: Largura e espessura de dorsais",
+                coverStyle: "costas",
+                exercises: [
+                    { name: "Puxada Alta na Polia (ou Barra Fixa)", path: "Exercicios/Costas/Puxada Alta.gif", series: 4, reps: 8, weight: 45, targetWeight: 65, notes: "4 séries x 6 a 8 repetições. Puxe direcionando os cotovelos para baixo e retraindo as escápulas." },
+                    { name: "Remada Curvada com Barra ou Remada Baixa", path: "Exercicios/Costas/Remada Curvada com Barra.gif", series: 3, reps: 10, weight: 30, targetWeight: 50, notes: "3 séries x 8 a 10 repetições. Tronco inclinado e estável, puxe em direção ao umbigo." },
+                    { name: "Remada Unilateral com Halter (Serrote)", path: "Exercicios/Costas/Serrote.gif", series: 3, reps: 12, weight: 16, targetWeight: 24, notes: "3 séries x 10 a 12 repetições. Apoio firme no banco, cotovelos rentes ao tronco." },
+                    { name: "Face Pull na Polia (Deltoide Posterior)", path: "Exercicios/Trapézio/Face Pull.gif", series: 3, reps: 15, weight: 15, targetWeight: 25, notes: "3 séries x 12 a 15 repetições. Puxe a corda em direção aos olhos com rotação externa." },
+                    { name: "Rosca Direta com Barra", path: "Exercicios/Bíceps/Rosca Direta com Barra.gif", series: 3, reps: 10, weight: 10, targetWeight: 20, notes: "3 séries x 8 a 10 repetições. Cotovelos firmes e estáveis ao lado do tronco." }
+                ]
+            },
+            {
+                name: "Quinta-feira [40 MIN]: Pernas B (Foco Posterior, Glúteos & Panturrilhas)",
+                description: "Estratégia: Trabalho focado na cadeia posterior para garantir estímulo 2x na semana",
+                coverStyle: "gluteos",
+                exercises: [
+                    { name: "Stiff (Levantamento Terra Romeno)", path: "Exercicios/Costas/Levantamento Terra Romeno.gif", series: 4, reps: 10, weight: 30, targetWeight: 50, notes: "4 séries x 8 a 10 repetições. Projete o quadril para trás sentindo o alongamento da cadeia posterior." },
+                    { name: "Mesa Flexora ou Cadeira Flexora", path: "Exercicios/Pernas/Mesa flexora.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "3 séries x 10 a 12 repetições. Controle completo da descida lenta." },
+                    { name: "Elevação Pélvica (Hip Thrust)", path: "Exercicios/Glúteos/Elevação Pélvica Com Barra.gif", series: 3, reps: 12, weight: 30, targetWeight: 60, notes: "3 séries x 10 a 12 repetições. Segure 1 a 2 segundos em contração máxima no topo." },
+                    { name: "Panturrilha Sentado ou no Leg Press", path: "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif", series: 4, reps: 20, weight: 20, targetWeight: 35, notes: "4 séries x 15 a 20 repetições. Cadência cadenciada e foco no sóleo." }
+                ]
+            },
+            {
+                name: "Sexta-feira: Upper Body (Braços, Detalhes e Ponto Fraco)",
+                description: "Objetivo: Volume complementar para braços e ombros antes do fim de semana",
+                coverStyle: "geral",
+                exercises: [
+                    { name: "Supino Inclinado na Máquina ou Crossover", path: "Exercicios/Peitoral/Supino inclinado na máquina.gif", series: 3, reps: 12, weight: 25, targetWeight: 40, notes: "3 séries x 10 a 12 repetições. Contração no peitoral superior." },
+                    { name: "Puxada na Polia com Pegada Invertida", path: "Exercicios/Costas/Puxada Alta Invertida.gif", series: 3, reps: 12, weight: 40, targetWeight: 60, notes: "3 séries x 10 a 12 repetições. Pegada supinada para recrutar dorsais inferiores e bíceps." },
+                    { name: "Elevação Lateral na Polia", path: "Exercicios/Ombros/Elevação lateral unilateral com cabo.gif", series: 4, reps: 15, weight: 5, targetWeight: 10, notes: "4 séries x 12 a 15 repetições. Tensão mecânica contínua do cabo no deltoide medial." },
+                    { name: "Super-Série: Rosca Martelo", path: "Exercicios/Bíceps/Rosca martelo.gif", series: 3, reps: 10, weight: 10, targetWeight: 16, notes: "Super-Série (3x10): Realize 10 reps e vá diretamente para o Tríceps Testa sem descanso." },
+                    { name: "Super-Série: Tríceps Testa", path: "Exercicios/Tríceps/Tríceps testa com barra.gif", series: 3, reps: 10, weight: 10, targetWeight: 20, notes: "Super-Série (3x10): Execute logo após a Rosca Martelo. Descanse 60-90s ao terminar os dois." }
+                ]
+            }
+        ]
+    },
     AUTOR: {
         name: "ABC escolhido por mim",
         difficulty: "Médio",
@@ -657,5 +723,31 @@ export const CALISTHENICS_PATH_MAP = {
     "mesa flexora": "Exercicios/Pernas/Mesa flexora.gif",
     "cadeira adutora": "Exercicios/Pernas/Máquina de Adução de Quadril.gif",
     "glúteo máquina (coice)": "Exercicios/Glúteos/Glúteo Coice Na Máquina.gif",
-    "abdominal crunch (máquina ou polia alta)": "Exercicios/Mobilidade/Contração abdominal.gif"
+    "abdominal crunch (máquina ou polia alta)": "Exercicios/Mobilidade/Contração abdominal.gif",
+    "supino reto com barra": "Exercicios/Peitoral/Supino Reto.gif",
+    "supino reto": "Exercicios/Peitoral/Supino Reto.gif",
+    "supino inclinado com halteres": "Exercicios/Peitoral/Supino Inclinado com Halteres.gif",
+    "desenvolvimento de ombros com halteres": "Exercicios/Ombros/Desenvolvimento de Ombro no Banco com Halteres.gif",
+    "elevação lateral de ombros": "Exercicios/Ombros/Elevação lateral de braços com halteres.gif",
+    "tríceps na polia (corda ou barra)": "Exercicios/Tríceps/Tríceps pulley corda.gif",
+    "agachamento livre ou smith": "Exercicios/Pernas/Agachamento Barra.gif",
+    "leg press 45°": "Exercicios/Pernas/Leg Press.gif",
+    "leg press 45": "Exercicios/Pernas/Leg Press.gif",
+    "panturrilha em pé": "Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif",
+    "puxada alta na polia (ou barra fixa)": "Exercicios/Costas/Puxada Alta.gif",
+    "remada curvada com barra ou remada baixa": "Exercicios/Costas/Remada Curvada com Barra.gif",
+    "remada unilateral com halter (serrote)": "Exercicios/Costas/Serrote.gif",
+    "face pull na polia (deltoide posterior)": "Exercicios/Trapézio/Face Pull.gif",
+    "rosca direta com barra": "Exercicios/Bíceps/Rosca Direta com Barra.gif",
+    "stiff (levantamento terra romeno)": "Exercicios/Costas/Levantamento Terra Romeno.gif",
+    "mesa flexora ou cadeira flexora": "Exercicios/Pernas/Mesa flexora.gif",
+    "elevação pélvica (hip thrust)": "Exercicios/Glúteos/Elevação Pélvica Com Barra.gif",
+    "panturrilha sentado ou no leg press": "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif",
+    "supino inclinado na máquina ou crossover": "Exercicios/Peitoral/Supino inclinado na máquina.gif",
+    "puxada na polia com pegada invertida": "Exercicios/Costas/Puxada Alta Invertida.gif",
+    "elevação lateral na polia": "Exercicios/Ombros/Elevação lateral unilateral com cabo.gif",
+    "super-série: rosca martelo": "Exercicios/Bíceps/Rosca martelo.gif",
+    "super-série de braços: rosca martelo": "Exercicios/Bíceps/Rosca martelo.gif",
+    "super-série: tríceps testa": "Exercicios/Tríceps/Tríceps testa com barra.gif",
+    "super-série de braços: tríceps testa": "Exercicios/Tríceps/Tríceps testa com barra.gif"
 };

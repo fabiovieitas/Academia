@@ -758,6 +758,20 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                         + Modelo Pronto
                     </button>
                     <button 
+                        onClick={() => setSelectedPresetKey('SEMANAL_FORCA')}
+                        style={{ 
+                            background: 'rgba(var(--accent-rgb), 0.12)', 
+                            color: 'var(--accent)', 
+                            border: '1px solid rgba(var(--accent-rgb), 0.3)',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '13px', 
+                            fontWeight: '600' 
+                        }}
+                    >
+                        ⭐ Ficha Seg a Sex
+                    </button>
+                    <button 
                         onClick={onCreateWorkout} 
                         style={{ 
                             background: 'none', 
@@ -871,6 +885,7 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                         <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Ou comece com um modelo pronto:</p>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <button onClick={() => setSelectedPresetKey('SEMANAL_FORCA')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto', border: '1px solid var(--accent)', color: 'var(--accent)', fontWeight: 'bold' }}>⭐ Ficha Seg a Sex</button>
                                 <button onClick={() => setSelectedPresetKey('TAF')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Preparação TAF</button>
                                 <button onClick={() => setDashboardView('calistenia')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Calistenia</button>
                                 <button onClick={() => setSelectedPresetKey('FB')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}>Corpo Inteiro</button>
@@ -1363,6 +1378,33 @@ export default function Dashboard({ onStartWorkout, onEditWorkout, onCreateWorko
                             <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
                                 Selecione um modelo para pré-visualizar a rotina de exercícios e importá-la para os seus treinos:
                             </p>
+
+                            {/* FICHA SEMANAL DE FORÇA (SEGUNDA A SEXTA) */}
+                            <div 
+                                onClick={() => setSelectedPresetKey('SEMANAL_FORCA')}
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.2) 0%, rgba(245, 158, 11, 0.1) 100%)',
+                                    border: '1px solid rgba(var(--accent-rgb), 0.4)',
+                                    borderRadius: '12px',
+                                    padding: '16px',
+                                    cursor: 'pointer',
+                                    transition: 'var(--transition)',
+                                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                                }}
+                                className="preset-card"
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <h4 style={{ color: 'var(--accent)', margin: 0, fontWeight: '700' }}>📋 Ficha Semanal de Força (Seg a Sex)</h4>
+                                        <span style={{ fontSize: '10px', background: 'var(--accent)', color: '#000', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>NOVA</span>
+                                    </div>
+                                    <span style={{ fontSize: '11px', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Avançado</span>
+                                </div>
+                                <p style={{ fontSize: '12px', color: 'var(--text-main)', marginBottom: '8px', lineHeight: '1.4' }}>
+                                    Divisão completa de 5 dias: Empurrar (Peito/Ombro/Tríceps), Pernas A (Quadríceps/Panturrilha), Puxar (Costas/Bíceps), Pernas B (Posterior/Glúteos) e Upper Body com Super-Série de Braços. 100% com GIFs animados!
+                                </p>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>⏱️ Duração: 40-50 min/dia | Clique para pré-visualizar e carregar</span>
+                            </div>
 
                             {/* AUTOR (Apenas Fábio) */}
                             {activeProfile?.id === 'fabio' && (

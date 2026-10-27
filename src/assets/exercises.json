@@ -5932,5 +5932,125 @@
     "path": "Exercicios/Calistenia/Toes_to_Bar_Pes_na_Barra.gif",
     "muscle": "Calistenia",
     "equipment": "Peso Corporal"
+  },
+  {
+    "name": "Supino Reto com Barra",
+    "path": "Exercicios/Peitoral/Supino Reto.gif",
+    "thumbnail": "thumbnails/Supino Reto.png",
+    "description": "Supino reto clássico com barra para grande estímulo de força no peitoral maior, ombros e tríceps."
+  },
+  {
+    "name": "Desenvolvimento de Ombros com Halteres",
+    "path": "Exercicios/Ombros/Desenvolvimento de Ombro no Banco com Halteres.gif",
+    "thumbnail": "thumbnails/Desenvolvimento de Ombro no Banco com Halteres.png",
+    "description": "Desenvolvimento para ombros realizado sentado no banco com halteres para hipertrofia dos deltoides."
+  },
+  {
+    "name": "Elevação Lateral de Ombros",
+    "path": "Exercicios/Ombros/Elevação lateral de braços com halteres.gif",
+    "thumbnail": "thumbnails/Elevação lateral de braços com halteres.png",
+    "description": "Elevação lateral com halteres para isolamento e foco total no deltoide lateral."
+  },
+  {
+    "name": "Tríceps na Polia (Corda ou Barra)",
+    "path": "Exercicios/Tríceps/Tríceps pulley corda.gif",
+    "thumbnail": "thumbnails/Tríceps pulley corda.png",
+    "description": "Extensão de tríceps no cabo alto com corda ou barra para contração e isolamento do tríceps."
+  },
+  {
+    "name": "Agachamento Livre ou Smith",
+    "path": "Exercicios/Pernas/Agachamento Barra.gif",
+    "thumbnail": "thumbnails/Agachamento Barra.png",
+    "description": "Agachamento com barra livre ou na máquina Smith priorizando força e grandes cargas para quadríceps e glúteos."
+  },
+  {
+    "name": "Leg Press 45°",
+    "path": "Exercicios/Pernas/Leg Press.gif",
+    "thumbnail": "thumbnails/Leg Press.png",
+    "description": "Leg press inclinado a 45 graus para desenvolvimento potente de quadríceps com segurança lombar."
+  },
+  {
+    "name": "Panturrilha em Pé",
+    "path": "Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif",
+    "thumbnail": "thumbnails/Panturrilha em Pé no Smith.png",
+    "description": "Elevação de calcanhares em pé no Smith para máximo alongamento e contração dos gastrocnêmios."
+  },
+  {
+    "name": "Puxada Alta na Polia (ou Barra Fixa)",
+    "path": "Exercicios/Costas/Puxada Alta.gif",
+    "thumbnail": "thumbnails/Puxada Alta.png",
+    "description": "Puxada frontal na polia alta ou barra fixa para largura das dorsais."
+  },
+  {
+    "name": "Remada Curvada com Barra ou Remada Baixa",
+    "path": "Exercicios/Costas/Remada Curvada com Barra.gif",
+    "thumbnail": "thumbnails/Remada Curvada com Barra.png",
+    "description": "Remada curvada para espessura e densidade das costas e romboides."
+  },
+  {
+    "name": "Remada Unilateral com Halter (Serrote)",
+    "path": "Exercicios/Costas/Serrote.gif",
+    "thumbnail": "thumbnails/Serrote.png",
+    "description": "Remada serrote unilateral com halter para controle e grande amplitude de dorsais."
+  },
+  {
+    "name": "Face Pull na Polia (Deltoide Posterior)",
+    "path": "Exercicios/Trapézio/Face Pull.gif",
+    "thumbnail": "thumbnails/Face Pull.png",
+    "description": "Puxada para o rosto na polia para fortalecimento do deltoide posterior, manguito rotador e postura."
+  },
+  {
+    "name": "Stiff (Levantamento Terra Romeno)",
+    "path": "Exercicios/Costas/Levantamento Terra Romeno.gif",
+    "thumbnail": "thumbnails/Levantamento Terra Romeno.png",
+    "description": "Stiff / RDL com barra para ênfase máxima nos posteriores de coxa e glúteos."
+  },
+  {
+    "name": "Mesa Flexora ou Cadeira Flexora",
+    "path": "Exercicios/Pernas/Mesa flexora.gif",
+    "thumbnail": "thumbnails/Mesa flexora.png",
+    "description": "Flexão de joelhos na mesa flexora para isolamento dos isquiotibiais."
+  },
+  {
+    "name": "Elevação Pélvica (Hip Thrust)",
+    "path": "Exercicios/Glúteos/Elevação Pélvica Com Barra.gif",
+    "thumbnail": "thumbnails/Elevação Pélvica Com Barra.png",
+    "description": "Hip thrust / elevação de quadril para ativação e hipertrofia máxima dos glúteos."
+  },
+  {
+    "name": "Panturrilha Sentado ou no Leg Press",
+    "path": "Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif",
+    "thumbnail": "thumbnails/Elevação de Panturrilha Sentado com Alavanca.png",
+    "description": "Elevação de panturrilha sentado para estímulo focado no músculo sóleo."
+  },
+  {
+    "name": "Supino Inclinado na Máquina ou Crossover",
+    "path": "Exercicios/Peitoral/Supino inclinado na máquina.gif",
+    "thumbnail": "thumbnails/Supino inclinado na máquina.png",
+    "description": "Supino inclinado guiado em máquina para peitoral superior com estabilidade articular."
+  },
+  {
+    "name": "Puxada na Polia com Pegada Invertida",
+    "path": "Exercicios/Costas/Puxada Alta Invertida.gif",
+    "thumbnail": "thumbnails/Puxada Alta Invertida.png",
+    "description": "Puxada com pegada supinada invertida para trabalhar a porção inferior dos dorsais e bíceps."
+  },
+  {
+    "name": "Elevação Lateral na Polia",
+    "path": "Exercicios/Ombros/Elevação lateral unilateral com cabo.gif",
+    "thumbnail": "thumbnails/Elevação lateral unilateral com cabo.png",
+    "description": "Elevação lateral no cross/cabo mantendo tensão constante no deltoide medial."
+  },
+  {
+    "name": "Super-Série: Rosca Martelo",
+    "path": "Exercicios/Bíceps/Rosca martelo.gif",
+    "thumbnail": "thumbnails/Rosca martelo.png",
+    "description": "Rosca martelo com halteres para braquial e antebraço em super-série."
+  },
+  {
+    "name": "Super-Série: Tríceps Testa",
+    "path": "Exercicios/Tríceps/Tríceps testa com barra.gif",
+    "thumbnail": "thumbnails/Tríceps testa com barra.png",
+    "description": "Tríceps testa executado logo após a rosca martelo para pump e fadiga muscular total dos braços."
   }
 ]

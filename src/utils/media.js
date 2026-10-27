@@ -20,17 +20,43 @@ export const getFallbackSvg = (muscle = 'Geral') => {
 
 const PATH_ALIASES = {
     'Exercicios/Pernas/Stiff com barra.gif': [
-        'Exercicios/Pernas/Peso muerto piernas rígidas con barra.gif',
         'Exercicios/Costas/Levantamento Terra Romeno.gif',
+        'Exercicios/Pernas/Peso muerto piernas rígidas con barra.gif',
         'Exercicios/Funcional e HIT/Stiff com Elástico de Resistência.gif'
+    ],
+    'Exercicios/Costas/Levantamento Terra Romeno.gif': [
+        'Exercicios/Pernas/Stiff com barra.gif'
     ],
     'Exercicios/Peitoral/Supino Reto.gif': [
         'Exercicios/Peitoral/Supino com Halteres.gif',
         'Exercicios/Peitoral/Supino Reto na Máquina.gif'
     ],
+    'Exercicios/Peitoral/Supino Inclinado com Halteres.gif': [
+        'Exercicios/Peitoral/Supino Inclinado na Alavanca.gif',
+        'Exercicios/Peitoral/Supino inclinado na máquina.gif'
+    ],
+    'Exercicios/Peitoral/Supino inclinado na máquina.gif': [
+        'Exercicios/Peitoral/Cross over polia baixa.gif',
+        'Exercicios/Peitoral/Supino Inclinado com Halteres.gif'
+    ],
     'Exercicios/Pernas/Leg Press.gif': [
         'Exercicios/Pernas/Leg Press Horizontal.gif',
         'Exercicios/Pernas/Leg Press unilateral.gif'
+    ],
+    'Exercicios/Pernas/Agachamento Barra.gif': [
+        'Exercicios/Pernas/Agachamento no Smith.gif',
+        'Exercicios/Calistenia/Agachamento.gif'
+    ],
+    'Exercicios/Panturrilhas/Panturrilha em Pé no Smith.gif': [
+        'Exercicios/Panturrilhas/Elevação de Panturrilha no Leg Press.gif',
+        'Exercicios/Panturrilhas/Elevação de Panturrilha Sentado com Alavanca.gif'
+    ],
+    'Exercicios/Tríceps/Tríceps pulley corda.gif': [
+        'Exercicios/Tríceps/Tríceps pulley barra.gif',
+        'Exercicios/Tríceps/Extensão de Tríceps com Cabo em Posição Ajoelhada.gif'
+    ],
+    'Exercicios/Tríceps/Tríceps testa com barra.gif': [
+        'Exercicios/Tríceps/Tríceps testa pegada neutra com halteres.gif'
     ]
 };
 
