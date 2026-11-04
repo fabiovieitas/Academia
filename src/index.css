@@ -124,9 +124,46 @@ table,
   overflow-x: hidden !important; /* Congela rolagem lateral interna */
 }
 
+/* Fade-in animation for tab transitions */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-content > * {
+  animation: fadeInUp 0.25s ease-out;
+}
+
 @media (max-width: 480px) {
   .app-content {
     padding: 15px; /* Ganha 10px de largura lateral no mobile */
+  }
+}
+
+/* Focus rings acessíveis */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.7);
+  outline-offset: 2px;
+}
+
+/* Print: oculta nav e elementos de UI ao imprimir treino */
+@media print {
+  .bottom-nav,
+  .mini-timer-bar,
+  nav,
+  button {
+    display: none !important;
+  }
+  .app-container {
+    box-shadow: none;
+    border: none;
+  }
+  body {
+    background: #fff;
+    color: #000;
   }
 }
 

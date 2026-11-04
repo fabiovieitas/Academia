@@ -122,7 +122,7 @@ function MainAppContent() {
                             <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 FitLife
                             </h1>
-                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold' }}>v0.12</span>
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold' }}>v1.0</span>
                         </div>
                     </div>
                 </div>
@@ -291,7 +291,7 @@ function MainAppContent() {
                                 +15s
                             </button>
                             <button 
-                                onClick={() => setTimeLeft(0)}
+                                onClick={() => { setTimeLeft(0); setTimerActive(false); }}
                                 style={{ background: 'rgba(var(--accent-rgb), 0.15)', border: '1px solid rgba(var(--accent-rgb), 0.25)', color: 'var(--accent)', padding: '5px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
                             >
                                 Pular

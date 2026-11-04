@@ -1778,6 +1778,24 @@ export default function GymMode({ onFinish, onCancel }) {
                 ))}
             </div>
 
+            {/* Barra de Progresso de Exercícios */}
+            {exercises.length > 0 && (
+                <div style={{ padding: '0 16px 8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{
+                            height: '100%',
+                            width: `${Math.round(((currentExerciseIndex + 1) / exercises.length) * 100)}%`,
+                            background: 'linear-gradient(90deg, var(--accent), rgba(var(--accent-rgb),0.6))',
+                            borderRadius: '2px',
+                            transition: 'width 0.4s ease'
+                        }} />
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', whiteSpace: 'nowrap', fontWeight: '600' }}>
+                        {currentExerciseIndex + 1}/{exercises.length} ({Math.round(((currentExerciseIndex + 1) / exercises.length) * 100)}%)
+                    </span>
+                </div>
+            )}
+
             {/* Visualizador de GIF */}
             <div className="gif-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', background: 'var(--bg-tertiary)', position: 'relative' }}>
                 {(!gifSrc || gifLoadError) ? (
