@@ -135,7 +135,7 @@ export const getExerciseMediaUrls = (exercise) => {
     
     if (!path && name) {
         const cleanKey = name.toLowerCase().trim();
-        const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+        const cleanKeyNoPrefix = cleanKey.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, '').trim();
         path = CALISTHENICS_PATH_MAP[cleanKey] || CALISTHENICS_PATH_MAP[cleanKeyNoPrefix] || '';
     }
 
@@ -149,7 +149,7 @@ export const getExerciseMediaUrls = (exercise) => {
         return [safeMediaUrl(path)];
     }
 
-    const cleanName = name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, "").trim();
+    const cleanName = name.replace(/^(nível\s+\d+:|mobilidade:|técnica:)\s*/i, '').trim();
     const encodedThumb = exercise.thumbnail ? safeMediaUrl(exercise.thumbnail) : '';
     const aliases = PATH_ALIASES[path] || [];
     const primaryPath = aliases.length > 0 ? aliases[0] : path;
@@ -157,42 +157,40 @@ export const getExerciseMediaUrls = (exercise) => {
 
     const list = [];
 
-    // Se for calistenia ou arquivo local na pasta public, disponibiliza relativo local prioritário
+    // 1. Arquivos locais de Calistenia (já inclusos fisicamente na pasta public)
     if (path.startsWith('Exercicios/Calistenia/')) {
-        list.push(`/${safeMediaUrl(path)}`);
+        list.push('/' + safeMediaUrl(path));
     }
 
-    // 1. CDNs e Repositórios oficiais do Academia
+    // 2. Servidor Oficial Online de GIFs (gifdotreino - 200 OK comprovado)
+    for (const p of pathsToTry) {
+        list.push('https://www.gifdotreino.com/' + safeMediaUrl(p));
+    }
+
+    // 3. Thumbnail online do gifdotreino
+    if (cleanName) {
+        list.push('https://www.gifdotreino.com/thumbnails/' + encodeURIComponent(cleanName) + '.png');
+    }
+
+    // 4. Se tiver thumbnail configurada no JSON
+    if (encodedThumb && !encodedThumb.startsWith('Exercicios/Calistenia/')) {
+        list.push('https://www.gifdotreino.com/' + encodedThumb);
+    }
+
+    // 5. GitHub Raw fallback (repositório público)
     for (const p of pathsToTry) {
         const enc = safeMediaUrl(p);
-        list.push(`https://fabiovieitas.github.io/academia-assets/${enc}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/main/public/${enc}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${enc}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${enc}`);
-        list.push(`/${enc}`);
+        list.push('https://raw.githubusercontent.com/fabiovieitas/Academia/main/public/' + enc);
+        list.push('/' + enc);
     }
 
-    // 2. Se tiver thumbnail configurada no JSON
-    if (encodedThumb) {
-        list.push(`https://fabiovieitas.github.io/academia-assets/${encodedThumb}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/main/public/${encodedThumb}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/Academia/4036ec690905864cbbdb2b77862c66c63c5c0a00/public/${encodedThumb}`);
-        list.push(`https://raw.githubusercontent.com/fabiovieitas/academia-assets/main/${encodedThumb}`);
-        list.push(`/${encodedThumb}`);
-    }
-
-    // 3. Servidor gifdotreino
-    list.push(`https://www.gifdotreino.com/${safeMediaUrl(path)}`);
-    list.push(`https://www.gifdotreino.com/thumbnails/${encodeURIComponent(cleanName)}.png`);
-
-    // 4. Local fallback
-    list.push(`/${safeMediaUrl(primaryPath)}`);
-    list.push(`/${safeMediaUrl(path)}`);
+    // 6. Local fallback final
+    list.push('/' + safeMediaUrl(primaryPath));
+    list.push('/' + safeMediaUrl(path));
 
     return Array.from(new Set(list));
 };
 
-// Componente inteligente de imagem com fallback automático contínuo
 export const handleImageErrorWithFallback = (e, exercise) => {
     const target = e.target;
     const urls = getExerciseMediaUrls(exercise);

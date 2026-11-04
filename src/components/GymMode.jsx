@@ -1282,9 +1282,11 @@ export default function GymMode({ onFinish, onCancel }) {
                 {/* GIF Limpo e Compacto */}
                 <div style={{ display: 'flex', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '15px', position: 'relative', height: '160px' }}>
                     {(!gifSrc || gifLoadError) ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '13px' }}>
-                            💪 Guia técnico nas instruções comuns
-                        </div>
+                        <img 
+                            src={getFallbackSvg(category || 'Geral', currentExercise?.name)} 
+                            alt={currentExercise?.name || 'Exercício'} 
+                            style={{ height: '100%', width: 'auto', objectFit: 'contain' }} 
+                        />
                     ) : (
                         <img src={safeMediaUrl(gifSrc)} alt={currentExercise.name} style={{ height: '100%', width: 'auto', objectFit: 'contain' }} onError={handleGifError} />
                     )}
@@ -1799,22 +1801,11 @@ export default function GymMode({ onFinish, onCancel }) {
             {/* Visualizador de GIF */}
             <div className="gif-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', background: 'var(--bg-tertiary)', position: 'relative' }}>
                 {(!gifSrc || gifLoadError) ? (
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '30px 20px',
-                        textAlign: 'center',
-                        gap: '12px',
-                        width: '100%'
-                    }}>
-                        <span style={{ fontSize: '40px' }}>🏋️‍♂️</span>
-                        <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>Demonstração Visual</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '240px', lineHeight: '1.4' }}>
-                            Postura e execução detalhadas disponíveis na nota de instrução abaixo.
-                        </div>
-                    </div>
+                    <img 
+                        src={getFallbackSvg(category || 'Geral', currentExercise?.name)} 
+                        alt={currentExercise?.name || 'Exercício'} 
+                        style={{ height: '180px', width: 'auto', objectFit: 'contain' }}
+                    />
                 ) : (
                     <img 
                         src={safeMediaUrl(gifSrc)} 

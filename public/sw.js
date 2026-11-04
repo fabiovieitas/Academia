@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitlife-v2';
+const CACHE_NAME = 'fitlife-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',

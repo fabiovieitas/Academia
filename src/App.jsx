@@ -10,7 +10,7 @@ import EvolutionView from './components/EvolutionView';
 import SettingsView from './components/SettingsView';
 import FeedView from './components/FeedView';
 import { CALISTHENICS_PATH_MAP } from './context/workoutData';
-import { getExerciseMediaUrls, safeMediaUrl } from './utils/media';
+import { getExerciseMediaUrls, safeMediaUrl, getFallbackSvg } from './utils/media';
 
 function MainAppContent() {
     const { 
@@ -192,22 +192,11 @@ function MainAppContent() {
                         <div className="exercise-details-sheet" style={{ overflowY: 'auto', flex: 1, padding: '20px' }}>
                             <div className="details-gif-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', background: 'var(--bg-tertiary)', borderRadius: '12px', overflow: 'hidden' }}>
                                 {detailGifError ? (
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        padding: '20px',
-                                        textAlign: 'center',
-                                        gap: '10px',
-                                        width: '100%'
-                                    }}>
-                                        <span style={{ fontSize: '36px' }}>💪</span>
-                                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>Guia de Movimento</div>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', maxWidth: '220px', lineHeight: '1.4' }}>
-                                            Siga as instruções técnicas abaixo para a correta amplitude e postura.
-                                        </div>
-                                    </div>
+                                    <img 
+                                        src={getFallbackSvg(selectedDetailExercise?.path?.split('/')[1] || 'Geral', selectedDetailExercise?.name)} 
+                                        alt={selectedDetailExercise?.name || 'Exercício'} 
+                                        style={{ height: '200px', width: 'auto', objectFit: 'contain' }}
+                                    />
                                 ) : (
                                     <img 
                                         src={safeMediaUrl(detailGifSrc)} 
