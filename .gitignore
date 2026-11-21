@@ -48,3 +48,14 @@ public/Exercicios/Crossfit/
 
 # Source GIFs folder
 GIFS/
+
+# APK and heavy temporary bundles
+*.apk
+*.zip
+*.idsig
+*.tmp
+temp_*.js
+opengym_repo/
+opengym_src/
+uber-apk-signer.jar
+
