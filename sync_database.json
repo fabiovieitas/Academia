@@ -1,0 +1,554 @@
+{
+  "Fabio": {
+    "state": {
+      "unit": "kg",
+      "restSec": 60,
+      "restPauseSec": 15,
+      "sound": true,
+      "soundOnSilent": false,
+      "vibrateOnSilent": false,
+      "timerFlash": false,
+      "timedSetOvertime": false,
+      "keepAwake": true,
+      "lang": "pt-BR",
+      "theme": "dark",
+      "accent": "brand",
+      "body": "male",
+      "targetW": null,
+      "rateGoal": null,
+      "bodyweight": [
+        {
+          "d": "2026-11-17",
+          "w": 74.3,
+          "unit": "kg"
+        }
+      ],
+      "routines": [
+        {
+          "id": "fabio_treino_a",
+          "name": "Treino A - Peito, Deltoides e Tríceps",
+          "emoji": "barbell",
+          "ex": [
+            {
+              "id": "0025",
+              "sets": 4,
+              "reps": 10,
+              "weight": 40
+            },
+            {
+              "id": "0047",
+              "sets": 3,
+              "reps": 10,
+              "weight": 24
+            },
+            {
+              "id": "0179",
+              "sets": 3,
+              "reps": 12,
+              "weight": 15
+            },
+            {
+              "id": "0041",
+              "sets": 3,
+              "reps": 10,
+              "weight": 18
+            },
+            {
+              "id": "0334",
+              "sets": 4,
+              "reps": 12,
+              "weight": 10
+            },
+            {
+              "id": "0241",
+              "sets": 4,
+              "reps": 12,
+              "weight": 25
+            },
+            {
+              "id": "0042",
+              "sets": 3,
+              "reps": 10,
+              "weight": 14
+            }
+          ]
+        },
+        {
+          "id": "fabio_treino_b",
+          "name": "Treino B - Costas, Bíceps e Trapézio",
+          "emoji": "barbell",
+          "ex": [
+            {
+              "id": "0007",
+              "sets": 4,
+              "reps": 10,
+              "weight": 50
+            },
+            {
+              "id": "0027",
+              "sets": 4,
+              "reps": 10,
+              "weight": 35
+            },
+            {
+              "id": "0198",
+              "sets": 3,
+              "reps": 12,
+              "weight": 45
+            },
+            {
+              "id": "0032",
+              "sets": 3,
+              "reps": 8,
+              "weight": 60
+            },
+            {
+              "id": "0031",
+              "sets": 3,
+              "reps": 10,
+              "weight": 14
+            },
+            {
+              "id": "0314",
+              "sets": 3,
+              "reps": 12,
+              "weight": 12
+            },
+            {
+              "id": "0001",
+              "sets": 3,
+              "reps": 15,
+              "weight": 0
+            }
+          ]
+        },
+        {
+          "id": "fabio_treino_c",
+          "name": "Treino C - Pernas Completo e Panturrilhas",
+          "emoji": "barbell",
+          "ex": [
+            {
+              "id": "3593",
+              "sets": 4,
+              "reps": 10,
+              "weight": 50
+            },
+            {
+              "id": "1027",
+              "sets": 4,
+              "reps": 12,
+              "weight": 120
+            },
+            {
+              "id": "0585",
+              "sets": 3,
+              "reps": 12,
+              "weight": 40
+            },
+            {
+              "id": "0586",
+              "sets": 4,
+              "reps": 12,
+              "weight": 35
+            },
+            {
+              "id": "3200",
+              "sets": 3,
+              "reps": 10,
+              "weight": 40
+            },
+            {
+              "id": "0605",
+              "sets": 4,
+              "reps": 15,
+              "weight": 50
+            }
+          ]
+        }
+      ],
+      "week": {},
+      "dayPlan": {
+        "2026-11-16": "mwjoxss2olqx1"
+      },
+      "dayNotes": {},
+      "dayForm": {
+        "2026-11-16": {
+          "_ts": 1794856053180,
+          "sleep": 3,
+          "energy": 3,
+          "sore": 1,
+          "stress": 2
+        }
+      },
+      "measurements": [
+        {
+          "d": "2026-11-17",
+          "t": 1795000000000,
+          "neck": null,
+          "shoulders": null,
+          "chest": null,
+          "waist": null,
+          "hips": null,
+          "abdomen": null,
+          "upperArmLeft": null,
+          "upperArmRight": null,
+          "forearmLeft": null,
+          "forearmRight": null,
+          "wristLeft": null,
+          "wristRight": null,
+          "thighLeft": null,
+          "thighRight": null,
+          "calfLeft": null,
+          "calfRight": null,
+          "ankleLeft": null,
+          "ankleRight": null,
+          "bodyFat": 16.9,
+          "bf": 16.9,
+          "muscle": 57.9,
+          "visceral": 11.3,
+          "water": 51.3,
+          "bmr": 1726,
+          "bmi": 25.7,
+          "weight": 74.3,
+          "note": "Relatório de Balança de Bioimpedância",
+          "other": [
+            {
+              "id": "muscle_mass",
+              "value": 57.9,
+              "unit": "kg"
+            },
+            {
+              "id": "visceral_fat",
+              "value": 11.3,
+              "unit": "lvl"
+            },
+            {
+              "id": "body_water",
+              "value": 51.3,
+              "unit": "%"
+            },
+            {
+              "id": "bmr_cal",
+              "value": 1726,
+              "unit": "kcal"
+            }
+          ]
+        }
+      ],
+      "measurementEnabled": [
+        "bodyFat"
+      ],
+      "customMeasurements": [
+        {
+          "id": "muscle_mass",
+          "name": "Massa Muscular",
+          "unit": "kg",
+          "enabled": true
+        },
+        {
+          "id": "visceral_fat",
+          "name": "Gordura Visceral",
+          "unit": "lvl",
+          "enabled": true
+        },
+        {
+          "id": "body_water",
+          "name": "Água Corporal",
+          "unit": "%",
+          "enabled": true
+        },
+        {
+          "id": "bmr_cal",
+          "name": "TMB (Metabolismo Basal)",
+          "unit": "kcal",
+          "enabled": true
+        }
+      ],
+      "measureUnit": null,
+      "queue": null,
+      "rotation": [
+        "fabio_treino_a",
+        "fabio_treino_b",
+        "fabio_treino_c"
+      ],
+      "scheduleMode": "rotation",
+      "programmes": {},
+      "programme": null,
+      "exWeights": {},
+      "workouts": [],
+      "active": null,
+      "customEx": [],
+      "gifSize": "full",
+      "heatmapMetric": "time",
+      "volumeWarmups": false,
+      "volumeBodyweight": false,
+      "workoutView": "cards",
+      "collapseCompleted": false,
+      "exerciseView": "list",
+      "wc": {
+        "steppers": true,
+        "setShortcuts": false,
+        "pairButtons": false,
+        "exerciseButtons": false,
+        "exerciseChips": true,
+        "muscleMap": true,
+        "swipeSets": true
+      },
+      "hints": {
+        "swipeSets": true
+      },
+      "reminder": {
+        "on": false,
+        "time": "08:00",
+        "tz": null,
+        "nudge": false,
+        "tone": "friendly"
+      },
+      "effort": "rpe",
+      "autoBackup": false,
+      "equipProfiles": [],
+      "activeEquipId": null,
+      "equipFilterOn": false,
+      "exNotes": {},
+      "exAliases": {},
+      "exShownName": {},
+      "favEx": [],
+      "weekStart": 1,
+      "wdec": 1,
+      "speedUnit": null,
+      "barWeights": {},
+      "plates": {},
+      "loadKind": {},
+      "dbLoad": {},
+      "dumbbells": {},
+      "stackWeights": {},
+      "exUnit": {},
+      "gymCards": [],
+      "lastGymCardId": null,
+      "checkIn": true,
+      "showWeightCard": true,
+      "weighIn": true,
+      "connStatus": true,
+      "shareMap": true,
+      "shareHide": [],
+      "connLocal": true,
+      "startFrom": "plan",
+      "warmupAuto": "off",
+      "lastFrom": "routine",
+      "progDefault": "linear",
+      "enParens": {},
+      "enOnly": {},
+      "logRef": "last",
+      "balanceTemplate": "poliquin",
+      "balanceOverrides": {},
+      "langAuto": false,
+      "edited": {
+        "lang": 1794835551860,
+        "langAuto": 1794835551860,
+        "scheduleMode": 1794845767514,
+        "streakRuleAsk": 1794838265773,
+        "streakRule": 1794838265773,
+        "restSec": 1794838936142,
+        "effort": 1794839012970,
+        "autoNextExercise": 1794839025689,
+        "previewStart": 1794839383173,
+        "dailyForm": 1794839392659,
+        "gifSize": 1794839398519,
+        "dayPlan.2026-11-16": 1794859936231,
+        "hints": 1794856055567,
+        "challenges": 1794856768252,
+        "streakSeen": 1794856768253,
+        "measurementEnabled": 1794933010396
+      },
+      "_ts": 1795000000000,
+      "streakRule": {
+        "rule": "gentle",
+        "since": null,
+        "history": []
+      },
+      "autoNextExercise": true,
+      "previewStart": true,
+      "dailyForm": true,
+      "challenges": {
+        "2026-11": {
+          "picked": [
+            {
+              "id": "workouts",
+              "n": 4
+            },
+            {
+              "id": "newex",
+              "n": 3
+            },
+            {
+              "id": "weeks",
+              "n": 4
+            }
+          ],
+          "done": [],
+          "at": 1794856768251
+        }
+      },
+      "streakSeen": {
+        "badge": 0,
+        "wk": "2026-11-16"
+      },
+      "deleted": {
+        "workouts": {
+          "mwjnfwi1pqoiu": 1794860740809,
+          "mwjn5spotddza": 1794860744160
+        },
+        "routines": {
+          "mwjndf16zaonb": 1794857179181,
+          "mwjmm3ts381n7": 1794857183734,
+          "mwjmpramjgm7p": 1794857187867,
+          "mwjmxdyl8tdn1": 1794857223137,
+          "mwjn1yi7ucsjb": 1794857228452,
+          "mwjn5fk9oi7ei": 1794857232409,
+          "mwjnnpeapc0ac": 1794858771818
+        },
+        "favEx": {
+          "0684": 1794860473711
+        }
+      }
+    },
+    "ts": 1795000000001
+  },
+  "Adlai": {
+    "state": {
+      "lang": "pt-BR",
+      "workouts": [],
+      "routines": [
+        {
+          "id": "adlai_treino_a",
+          "name": "Treino A - Inferiores com Foco em Quadríceps e Glúteos",
+          "emoji": "sparkles",
+          "ex": [
+            {
+              "id": "3593",
+              "sets": 4,
+              "reps": 12,
+              "weight": 25
+            },
+            {
+              "id": "1027",
+              "sets": 4,
+              "reps": 12,
+              "weight": 70
+            },
+            {
+              "id": "0585",
+              "sets": 3,
+              "reps": 15,
+              "weight": 25
+            },
+            {
+              "id": "3200",
+              "sets": 4,
+              "reps": 12,
+              "weight": 30
+            },
+            {
+              "id": "0605",
+              "sets": 4,
+              "reps": 15,
+              "weight": 30
+            }
+          ]
+        },
+        {
+          "id": "adlai_treino_b",
+          "name": "Treino B - Superiores e Abdômen",
+          "emoji": "sparkles",
+          "ex": [
+            {
+              "id": "0007",
+              "sets": 3,
+              "reps": 12,
+              "weight": 25
+            },
+            {
+              "id": "0198",
+              "sets": 3,
+              "reps": 12,
+              "weight": 20
+            },
+            {
+              "id": "0047",
+              "sets": 3,
+              "reps": 12,
+              "weight": 8
+            },
+            {
+              "id": "0334",
+              "sets": 3,
+              "reps": 12,
+              "weight": 4
+            },
+            {
+              "id": "0241",
+              "sets": 3,
+              "reps": 12,
+              "weight": 12
+            },
+            {
+              "id": "0001",
+              "sets": 3,
+              "reps": 15,
+              "weight": 0
+            }
+          ]
+        },
+        {
+          "id": "adlai_treino_c",
+          "name": "Treino C - Glúteos e Posterior de Coxa",
+          "emoji": "sparkles",
+          "ex": [
+            {
+              "id": "3200",
+              "sets": 4,
+              "reps": 12,
+              "weight": 35
+            },
+            {
+              "id": "0586",
+              "sets": 4,
+              "reps": 12,
+              "weight": 25
+            },
+            {
+              "id": "0032",
+              "sets": 3,
+              "reps": 10,
+              "weight": 30
+            },
+            {
+              "id": "1027",
+              "sets": 3,
+              "reps": 15,
+              "weight": 60
+            },
+            {
+              "id": "0605",
+              "sets": 4,
+              "reps": 15,
+              "weight": 30
+            }
+          ]
+        }
+      ],
+      "dayPlan": {},
+      "week": {},
+      "bodyweight": [],
+      "active": null,
+      "_ts": 1794862387777,
+      "scheduleMode": "rotation",
+      "rotation": [
+        "adlai_treino_a",
+        "adlai_treino_b",
+        "adlai_treino_c"
+      ]
+    },
+    "ts": 1794872387778
+  }
+}
