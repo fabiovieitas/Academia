@@ -234,7 +234,58 @@ function showBioDashboard() {
 
 
 
+
+let currentWizardStep = 1;
+const TOTAL_WIZARD_STEPS = 6;
+
+function selectWizardOption(step, key, val, btnEl) {
+  trainerAnswers[key] = val;
+  const parent = btnEl.parentElement;
+  if (parent) {
+    parent.querySelectorAll('button').forEach(b => {
+      b.style.background = '#171a23';
+      b.style.borderColor = '#2d3748';
+    });
+    btnEl.style.background = '#1e2430';
+    btnEl.style.borderColor = '#a3e635';
+  }
+  // Avança automaticamente para o próximo passo após 200ms
+  setTimeout(() => {
+    goToWizardStep(step + 1);
+  }, 220);
+}
+
+function goToWizardStep(step) {
+  if (step < 1 || step > TOTAL_WIZARD_STEPS) return;
+  currentWizardStep = step;
+  
+  for (let i = 1; i <= TOTAL_WIZARD_STEPS; i++) {
+    const el = document.getElementById('trainer-step-' + i);
+    if (el) el.style.display = (i === step ? 'block' : 'none');
+  }
+
+  const pBar = document.getElementById('trainer-progress-bar');
+  if (pBar) {
+    pBar.style.width = ((step / TOTAL_WIZARD_STEPS) * 100) + '%';
+  }
+  const ind = document.getElementById('trainer-step-indicator');
+  if (ind) {
+    ind.textContent = 'Etapa ' + step + ' de ' + TOTAL_WIZARD_STEPS;
+  }
+  const backRow = document.getElementById('trainer-wizard-back-row');
+  if (backRow) {
+    backRow.style.display = (step > 1 ? 'block' : 'none');
+  }
+}
+
+function wizardStepBack() {
+  if (currentWizardStep > 1) {
+    goToWizardStep(currentWizardStep - 1);
+  }
+}
+
 function openAITrainerModal() {
+  goToWizardStep(1);
   const m = document.getElementById('ai-trainer-modal');
   if (m) {
     m.style.display = 'flex';
@@ -1396,14 +1447,14 @@ async function sendGemini() {
       '{\n  "action": "add_routine",\n  "name": "Nome do Treino (ex: Treino A - Peito)",\n  "exercises": [\n    {"name": "Supino Reto com Barra", "sets": 4, "reps": 10, "weight": 20},\n    {"name": "Crucifixo Inclinado", "sets": 3, "reps": 12, "weight": 14}\n  ]\n}\n' +
       'Caso contrário, responda normalmente.';
 
-    // 1. Tenta prioritariamente via Servidor Local (FreeLLMAPI - Ilimitado, sem esgotar cota)
+    // 1. Tenta prioritariamente via Servidor Local de Sincronização (5174)
     try {
       const sHost = await getWorkingSyncUrl();
       const syncAiRes = await fetch(sHost + '/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: txt || 'Analise este relatório de bioimpedância e extraia as métricas em bio_data.', 
+        body: JSON.stringify({
+          prompt: txt || 'Analise este relatório de bioimpedância e extraia as métricas em bio_data.',
           profile: currentUser,
           history: geminiChatHistory,
           image: currentImg
@@ -1416,7 +1467,36 @@ async function sendGemini() {
         }
       }
     } catch(err) {
-      console.log('Servidor local offline, tentando API direta...', err);
+      console.log('Servidor local 5174 indisponível, tentando FreeLLMAPI direto...', err);
+    }
+
+    // 1.1 Failover direto para FreeLLMAPI local (porta 3001 ou 31415)
+    if (!rawAns) {
+      for (const p of [3001, 31415]) {
+        try {
+          const flRes = await fetch('http://127.0.0.1:' + p + '/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer freellmapi-0af93b3a0e1cbe45a5785fd84071080555fc11b147d6f7f2'
+            },
+            body: JSON.stringify({
+              model: 'gemini-2.5-flash',
+              messages: [
+                { role: 'system', content: sys },
+                { role: 'user', content: txt }
+              ]
+            })
+          });
+          if (flRes.ok) {
+            const fd = await flRes.json();
+            if (fd && fd.choices && fd.choices[0] && fd.choices[0].message) {
+              rawAns = fd.choices[0].message.content;
+              break;
+            }
+          }
+        } catch(flErr) {}
+      }
     }
 
     // 2. Fallback direto para a API Gemini (caso esteja fora da rede local)
@@ -1450,7 +1530,10 @@ async function sendGemini() {
 
       const data = await res.json();
       if (data?.error?.message) {
-        bMsg.textContent = 'Aviso da API Gemini: ' + data.error.message + '\n\n💡 Dica: Certifique-se de que o projeto da chave no Google Cloud está vinculado à conta de faturamento (Billing Account). Enquanto isso, o servidor local continua atendendo.';
+        bMsg.innerHTML = '<div style="background:rgba(239,68,68,0.15);border:1px solid #ef4444;border-radius:12px;padding:12px;">' +
+          '<b style="color:#ef4444;">⚠️ Aviso da API em Nuvem:</b> ' + data.error.message + '<br><br>' +
+          '<span style="font-size:12px;color:#cbd5e1;">💡 <b>Solução Automática:</b> O sistema está priorizando o <b>FreeLLMAPI local</b> (sem custos e sem limite de cota). Certifique-se de que o servidor local esteja ativo no seu computador.</span>' +
+          '</div>';
         return;
       }
 
@@ -1838,132 +1921,173 @@ window.addEventListener('focus', () => {
 </div>
 
 
-<div id="ai-trainer-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999999;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#11141b;border:1px solid rgba(255,255,255,0.15);border-radius:24px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto;padding:22px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div id="ai-trainer-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#11141b;border:1px solid rgba(255,255,255,0.15);border-radius:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;color:#fff;box-shadow:0 20px 40px rgba(0,0,0,0.8);position:relative;">
     
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:24px;">🧠</span>
         <div>
-          <h3 style="margin:0;font-size:18px;">Prescrição de Personal Trainer IA</h3>
-          <span style="font-size:11px;color:#9ca3af;">Avaliação clínica e montagem personalizada</span>
+          <h3 style="margin:0;font-size:18px;">Prescrição do Treinador IA</h3>
+          <span id="trainer-step-indicator" style="font-size:12px;font-weight:700;color:#a3e635;">Etapa 1 de 6</span>
         </div>
       </div>
-      <button onclick="document.getElementById('ai-trainer-modal').style.display='none'" style="background:transparent;border:0;color:#9ca3af;font-size:22px;cursor:pointer;">✕</button>
-    </div>
-
-    <!-- 1. Nível de Experiência -->
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:#a3e635;margin-bottom:6px;text-transform:uppercase;">1. Qual é o seu nível de treino?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="trainer-level-select">
-        <button type="button" class="trainer-opt-level" data-val="iniciante" onclick="selectOpt(this, 'trainer-opt-level', '#a3e635')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">🌱 Iniciante</button>
-        <button type="button" class="trainer-opt-level active" data-val="intermediario" onclick="selectOpt(this, 'trainer-opt-level', '#a3e635')" style="background:#1e2430;border:1px solid #a3e635;color:#fff;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">⚡ Intermediário</button>
-        <button type="button" class="trainer-opt-level" data-val="avancado" onclick="selectOpt(this, 'trainer-opt-level', '#a3e635')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">🏆 Avançado</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button type="button" onclick="closeAITrainerModal();openGeminiModal();" style="background:#1e2430;border:1px solid #38bdf8;color:#38bdf8;border-radius:10px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">💬 Tira-Dúvidas</button>
+        <button type="button" onclick="closeAITrainerModal()" style="background:transparent;border:0;color:#9ca3af;font-size:22px;cursor:pointer;padding:4px 8px;">✕</button>
       </div>
     </div>
 
-    <!-- 2. Tempo Disponível por Sessão -->
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:6px;text-transform:uppercase;">2. Tempo disponível por treino:</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="trainer-time-select">
-        <button type="button" class="trainer-opt-time" data-val="35-45min" onclick="selectOpt(this, 'trainer-opt-time', '#38bdf8')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">⏱️ 35 a 45 min</button>
-        <button type="button" class="trainer-opt-time active" data-val="50-65min" onclick="selectOpt(this, 'trainer-opt-time', '#38bdf8')" style="background:#1e2430;border:1px solid #38bdf8;color:#fff;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">⏱️ 50 a 65 min</button>
-        <button type="button" class="trainer-opt-time" data-val="75-90min" onclick="selectOpt(this, 'trainer-opt-time', '#38bdf8')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">⏱️ 75 a 90 min</button>
+    <!-- Barra de Progresso Visual -->
+    <div style="background:#1e2430;border-radius:10px;height:6px;width:100%;margin-bottom:20px;overflow:hidden;">
+      <div id="trainer-progress-bar" style="background:linear-gradient(90deg, #a3e635, #38bdf8);height:100%;width:16.6%;transition:width 0.3s ease;"></div>
+    </div>
+
+    <!-- ETAPA 1: NÍVEL DE EXPERIÊNCIA -->
+    <div id="trainer-step-1" class="trainer-wizard-step" style="display:block;">
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;">1. Qual é o seu nível de treino atual?</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:16px;">Isso define o volume e complexidade ideais para o seu corpo.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="trainer-opt-level" data-val="iniciante" onclick="selectWizardOption(1, 'level', 'iniciante', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🟢 Iniciante <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Até 6 meses de treino contínuo</span>
+        </button>
+        <button type="button" class="trainer-opt-level active" data-val="intermediario" onclick="selectWizardOption(1, 'level', 'intermediario', this)" style="background:#1e2430;border:1px solid #a3e635;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🟡 Intermediário <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">De 6 meses a 2 anos (domínio dos movimentos)</span>
+        </button>
+        <button type="button" class="trainer-opt-level" data-val="avancado" onclick="selectWizardOption(1, 'level', 'avancado', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🔴 Avançado <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Mais de 2 anos (necessita de técnicas de intensidade)</span>
+        </button>
       </div>
     </div>
 
-    <!-- 3. Preferência: Aparelhos/Máquinas vs Pesos Livres (Novo!) -->
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:#c084fc;margin-bottom:6px;text-transform:uppercase;">3. Preferência de Execução:</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="trainer-equip-pref">
-        <button type="button" class="trainer-opt-pref active" data-val="equilibrado" onclick="selectOpt(this, 'trainer-opt-pref', '#c084fc')" style="background:#1e2430;border:1px solid #c084fc;color:#fff;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">⚖️ Híbrido (Ambos)</button>
-        <button type="button" class="trainer-opt-pref" data-val="maquinas" onclick="selectOpt(this, 'trainer-opt-pref', '#c084fc')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">🏗️ Mais Máquinas</button>
-        <button type="button" class="trainer-opt-pref" data-val="pesos_livres" onclick="selectOpt(this, 'trainer-opt-pref', '#c084fc')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">🏋️ Mais Peso Livre</button>
+    <!-- ETAPA 2: TEMPO DISPONÍVEL POR SESSÃO -->
+    <div id="trainer-step-2" class="trainer-wizard-step" style="display:none;">
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;">2. Quanto tempo você tem para cada treino?</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:16px;">Ajustaremos a quantidade de séries e descansos para caber no seu dia.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="trainer-opt-time" data-val="35-45min" onclick="selectWizardOption(2, 'time', '35-45min', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          ⚡ Expresso (35 a 45 min) <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Foco em alta densidade e compostos</span>
+        </button>
+        <button type="button" class="trainer-opt-time active" data-val="50-65min" onclick="selectWizardOption(2, 'time', '50-65min', this)" style="background:#1e2430;border:1px solid #38bdf8;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          ⏱️ Padrão Completo (50 a 65 min) <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Duração padrão recomendada</span>
+        </button>
+        <button type="button" class="trainer-opt-time" data-val="75-90min" onclick="selectWizardOption(2, 'time', '75-90min', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🔥 Treino Extensivo (75 a 90 min) <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Maior volume e trabalho isolado</span>
+        </button>
       </div>
     </div>
 
-    <!-- 4. Limitações Articulares ou Dores -->
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:#ef4444;margin-bottom:4px;text-transform:uppercase;">4. Possui alguma dor ou limitação?</div>
-      <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;">Selecione para a IA proteger suas articulações:</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="trainer-injuries">
-        <label style="background:#171a23;border:1px solid #2d3748;padding:8px 10px;border-radius:10px;font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" value="lombar" class="inj-check" style="accent-color:#ef4444;"> Coluna / Lombar
+    <!-- ETAPA 3: PREFERÊNCIA DE EQUIPAMENTO (MÁQUINAS VS PESOS LIVRES) -->
+    <div id="trainer-step-3" class="trainer-wizard-step" style="display:none;">
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;">3. Qual é sua preferência de equipamentos?</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:16px;">Podemos priorizar estabilidade em polias/máquinas ou estímulo com pesos livres.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="trainer-opt-pref active" data-val="equilibrado" onclick="selectWizardOption(3, 'equipPref', 'equilibrado', this)" style="background:#1e2430;border:1px solid #c084fc;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          ⚖️ Híbrido Equilibrado <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Combina halteres, barras e aparelhos</span>
+        </button>
+        <button type="button" class="trainer-opt-pref" data-val="maquinas" onclick="selectWizardOption(3, 'equipPref', 'maquinas', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🏗️ Priorizar Máquinas & Polias <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Mais segurança articular e isolamento</span>
+        </button>
+        <button type="button" class="trainer-opt-pref" data-val="pesos_livres" onclick="selectWizardOption(3, 'equipPref', 'pesos_livres', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🏋️ Priorizar Pesos Livres <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">Halteres e barras para força funcional</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ETAPA 4: LIMITAÇÕES OU DORES ARTICULARES -->
+    <div id="trainer-step-4" class="trainer-wizard-step" style="display:none;">
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;">4. Possui alguma dor ou limitação articular?</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:16px;">A IA substituirá exercícios que sobrecarreguem as regiões marcadas.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <label style="background:#171a23;border:1px solid #2d3748;padding:12px;border-radius:12px;display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" value="lombar" class="inj-check" style="accent-color:#ef4444;width:18px;height:18px;"> Coluna / Lombar
         </label>
-        <label style="background:#171a23;border:1px solid #2d3748;padding:8px 10px;border-radius:10px;font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" value="ombro" class="inj-check" style="accent-color:#ef4444;"> Ombro / Manguito
+        <label style="background:#171a23;border:1px solid #2d3748;padding:12px;border-radius:12px;display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" value="ombro" class="inj-check" style="accent-color:#ef4444;width:18px;height:18px;"> Ombro / Manguito
         </label>
-        <label style="background:#171a23;border:1px solid #2d3748;padding:8px 10px;border-radius:10px;font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" value="joelho" class="inj-check" style="accent-color:#ef4444;"> Joelhos
+        <label style="background:#171a23;border:1px solid #2d3748;padding:12px;border-radius:12px;display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" value="joelho" class="inj-check" style="accent-color:#ef4444;width:18px;height:18px;"> Joelhos
         </label>
-        <label style="background:#171a23;border:1px solid #2d3748;padding:8px 10px;border-radius:10px;font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" value="punho_cotovelo" class="inj-check" style="accent-color:#ef4444;"> Punho / Cotovelo
+        <label style="background:#171a23;border:1px solid #2d3748;padding:12px;border-radius:12px;display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" value="punho_cotovelo" class="inj-check" style="accent-color:#ef4444;width:18px;height:18px;"> Punho / Cotovelo
         </label>
+      </div>
+      <button type="button" onclick="goToWizardStep(5)" style="width:100%;background:#38bdf8;color:#0c0e12;border:0;padding:14px;border-radius:14px;font-weight:800;font-size:14px;cursor:pointer;">
+        Continuar para Divisão de Treino ➔
+      </button>
+    </div>
+
+    <!-- ETAPA 5: DIVISÃO DO CICLO -->
+    <div id="trainer-step-5" class="trainer-wizard-step" style="display:none;">
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;">5. Qual estrutura de ciclo você prefere?</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:16px;">O ciclo roda sem travar em dias da semana específicos (você treina quando puder).</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="trainer-opt-split" data-val="ABC" onclick="selectWizardOption(5, 'split', 'ABC', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🔄 Divisão ABC <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">A: Peito/Ombro/Tríceps | B: Costas/Bíceps | C: Pernas</span>
+        </button>
+        <button type="button" class="trainer-opt-split active" data-val="ABCD" onclick="selectWizardOption(5, 'split', 'ABCD', this)" style="background:#1e2430;border:1px solid #f59e0b;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          ⚡ Divisão ABCD <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">A: Peito/Tríceps | B: Costas/Bíceps | C: Pernas | D: Ombros/Abdômen</span>
+        </button>
+        <button type="button" class="trainer-opt-split" data-val="ABCDE" onclick="selectWizardOption(5, 'split', 'ABCDE', this)" style="background:#171a23;border:1px solid #2d3748;color:#fff;padding:14px;border-radius:14px;font-size:14px;font-weight:700;text-align:left;cursor:pointer;">
+          🏆 Divisão ABCDE <span style="font-size:11px;color:#9ca3af;display:block;font-weight:normal;margin-top:2px;">1 grupo muscular específico por dia (máximo foco)</span>
+        </button>
       </div>
     </div>
 
-    <!-- 5. Divisão do Ciclo de Treino -->
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:6px;text-transform:uppercase;">5. Divisão Contínua Desejada:</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="trainer-split-select">
-        <button type="button" class="trainer-opt-split" data-val="ABC" onclick="selectOpt(this, 'trainer-opt-split', '#f59e0b')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">3 Treinos (ABC)</button>
-        <button type="button" class="trainer-opt-split active" data-val="ABCD" onclick="selectOpt(this, 'trainer-opt-split', '#f59e0b')" style="background:#1e2430;border:1px solid #f59e0b;color:#fff;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">4 Treinos (ABCD)</button>
-        <button type="button" class="trainer-opt-split" data-val="ABCDE" onclick="selectOpt(this, 'trainer-opt-split', '#f59e0b')" style="background:#171a23;border:1px solid #2d3748;color:#9ca3af;padding:8px 4px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;">5 Treinos (ABCDE)</button>
-      </div>
-    </div>
-
-    <!-- 6. Sliders de Foco Muscular Prioritário -->
-    <div style="margin-bottom:18px;">
-      <div style="font-size:12px;font-weight:700;color:#a3e635;margin-bottom:4px;text-transform:uppercase;">6. Foco de Desenvolvimento Muscular:</div>
-      <div style="font-size:11px;color:#9ca3af;margin-bottom:10px;">Ajuste o grau de prioridade de cada grupo (1 a 4):</div>
-
-      <div style="display:flex;flex-direction:column;gap:10px;background:#171a23;border-radius:14px;padding:12px;">
+    <!-- ETAPA 6: PRIORIDADE MUSCULAR (SLIDERS COM IMAGEM) -->
+    <div id="trainer-step-6" class="trainer-wizard-step" style="display:none;">
+      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;">6. Avalie a importância de cada músculo</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:14px;">A IA dará ênfase e mais séries para os grupos mais pontuados.</div>
+      <div style="display:flex;flex-direction:column;gap:12px;background:#171a23;border-radius:16px;padding:14px;margin-bottom:20px;">
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:2px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
             <span>🏋️ Peitoral</span>
             <span id="lbl-focus-peito" style="color:#a3e635;">Importante (3/4)</span>
           </div>
           <input type="range" min="1" max="4" value="3" id="rng-peito" oninput="updateFocusLabel('peito', this.value)" style="width:100%;accent-color:#a3e635;">
         </div>
-
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:2px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
             <span>🦅 Costas & Dorsais</span>
             <span id="lbl-focus-costas" style="color:#a3e635;">Importante (3/4)</span>
           </div>
           <input type="range" min="1" max="4" value="3" id="rng-costas" oninput="updateFocusLabel('costas', this.value)" style="width:100%;accent-color:#a3e635;">
         </div>
-
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:2px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
             <span>🦵 Pernas & Glúteos</span>
             <span id="lbl-focus-pernas" style="color:#38bdf8;">Muito Importante (4/4)</span>
           </div>
           <input type="range" min="1" max="4" value="4" id="rng-pernas" oninput="updateFocusLabel('pernas', this.value)" style="width:100%;accent-color:#38bdf8;">
         </div>
-
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:2px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
             <span>🛡️ Ombros</span>
             <span id="lbl-focus-ombros" style="color:#9ca3af;">Moderado (2/4)</span>
           </div>
-          <input type="range" min="1" max="4" value="2" id="rng-ombros" oninput="updateFocusLabel('ombros', this.value)" style="width:100%;accent-color:#f59e0b;">
+          <input type="range" min="1" max="4" value="2" id="rng-ombros" oninput="updateFocusLabel('ombros', this.value)" style="width:100%;accent-color:#9ca3af;">
         </div>
-
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:2px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
             <span>💪 Braços (Bíceps e Tríceps)</span>
             <span id="lbl-focus-bracos" style="color:#a3e635;">Importante (3/4)</span>
           </div>
           <input type="range" min="1" max="4" value="3" id="rng-bracos" oninput="updateFocusLabel('bracos', this.value)" style="width:100%;accent-color:#a3e635;">
         </div>
       </div>
+
+      <button id="btn-generate-ai-plan" type="button" onclick="executeAITrainerPrescription()" style="width:100%;background:linear-gradient(90deg, #a3e635, #38bdf8);color:#0c0e12;border:0;padding:16px;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(163,230,53,0.3);">
+        ✨ Gerar Meu Plano Personalizado Agora
+      </button>
     </div>
 
-    <!-- Botão de Ação -->
-    <button id="btn-generate-ai-plan" onclick="executeAITrainerPrescription()" style="width:100%;background:#a3e635;color:#0c0e12;border:0;padding:14px;border-radius:14px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-      ✨ Gerar Meu Plano Personalizado Agora
-    </button>
+    <!-- Navegação de Voltar -->
+    <div id="trainer-wizard-back-row" style="margin-top:14px;text-align:center;display:none;">
+      <button type="button" onclick="wizardStepBack()" style="background:transparent;border:0;color:#9ca3af;font-size:12px;cursor:pointer;text-decoration:underline;">
+        ← Voltar para a pergunta anterior
+      </button>
+    </div>
+
   </div>
 </div>
 
