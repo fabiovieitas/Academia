@@ -1,5 +1,12 @@
 # 📜 Log de Atualizações & Novidades - openGym (Fábio & Adlai)
 
+## [Versão 1.5.5] - 2026-11-23
+### 🚀 Novidades & Correções Críticas
+- **🔓 Destravamento Definitivo do Scroll Vertical:**
+  - Removido o lock nativo de `body.style.position = 'fixed'` e `overscroll-behavior-y: none`.
+  - Aplicado `position: static !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important;` em `html`, `body`, `#root`, `#app` e `.page`, destravando 100% a rolagem de tela para ver todos os exercícios e cards abaixo do topo.
+  - Otimização do CSS compilado eliminando `overflow-x: clip` que bloqueava o cálculo de scroll em WebViews Android.
+
 ## [Versão 1.5.4] - 2026-11-23
 ### 🚀 Novidades & Correções Críticas
 - **🔓 Destravamento de Rolagem (Scroll Vertical):** Correção completa de `touch-action: pan-y`, `overflow-y: auto` e remoção de restrições de altura fixa no `body` e `#root`, permitindo descer e subir a tela livremente.

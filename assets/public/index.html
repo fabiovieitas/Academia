@@ -782,13 +782,16 @@ html, body {
   touch-action: pan-y !important;
   height: auto !important;
   min-height: 100% !important;
+  position: static !important;
 }
 
-#root, #app, main {
+#root, #app, main, .page, .page-in {
   overflow-x: hidden !important;
   overflow-y: visible !important;
   touch-action: pan-y !important;
   pointer-events: auto !important;
+  height: auto !important;
+  min-height: 100% !important;
 }
 
 /* Barra Superior Fixa e Compacta: Não estoura a largura e não bloqueia toques no app */
@@ -2331,7 +2334,7 @@ window.addEventListener('focus', () => {
    SISTEMA DE ATUALIZAÇÃO AUTOMÁTICA EM TEMPO REAL VIA GITHUB (OTA)
    Nunca mais precisa reinstalar ou enviar APK manualmente para o celular!
 ========================================================================= */
-const CURRENT_APP_BUILD = '1.5.1';
+const CURRENT_APP_BUILD = '1.5.5';
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/fabiovieitas/Academia/main/';
 
 async function checkGitHubLiveUpdate() {
