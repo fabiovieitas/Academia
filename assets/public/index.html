@@ -4,20 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <script>
-  // Bootstrap do Mecanismo OTA (Atualização Direta no APK):
-  // Se houver uma versão mais nova baixada do GitHub no cache local, renderiza-a imediatamente!
-  (function() {
-    try {
-      var cached = localStorage.getItem('opengym_cached_index');
-      if (cached && cached.length > 5000 && !window.__OPEN_GYM_BOOTSTRAPPED__) {
-        window.__OPEN_GYM_BOOTSTRAPPED__ = true;
-        document.open();
-        document.write(cached);
-        document.close();
-        return;
-      }
-    } catch(e) {}
-  })();
+  // Limpeza de cache legado OTA para forçar renderização da versão limpa sem lock
+  try {
+    localStorage.removeItem('opengym_cached_index');
+  } catch(e) {}
 
   // Set direction before first paint so an RTL profile never flashes as LTR.
   // The app re-applies this on every language change (lib/i18n.js setLang).
