@@ -747,7 +747,7 @@ function loadPresetPlan(planKey) {
 <div id="root"></div>
 
 <!-- TELA DE DOWNLOAD INICIAL DE RECURSOS (1ª EXECUÇÃO) -->
-<div id="first-run-downloader" style="display:none;position:fixed;inset:0;background:#0c0e12;z-index:9999999;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;">
+<div id="first-run-downloader" style="display:none !important;pointer-events:none !important;position:fixed;inset:0;background:#0c0e12;z-index:9999999;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;">
   <div style="max-width:380px;width:100%;background:#131720;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:28px 20px;box-shadow:0 20px 50px rgba(0,0,0,0.8);">
     
     <div style="font-size:42px;margin-bottom:12px;animation:pulse 2s infinite ease-in-out;">📦</div>
@@ -774,6 +774,23 @@ function loadPresetPlan(planKey) {
 
 
 <style>
+/* Regras Mestres de Rolagem e Desbloqueio Global */
+html, body {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  height: auto !important;
+  min-height: 100% !important;
+}
+
+#root, #app, main {
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
+}
+
 /* Barra Superior Fixa e Compacta: Não estoura a largura e não bloqueia toques no app */
 #top-profile-bar {
   position: fixed;
@@ -798,12 +815,11 @@ function loadPresetPlan(planKey) {
   overflow: hidden;
   pointer-events: auto;
 }
-/* Espaçamento para o conteúdo do app nunca ficar embaixo da barra */
+/* Espaçamento para o conteúdo do app nunca ficar embaixo da barra nem da tabbar inferior */
 body {
-  padding-top: 52px !important;
+  padding-top: 54px !important;
+  padding-bottom: 90px !important;
   box-sizing: border-box !important;
-  overflow-x: hidden !important;
-  max-width: 100vw !important;
   pointer-events: auto !important;
 }
 #root {
@@ -1086,7 +1102,7 @@ body {
 (function ensureTouchUnblocked() {
   function cleanup() {
     const b = document.getElementById('boot');
-    if (b && (b.classList.contains('out') || b.dataset.leaving || document.getElementById('root')?.children?.length > 0)) {
+    if (b) {
       b.style.display = 'none';
       b.style.pointerEvents = 'none';
       if (b.parentNode) {
@@ -1094,14 +1110,23 @@ body {
       }
     }
     const dl = document.getElementById('first-run-downloader');
-    if (dl && localStorage.getItem('opengym_initial_setup_done')) {
-      dl.style.display = 'none';
-      dl.style.pointerEvents = 'none';
+    if (dl) {
+      // Se não estiver com a barra de progresso em exibição ativa, remove o overlay
+      if (dl.style.display !== 'flex' || localStorage.getItem('opengym_initial_setup_done')) {
+        dl.style.display = 'none';
+        dl.style.pointerEvents = 'none';
+        if (dl.parentNode) {
+          try { dl.parentNode.removeChild(dl); } catch(e) {}
+        }
+      }
     }
   }
+  cleanup();
+  setTimeout(cleanup, 200);
+  setTimeout(cleanup, 600);
   setTimeout(cleanup, 1200);
-  setTimeout(cleanup, 3000);
-  setInterval(cleanup, 4000);
+  setTimeout(cleanup, 2500);
+  setInterval(cleanup, 3000);
 })();
 
 // Garante o carregamento do perfil correto no gym_state_v1 ANTES que o openGym inicialize
@@ -2445,7 +2470,10 @@ async function checkInitialResources() {
   if (isSetupDone) return; // Já baixou na primeira vez!
 
   const modal = document.getElementById('first-run-downloader');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.style.pointerEvents = 'auto';
+  }
 
   const pBar = document.getElementById('dl-progress-bar');
   const pTxt = document.getElementById('dl-percent-text');
@@ -2487,7 +2515,11 @@ async function checkInitialResources() {
 function finishInitialSetup() {
   localStorage.setItem('opengym_initial_setup_done', 'true');
   const modal = document.getElementById('first-run-downloader');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+    modal.style.pointerEvents = 'none';
+    if (modal.parentNode) modal.parentNode.removeChild(modal);
+  }
 }
 
 // Dispara a checagem no primeiro boot

@@ -1,5 +1,10 @@
 # 📜 Log de Atualizações & Novidades - openGym (Fábio & Adlai)
 
+## [Versão 1.5.4] - 2026-11-23
+### 🚀 Novidades & Correções Críticas
+- **🔓 Destravamento de Rolagem (Scroll Vertical):** Correção completa de `touch-action: pan-y`, `overflow-y: auto` e remoção de restrições de altura fixa no `body` e `#root`, permitindo descer e subir a tela livremente.
+- **🛡️ Remoção Imediata de Overlays:** Desativação agressiva de backdrops invisíveis em primeiro plano para garantir que os toques alcancem o conteúdo.
+
 ## [Versão 1.5.3] - 2026-11-23
 ### 🚀 Novidades & Correções Críticas
 - **📱 Barra Superior Compacta (Sem overflow):** Redesenhada com botões compactos e ícones (`[🏋️‍♂️ Fábio | 🏋️‍♀️ Adlai]`, `[📋 Treino IA]`, `[💬 Chat IA]`, `[📊]`, `[🔄]`), eliminando completamente a necessidade de arrastar para o lado.
