@@ -1,5 +1,11 @@
 # 📜 Log de Atualizações & Novidades - openGym (Fábio & Adlai)
 
+## [Versão 1.5.8] - 2026-11-24
+### 🚀 Correção Definitiva de Rolagem Vertical (Scroll & Touch)
+- **🔓 Remoção de Conflito de Containers CSS:** Removidas as sobrescritas de `overflow-x: hidden`, `overflow-y: auto` e `height: auto !important` em `html`, `body`, `#root`, `#app`, `.page` e `.page-in`, que criavam contêineres de rolagem aninhados sem altura livre no Android WebView/Chromium e bloqueavam o arrasto vertical.
+- **📱 Ajuste Fino da Barra Superior:** Redução leve de espaçamentos para caber integralmente em telas de `360px` ou maiores sem cortar ícones e com `z-index` abaixo de modais e tour guiado.
+- **⚡ Reativação da Store em Tempo Real:** Restaurado o vínculo `window.__useStore` no bundle principal para sincronização e troca instantânea entre os perfis Fábio e Adlai.
+
 ## [Versão 1.5.5] - 2026-11-23
 ### 🚀 Novidades & Correções Críticas
 - **🔓 Destravamento Definitivo do Scroll Vertical:**
