@@ -11,7 +11,8 @@ files_to_inject = [
     "assets/public/index.html",
     "assets/public/assets/index-B4q3TEPH.js",
     "assets/public/assets/index-ZRw35rlE.css",
-    "assets/public/assets/useStore-Cw7P0W3T.js"
+    "assets/public/assets/useStore-Cw7P0W3T.js",
+    "assets/public/assets/Settings-DVVmscCy.js"
 ]
 
 for apk in apks:

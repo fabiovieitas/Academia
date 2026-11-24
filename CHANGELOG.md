@@ -1,5 +1,11 @@
 # 📜 Log de Atualizações & Novidades - openGym (Fábio & Adlai)
 
+## [Versão 1.5.9] - 2026-11-24
+### 🔄 Atualização Direta Sempre Ativa no App (OTA + APK Nativo)
+- **⚡ Sistema OTA Seguro com Proteção Anti-Travamento:** Reativada a atualização rápida direta pelo app (`opengym_ota_v2`) com comparação estrita de versão SemVer, validação de HTML íntegro e rollback automático caso alguma versão futura falhe ao carregar.
+- **📲 Instalador Nativo de APK no Botão `🔄`:** Suporte para baixar e abrir o instalador Android diretamente do GitHub Releases ou do servidor local (`sync_server.js`) com verificação SHA-256 para ambas as variantes (`Lite` e `Completa`).
+- **⚙️ Configurações → Sobre:** Atualizado o verificador nativo de versão para consultar `fabiovieitas/Academia` a partir da `v1.5.9`.
+
 ## [Versão 1.5.8] - 2026-11-24
 ### 🚀 Correção Definitiva de Rolagem Vertical (Scroll & Touch)
 - **🔓 Remoção de Conflito de Containers CSS:** Removidas as sobrescritas de `overflow-x: hidden`, `overflow-y: auto` e `height: auto !important` em `html`, `body`, `#root`, `#app`, `.page` e `.page-in`, que criavam contêineres de rolagem aninhados sem altura livre no Android WebView/Chromium e bloqueavam o arrasto vertical.

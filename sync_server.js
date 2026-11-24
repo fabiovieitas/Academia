@@ -5,6 +5,7 @@
  */
 import http from 'node:http';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -241,6 +242,71 @@ const server = http.createServer((req, res) => {
         return res.end(JSON.stringify({ error: e.message }));
       }
     });
+    return;
+  }
+
+  // Endpoints de Atualização de APK Direto pelo App
+  if (url.pathname === '/apk/info' && req.method === 'GET') {
+    try {
+      const variant = (url.searchParams.get('variant') || 'full').toLowerCase();
+      const fileName = variant === 'lite' ? 'openGym-Lite.apk' : 'openGym-Fabio-Adlai.apk';
+      const apkPath = path.join(__dirname, fileName);
+      if (!fs.existsSync(apkPath)) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'APK não encontrado no servidor local' }));
+      }
+      const stat = fs.statSync(apkPath);
+      const changelogPath = path.join(__dirname, 'CHANGELOG.md');
+      let version = '1.5.9';
+      if (fs.existsSync(changelogPath)) {
+        const cl = fs.readFileSync(changelogPath, 'utf-8');
+        const m = cl.match(/\[Versão\s+([0-9.]+)\]/);
+        if (m && m[1]) version = m[1];
+      }
+      if (!globalThis.__apkHashCache) globalThis.__apkHashCache = {};
+      const cached = globalThis.__apkHashCache[fileName];
+      let sha256 = null;
+      if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+        sha256 = cached.sha256;
+      } else {
+        const hash = crypto.createHash('sha256');
+        hash.update(fs.readFileSync(apkPath));
+        sha256 = hash.digest('hex');
+        globalThis.__apkHashCache[fileName] = { mtimeMs: stat.mtimeMs, size: stat.size, sha256 };
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        version,
+        variant,
+        fileName,
+        size: stat.size,
+        sha256,
+        downloadPath: '/apk/download/' + fileName
+      }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  if (url.pathname.startsWith('/apk/download/') && req.method === 'GET') {
+    const fileName = path.basename(url.pathname);
+    if (fileName !== 'openGym-Lite.apk' && fileName !== 'openGym-Fabio-Adlai.apk') {
+      res.writeHead(403, { 'Content-Type': 'text/plain' });
+      return res.end('Forbidden');
+    }
+    const apkPath = path.join(__dirname, fileName);
+    if (!fs.existsSync(apkPath)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      return res.end('APK not found');
+    }
+    const stat = fs.statSync(apkPath);
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.android.package-archive',
+      'Content-Length': stat.size,
+      'Content-Disposition': `attachment; filename="${fileName}"`
+    });
+    fs.createReadStream(apkPath).pipe(res);
     return;
   }
 
